@@ -1,5 +1,6 @@
 package com.darkube.pirate.components
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,35 +16,43 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.darkube.pirate.R
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
+import com.darkube.pirate.utils.CallsRoute
+import com.darkube.pirate.utils.GroupsRoute
+import com.darkube.pirate.utils.HomeRoute
+import com.darkube.pirate.utils.StoriesRoute
 
-data class NavIcon(val description: String, val icon: Int)
+data class NavIcon(
+    val description: String,
+    val icon: Int,
+    val route: Any,
+    val routeName: String,
+)
 
 @Composable
-fun BottomNavBar(tab: Int, onTabChange: (Int) -> Unit) {
+fun BottomNavBar(
+    tab: String,
+    onTabChange: (String) -> Unit,
+    navController: NavController,
+) {
     val barHeight = 68.dp
     val backgroundColor = NavBarBackground
 
     val icons = listOf(
-        NavIcon(description = "Chats", icon = R.drawable.chat_round_line_icon),
-        NavIcon(description = "Groups", icon = R.drawable.users_group_icon),
-        NavIcon(description = "Calls", icon = R.drawable.call_calling_icon),
-        NavIcon(description = "Stories", icon = R.drawable.stories_icons),
+        NavIcon(description = "Chat", icon = R.drawable.chat_round_line_icon, route = HomeRoute, routeName = HomeRoute.javaClass.name),
+        NavIcon(description = "Group", icon = R.drawable.users_group_icon, route = GroupsRoute, routeName = GroupsRoute.javaClass.name),
+        NavIcon(description = "Call", icon = R.drawable.call_calling_icon, route = CallsRoute, routeName = CallsRoute.javaClass.name),
+        NavIcon(description = "Stories", icon = R.drawable.stories_icons, route = StoriesRoute, routeName = StoriesRoute.javaClass.name),
     )
-
-    var activeTab by remember { mutableIntStateOf(tab) }
 
     Column(
         modifier = Modifier
@@ -58,15 +67,15 @@ fun BottomNavBar(tab: Int, onTabChange: (Int) -> Unit) {
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            icons.forEachIndexed { index, navIcon ->
+            icons.forEach { navIcon ->
                 TabIcon(
                     iconDescription = navIcon.description,
                     icon = navIcon.icon,
                     onClick = {
-                        activeTab = index
-                        onTabChange(index)
+                        onTabChange(navIcon.routeName)
+                        navController.navigate(navIcon.route)
                     },
-                    active = activeTab == index,
+                    active = tab == navIcon.routeName,
                 )
             }
         }

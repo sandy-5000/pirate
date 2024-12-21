@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 
 @Composable
-fun Stories(modifier: Modifier = Modifier) {
+fun Stories(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+) {
     Column(
         modifier = Modifier.fillMaxHeight(),
         verticalArrangement = Arrangement.Center,
