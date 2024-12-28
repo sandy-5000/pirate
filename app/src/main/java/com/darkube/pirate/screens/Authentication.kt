@@ -35,7 +35,6 @@ import com.darkube.pirate.R
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
-import com.darkube.pirate.ui.theme.TertiaryBlue
 
 @Composable
 fun Authentication() {
