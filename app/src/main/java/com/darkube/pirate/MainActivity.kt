@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.darkube.pirate.components.AppFloatingActionButton
 import com.darkube.pirate.components.AppTopBar
 import com.darkube.pirate.components.BottomNavBar
+import com.darkube.pirate.screens.Authentication
 import com.darkube.pirate.screens.Home
 import com.darkube.pirate.screens.Group
 import com.darkube.pirate.screens.Call
@@ -46,6 +47,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Screen() {
+    Authentication()
+}
+
+@Composable
+fun MainScreen() {
     var activeTab by remember { mutableStateOf(HomeRoute.javaClass.name) }
     val navController = rememberNavController()
 
