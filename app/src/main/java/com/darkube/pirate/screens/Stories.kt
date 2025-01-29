@@ -24,7 +24,7 @@ fun Stories(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Stories Tab!",
+                text = "Stories",
                 modifier = modifier
             )
         }

@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun Call(
+fun Chat(
     modifier: Modifier = Modifier,
     navController: NavController,
 ) {
@@ -24,7 +24,7 @@ fun Call(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Calls",
+                text = "Chats",
                 modifier = modifier
             )
         }

@@ -21,36 +21,42 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.darkube.pirate.R
+import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.CallsRoute
+import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.GroupsRoute
-import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.StoriesRoute
-
-data class NavIcon(
-    val description: String,
-    val icon: Int,
-    val route: Any,
-    val routeName: String,
-)
+import com.darkube.pirate.utils.getRouteId
 
 @Composable
 fun BottomNavBar(
-    tab: String,
-    onTabChange: (String) -> Unit,
-    navController: NavController,
+    mainViewModel: MainViewModel,
+) {
+    if (
+        mainViewModel.currentScreen == ChatRoute.javaClass.name ||
+        mainViewModel.currentScreen == GroupsRoute.javaClass.name ||
+        mainViewModel.currentScreen == CallsRoute.javaClass.name ||
+        mainViewModel.currentScreen == StoriesRoute.javaClass.name
+    ) {
+        MainBottomNavBar(mainViewModel = mainViewModel)
+    }
+}
+
+@Composable
+fun MainBottomNavBar(
+    mainViewModel: MainViewModel,
 ) {
     val barHeight = 68.dp
     val backgroundColor = NavBarBackground
 
-    val icons = listOf(
-        NavIcon(description = "Chat", icon = R.drawable.chat_round_line_icon, route = HomeRoute, routeName = HomeRoute.javaClass.name),
-        NavIcon(description = "Group", icon = R.drawable.users_group_icon, route = GroupsRoute, routeName = GroupsRoute.javaClass.name),
-        NavIcon(description = "Call", icon = R.drawable.call_calling_icon, route = CallsRoute, routeName = CallsRoute.javaClass.name),
-        NavIcon(description = "Stories", icon = R.drawable.stories_icons, route = StoriesRoute, routeName = StoriesRoute.javaClass.name),
+    val iconsMap = mapOf(
+        "chat" to R.drawable.chat_round_line_icon,
+        "group" to R.drawable.users_group_icon,
+        "call" to R.drawable.call_calling_icon,
+        "stories" to R.drawable.stories_icons,
     )
 
     Column(
@@ -66,17 +72,60 @@ fun BottomNavBar(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            icons.forEach { navIcon ->
-                TabIcon(
-                    iconDescription = navIcon.description,
-                    icon = navIcon.icon,
-                    onClick = {
-                        onTabChange(navIcon.routeName)
-                        navController.navigate(navIcon.route)
-                    },
-                    active = tab == navIcon.routeName,
-                )
-            }
+            TabIcon(
+                iconDescription = "Chat",
+                icon = iconsMap.getOrDefault("chat", R.drawable.tabs_icon),
+                onClick = {
+                    if (ChatRoute.javaClass.name == mainViewModel.currentScreen) {
+                        return@TabIcon
+                    }
+                    while (mainViewModel.navController.currentDestination != null) {
+                        mainViewModel.navController.popBackStack()
+                    }
+                    mainViewModel.navController.navigate(ChatRoute)
+                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                },
+                active = ChatRoute.javaClass.name == mainViewModel.currentScreen,
+            )
+            TabIcon(
+                iconDescription = "Group",
+                icon = iconsMap.getOrDefault("group", R.drawable.tabs_icon),
+                onClick = {
+                    if (GroupsRoute.javaClass.name == mainViewModel.currentScreen) {
+                        return@TabIcon
+                    }
+                    mainViewModel.navController.popBackStack(ChatRoute, false)
+                    mainViewModel.navController.navigate(GroupsRoute)
+                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                },
+                active = GroupsRoute.javaClass.name == mainViewModel.currentScreen,
+            )
+            TabIcon(
+                iconDescription = "Call",
+                icon = iconsMap.getOrDefault("call", R.drawable.tabs_icon),
+                onClick = {
+                    if (CallsRoute.javaClass.name == mainViewModel.currentScreen) {
+                        return@TabIcon
+                    }
+                    mainViewModel.navController.popBackStack(ChatRoute, false)
+                    mainViewModel.navController.navigate(CallsRoute)
+                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                },
+                active = CallsRoute.javaClass.name == mainViewModel.currentScreen,
+            )
+            TabIcon(
+                iconDescription = "Stories",
+                icon = iconsMap.getOrDefault("stories", R.drawable.tabs_icon),
+                onClick = {
+                    if (StoriesRoute.javaClass.name == mainViewModel.currentScreen) {
+                        return@TabIcon
+                    }
+                    mainViewModel.navController.popBackStack(ChatRoute, false)
+                    mainViewModel.navController.navigate(StoriesRoute)
+                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                },
+                active = StoriesRoute.javaClass.name == mainViewModel.currentScreen,
+            )
         }
     }
 }

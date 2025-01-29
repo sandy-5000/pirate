@@ -12,11 +12,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.darkube.pirate.R
+import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
+import com.darkube.pirate.utils.CallsRoute
+import com.darkube.pirate.utils.ChatRoute
+import com.darkube.pirate.utils.GroupsRoute
+import com.darkube.pirate.utils.StoriesRoute
 
 @Composable
-fun AppFloatingActionButton() {
+fun AppFloatingActionButton(
+    mainViewModel: MainViewModel
+) {
+    if (
+        mainViewModel.currentScreen == ChatRoute.javaClass.name ||
+        mainViewModel.currentScreen == GroupsRoute.javaClass.name ||
+        mainViewModel.currentScreen == CallsRoute.javaClass.name ||
+        mainViewModel.currentScreen == StoriesRoute.javaClass.name
+    ) {
+        MainAppFloatingActionButton(mainViewModel = mainViewModel)
+    }
+}
+
+@Composable
+fun MainAppFloatingActionButton(
+    mainViewModel: MainViewModel
+) {
     val borderRadius = 12.dp
     val backgroundColor = PrimaryColor
     val borderColor = NavBarBackground
@@ -24,6 +45,14 @@ fun AppFloatingActionButton() {
     val buttonSize = 52.dp
     val iconSize = 20.dp
     val iconDescription = "New Chat"
+
+    val icon = when (mainViewModel.currentScreen) {
+        ChatRoute.javaClass.name -> R.drawable.pen_icon
+        GroupsRoute.javaClass.name -> R.drawable.add_circle_icon
+        CallsRoute.javaClass.name -> R.drawable.trash_bin_icon
+        StoriesRoute.javaClass.name -> R.drawable.album_icon
+        else -> R.drawable.tabs_icon
+    }
 
     OutlinedIconButton(
         onClick = { /* Handle click */ },
@@ -37,7 +66,7 @@ fun AppFloatingActionButton() {
         border = BorderStroke(2.dp, borderColor)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.pen_icon),
+            painter = painterResource(id = icon),
             contentDescription = iconDescription,
             modifier = Modifier
                 .size(iconSize),

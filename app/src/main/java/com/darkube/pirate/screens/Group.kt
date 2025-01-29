@@ -24,7 +24,7 @@ fun Group(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Pirate Groups",
+                text = "Groups",
                 modifier = modifier
             )
         }

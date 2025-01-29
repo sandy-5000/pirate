@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun Home(
+fun Settings(
     modifier: Modifier = Modifier,
     navController: NavController,
 ) {
@@ -24,7 +24,7 @@ fun Home(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Hello Pirate",
+                text = "Settings",
                 modifier = modifier
             )
         }
