@@ -1,6 +1,8 @@
 package com.darkube.pirate
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -9,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,6 +30,7 @@ import com.darkube.pirate.screens.Stories
 import com.darkube.pirate.ui.theme.PirateTheme
 import com.darkube.pirate.utils.CallsRoute
 import com.darkube.pirate.utils.ChatRoute
+import com.darkube.pirate.utils.DatabaseProvider
 import com.darkube.pirate.utils.GroupsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
@@ -39,29 +42,34 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PirateTheme {
-                Screen()
+                Screen(context = this)
             }
         }
     }
 }
 
 @Composable
-fun Screen() {
-    val flag = true
-    if (flag) {
-        MainScreen()
+fun Screen(context: Context) {
+    val navController = rememberNavController()
+    val database = remember { DatabaseProvider.getInstance(context) }
+    val mainViewModel = MainViewModel(navController = navController, dataBase = database)
+    mainViewModel.setScreen(ChatRoute.javaClass.name)
+    mainViewModel.setAllUserDetails()
+    Auth(mainViewModel = mainViewModel)
+}
+
+@Composable
+fun Auth(mainViewModel: MainViewModel) {
+    Log.d("sandy", mainViewModel.userDetails.getOrDefault("logged_in", "false"))
+    if (mainViewModel.userDetails.getOrDefault("logged_in", "false") == "true") {
+        MainScreen(mainViewModel = mainViewModel)
     } else {
-        Authentication()
+        Authentication(mainViewModel = mainViewModel)
     }
 }
 
-
 @Composable
-fun MainScreen() {
-    val navController = rememberNavController()
-    val mainViewModel = MainViewModel(navController = navController)
-    mainViewModel.setScreen(ChatRoute.javaClass.name)
-
+fun MainScreen(mainViewModel: MainViewModel) {
     fun handleBack() {
         mainViewModel.navController.popBackStack()
         if (ChatRoute.javaClass.name != mainViewModel.currentScreen) {
@@ -78,7 +86,7 @@ fun MainScreen() {
         floatingActionButton = { AppFloatingActionButton(mainViewModel = mainViewModel) }
     ) { innerPadding ->
         NavHost(
-            navController = navController,
+            navController = mainViewModel.navController,
             startDestination = ChatRoute,
         ) {
             composable<ChatRoute> {
@@ -87,7 +95,7 @@ fun MainScreen() {
                 }
                 Chat(
                     modifier = Modifier.padding(innerPadding),
-                    navController = navController,
+                    mainViewModel = mainViewModel,
                 )
             }
             composable<GroupsRoute> {
@@ -96,7 +104,6 @@ fun MainScreen() {
                 }
                 Group(
                     modifier = Modifier.padding(innerPadding),
-                    navController = navController,
                 )
             }
             composable<CallsRoute> {
@@ -105,7 +112,6 @@ fun MainScreen() {
                 }
                 Call(
                     modifier = Modifier.padding(innerPadding),
-                    navController = navController,
                 )
             }
             composable<StoriesRoute> {
@@ -114,7 +120,6 @@ fun MainScreen() {
                 }
                 Stories(
                     modifier = Modifier.padding(innerPadding),
-                    navController = navController,
                 )
             }
             composable<SettingsRoute> {
@@ -123,7 +128,6 @@ fun MainScreen() {
                 }
                 Settings(
                     modifier = Modifier.padding(innerPadding),
-                    navController = navController,
                 )
             }
             composable<ProfileRoute> {
@@ -132,17 +136,8 @@ fun MainScreen() {
                 }
                 Profile(
                     modifier = Modifier.padding(innerPadding),
-                    navController = navController,
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PirateTheme {
-        Screen()
     }
 }

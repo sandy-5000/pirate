@@ -55,7 +55,7 @@ fun AppTopBar(
     val titlePadding = 16.dp
     val iconSize = 20.dp
 
-    val showBackButton = !setOf(
+    val isMainScreen = setOf(
         ChatRoute.javaClass.name,
         GroupsRoute.javaClass.name,
         CallsRoute.javaClass.name,
@@ -75,7 +75,7 @@ fun AppTopBar(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (showBackButton) {
+                if (!isMainScreen) {
                     IconButton(
                         modifier = Modifier.padding(start = titlePadding),
                         onClick = {
@@ -94,10 +94,10 @@ fun AppTopBar(
                 Text(
                     text = titles.getOrDefault(mainViewModel.currentScreen, ""),
                     modifier = Modifier.padding(
-                        start = if (showBackButton) {
-                            0.dp
-                        } else {
+                        start = if (isMainScreen) {
                             titlePadding + titlePadding
+                        } else {
+                            titlePadding
                         }
                     ),
                 )
@@ -108,7 +108,9 @@ fun AppTopBar(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(end = sidesPadding),
         ) {
-            TopBarOptions(mainViewModel = mainViewModel)
+            if (isMainScreen) {
+                TopBarOptions(mainViewModel = mainViewModel)
+            }
         }
     }
 }

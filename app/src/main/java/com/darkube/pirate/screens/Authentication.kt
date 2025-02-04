@@ -32,13 +32,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
+import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
+import kotlinx.coroutines.launch
 
 @Composable
-fun Authentication() {
+fun Authentication(
+    mainViewModel: MainViewModel
+) {
     val backgroundColor = AppBackground
     val eyeOpenIcon = R.drawable.eye_open_icon
     val eyeCloseIcon = R.drawable.eye_closed_icon
@@ -153,7 +158,14 @@ fun Authentication() {
                 .padding(top = 20.dp, bottom = 40.dp),
         ) {
             Button(
-                onClick = {},
+                onClick = {
+                    if (username.trim() == "") {
+                        return@Button
+                    }
+                    mainViewModel.viewModelScope.launch {
+                        mainViewModel.login(username = username)
+                    }
+                },
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = SecondaryBlue,

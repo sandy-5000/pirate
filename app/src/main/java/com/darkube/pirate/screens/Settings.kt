@@ -13,7 +13,6 @@ import androidx.navigation.NavController
 @Composable
 fun Settings(
     modifier: Modifier = Modifier,
-    navController: NavController,
 ) {
     Column(
         modifier = Modifier.fillMaxHeight(),

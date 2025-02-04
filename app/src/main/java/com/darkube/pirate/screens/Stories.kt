@@ -13,7 +13,6 @@ import androidx.navigation.NavController
 @Composable
 fun Stories(
     modifier: Modifier = Modifier,
-    navController: NavController,
 ) {
     Column(
         modifier = Modifier.fillMaxHeight(),
