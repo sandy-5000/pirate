@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -50,6 +51,7 @@ fun Authentication(
     val userIdIcons = R.drawable.user_id_icon
     val shieldIcon = R.drawable.shield_icon
     val loginIcon = R.drawable.login_icon
+
     val iconSize = 20.dp
     val textBoxColor = LightColor
 
@@ -96,7 +98,7 @@ fun Authentication(
                         focusedBorderColor = textBoxColor,
                     ),
                     leadingIcon = {
-                        Image(
+                        Icon(
                             painter = painterResource(id = userIdIcons),
                             contentDescription = "User ID",
                             modifier = Modifier
@@ -123,7 +125,7 @@ fun Authentication(
                         focusedBorderColor = textBoxColor,
                     ),
                     leadingIcon = {
-                        Image(
+                        Icon(
                             painter = painterResource(id = shieldIcon),
                             contentDescription = "Shield",
                             modifier = Modifier
@@ -135,7 +137,7 @@ fun Authentication(
                             onClick = { showPasswd = !showPasswd },
                             border = BorderStroke(0.dp, Color.Transparent)
                         ) {
-                            Image(
+                            Icon(
                                 painter = painterResource(
                                     id = if (showPasswd) {
                                         eyeCloseIcon
@@ -172,11 +174,12 @@ fun Authentication(
                 )
             ) {
                 Row {
-                    Image(
+                    Icon(
                         painter = painterResource(id = loginIcon),
                         contentDescription = "User ID",
                         modifier = Modifier
                             .size(iconSize),
+                        tint = backgroundColor
                     )
                     Spacer(modifier = Modifier.size(4.dp))
                     Text(

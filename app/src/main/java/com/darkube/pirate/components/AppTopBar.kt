@@ -1,7 +1,6 @@
 package com.darkube.pirate.components
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +27,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.utils.CallsRoute
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.GroupsRoute
@@ -54,6 +54,7 @@ fun AppTopBar(
     val sidesPadding = 18.dp
     val titlePadding = 16.dp
     val iconSize = 20.dp
+    val backGroundColor = AppBackground
 
     val isMainScreen = setOf(
         ChatRoute.javaClass.name,
@@ -65,12 +66,13 @@ fun AppTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(color = backGroundColor)
             .padding(top = topPadding)
             .height(barHeight),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column() {
+        Column {
             Row(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
@@ -83,7 +85,7 @@ fun AppTopBar(
                             mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                         }
                     ) {
-                        Image(
+                        Icon(
                             painter = painterResource(id = R.drawable.arrow_left_icon),
                             contentDescription = "Back",
                             modifier = Modifier

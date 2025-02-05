@@ -1,6 +1,5 @@
 package com.darkube.pirate.models
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import com.darkube.pirate.types.UserDetails
+import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.getRouteId
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +25,8 @@ class MainViewModel(
     var currentScreen by mutableStateOf(getRouteId(null))
         private set
 
-    private val _userDetails = MutableStateFlow<Map<String, String>>(emptyMap())
-    val userDetails: StateFlow<Map<String, String>> = _userDetails.asStateFlow()
+    private val _userState = MutableStateFlow(mapOf("logged_in" to "loading"))
+    val userState: StateFlow<Map<String, String>> = _userState.asStateFlow()
 
     fun navigate(route: NavDestination, flag: Boolean = false) {
         if (flag) {
@@ -39,14 +39,13 @@ class MainViewModel(
         currentScreen = routeName
     }
 
-    fun isUserLoggedIn(): Boolean {
-        return _userDetails.value.getOrDefault("logged_in", "false") == "true"
-    }
-
     fun setAllUserDetails() {
         viewModelScope.launch {
             val userDetailsList = dataBase.userDetailsDao.getAll().first()
-            _userDetails.value = userDetailsList.associate { it.key to it.value }
+            val userDetailsMap = userDetailsList.associate { it.key to it.value }.toMutableMap()
+            val loginStatus = userDetailsMap["logged_in"] ?: "false"
+            userDetailsMap["logged_in"] = loginStatus
+            _userState.value = userDetailsMap
         }
     }
 
@@ -59,6 +58,11 @@ class MainViewModel(
     suspend fun logout() {
         dataBase.userDetailsDao.delete(key = "user_name")
         dataBase.userDetailsDao.delete(key = "logged_in")
+        while (navController.currentDestination != null) {
+            navController.popBackStack()
+        }
+        navController.navigate(ChatRoute)
+        setScreen(getRouteId(navController.currentDestination))
         setAllUserDetails()
     }
 }

@@ -1,9 +1,9 @@
 package com.darkube.pirate.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.runtime.Composable
@@ -65,7 +65,7 @@ fun MainAppFloatingActionButton(
         shape = RoundedCornerShape(borderRadius),
         border = BorderStroke(2.dp, borderColor)
     ) {
-        Image(
+        Icon(
             painter = painterResource(id = icon),
             contentDescription = iconDescription,
             modifier = Modifier

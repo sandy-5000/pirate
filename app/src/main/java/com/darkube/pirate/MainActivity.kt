@@ -2,11 +2,14 @@ package com.darkube.pirate
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -21,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.darkube.pirate.components.AppFloatingActionButton
 import com.darkube.pirate.components.AppTopBar
 import com.darkube.pirate.components.BottomNavBar
+import com.darkube.pirate.components.Loading
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.screens.Authentication
 import com.darkube.pirate.screens.Call
@@ -62,8 +66,10 @@ fun Screen(context: Context) {
 
 @Composable
 fun Auth(mainViewModel: MainViewModel) {
-    val userDetails by mainViewModel.userDetails.collectAsState()
-    if (userDetails.getOrDefault("logged_in", "false") == "true") {
+    val userState by mainViewModel.userState.collectAsState()
+    if (userState.getOrDefault("logged_in", "false") == "loading") {
+        Loading()
+    } else if (userState.getOrDefault("logged_in", "false") == "true") {
         MainScreen(mainViewModel = mainViewModel)
     } else {
         Authentication(mainViewModel = mainViewModel)
@@ -90,6 +96,10 @@ fun MainScreen(mainViewModel: MainViewModel) {
         NavHost(
             navController = mainViewModel.navController,
             startDestination = ChatRoute,
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }) + fadeIn() },
+            exitTransition = { fadeOut() },
+            popEnterTransition = { fadeIn() },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) + fadeOut() },
         ) {
             composable<ChatRoute> {
                 BackHandler {
@@ -130,6 +140,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
                 }
                 Settings(
                     modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
                 )
             }
             composable<ProfileRoute> {
