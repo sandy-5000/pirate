@@ -11,19 +11,22 @@ import androidx.navigation.NavHostController
 import com.darkube.pirate.types.UserDetails
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.getRouteId
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainViewModel(
     val navController: NavHostController,
     private val dataBase: DataBase,
-): ViewModel() {
+) : ViewModel() {
 
     var currentScreen by mutableStateOf(getRouteId(null))
         private set
 
-    var userDetails by mutableStateOf(mapOf<String, String>())
-        private set
-
+    private val _userDetails = MutableStateFlow<Map<String, String>>(emptyMap())
+    val userDetails: StateFlow<Map<String, String>> = _userDetails.asStateFlow()
 
     fun navigate(route: NavDestination, flag: Boolean = false) {
         if (flag) {
@@ -37,20 +40,14 @@ class MainViewModel(
     }
 
     fun isUserLoggedIn(): Boolean {
-        return userDetails.getOrDefault("logged_in", "false") == "true"
+        return _userDetails.value.getOrDefault("logged_in", "false") == "true"
     }
 
     fun setAllUserDetails() {
-        val userDetails = mutableMapOf<String, String>()
         viewModelScope.launch {
-            dataBase.userDetailsDao.getAll().collect { userDetailsList ->
-                userDetailsList.forEach { userDetail ->
-                    Log.d("sandy", userDetail.key + " " + userDetail.value)
-                    userDetails[userDetail.key] = userDetail.value
-                }
-            }
+            val userDetailsList = dataBase.userDetailsDao.getAll().first()
+            _userDetails.value = userDetailsList.associate { it.key to it.value }
         }
-        this.userDetails = userDetails
     }
 
     suspend fun login(username: String) {

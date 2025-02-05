@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
@@ -60,8 +62,8 @@ fun Screen(context: Context) {
 
 @Composable
 fun Auth(mainViewModel: MainViewModel) {
-    Log.d("sandy", mainViewModel.userDetails.getOrDefault("logged_in", "false"))
-    if (mainViewModel.userDetails.getOrDefault("logged_in", "false") == "true") {
+    val userDetails by mainViewModel.userDetails.collectAsState()
+    if (userDetails.getOrDefault("logged_in", "false") == "true") {
         MainScreen(mainViewModel = mainViewModel)
     } else {
         Authentication(mainViewModel = mainViewModel)
