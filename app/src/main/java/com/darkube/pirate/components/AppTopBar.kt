@@ -135,36 +135,60 @@ fun TopBarOptions(
         onDismissRequest = { expanded = false },
         modifier = Modifier
             .width(screenWidth * 0.5f)
-            .background(NavBarBackground)
-            .padding(start = 8.dp, end = 32.dp)
+            .background(NavBarBackground),
     ) {
         DropdownMenuItem(
-            text = { Text("New group") },
+            text = {
+                Text(
+                    "New group",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
             onClick = {
                 Toast.makeText(context, "New group", Toast.LENGTH_SHORT).show()
                 expanded = false
             })
         DropdownMenuItem(
-            text = { Text("Invite friends") },
+            text = {
+                Text(
+                    "Invite friends",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
             onClick = {
                 Toast.makeText(context, "Invite friends", Toast.LENGTH_SHORT).show()
                 expanded = false
             })
         DropdownMenuItem(
-            text = { Text("Mark all read") },
+            text = {
+                Text(
+                    "Mark all read",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
             onClick = {
                 Toast.makeText(context, "Mark all read", Toast.LENGTH_SHORT).show()
                 expanded = false
             })
         DropdownMenuItem(
-            text = { Text("Profile") },
+            text = {
+                Text(
+                    "Profile",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
             onClick = {
                 mainViewModel.navController.navigate(ProfileRoute)
                 mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                 expanded = false
             })
         DropdownMenuItem(
-            text = { Text("Settings") },
+            text = {
+                Text(
+                    "Settings",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
             onClick = {
                 mainViewModel.navController.navigate(SettingsRoute)
                 mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
