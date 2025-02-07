@@ -1,26 +1,25 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { NestExpressApplication } from '@nestjs/platform-express'
-// import { join } from 'path'
+import { join } from 'path'
 import { Request, Response, NextFunction } from 'express'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
-  // app.useStaticAssets(join(__dirname, '..', '..', 'dist'))
+  app.useStaticAssets(join(__dirname, '..', 'views'))
 
-  // app.set('views', join(__dirname, '..', '..', 'dist'))
-  // app.set('view engine', 'html')
+  app.set('views', join(__dirname, '..', 'views'))
+  app.set('view engine', 'html')
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (!req.url.startsWith('/api')) {
-      // res.sendFile(join(__dirname, '..', '..', 'dist', 'index.html'), (err) => {
-      //   if (err) {
-      //     console.error('Error sending file:', err)
-      //     res.status(500).send('Internal Server Error')
-      //   }
-      // })
-      res.status(405).send('Method Not Allowed')
+      res.sendFile(join(__dirname, '..', 'views', 'index.html'), (err) => {
+        if (err) {
+          console.error('Error sending file:', err)
+          res.status(500).send('Internal Server Error')
+        }
+      })
     } else {
       next()
     }

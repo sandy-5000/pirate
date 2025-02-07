@@ -7,7 +7,7 @@ export class ApiController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  freezer(): object {
+  pirate(): object {
     return this.rootApiService.getMessage()
   }
 }
