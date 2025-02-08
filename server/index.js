@@ -3,6 +3,7 @@ import cors from 'cors'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import userController from '#~/controllers/user.controller'
+import { ERRORS } from '#~/utils/error.types'
 dotenv.config()
 
 const app = express()
@@ -23,7 +24,7 @@ app.use('/api/user', userController)
 
 app.use('*', (_, res) =>
   res.status(403).json({
-    message: 'Method Not Allowed',
+    error: ERRORS.METHOD_NOT_ALLOWED,
   }),
 )
 
