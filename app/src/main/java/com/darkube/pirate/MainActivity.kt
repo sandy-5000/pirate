@@ -26,7 +26,7 @@ import com.darkube.pirate.components.AppTopBar
 import com.darkube.pirate.components.BottomNavBar
 import com.darkube.pirate.components.Loading
 import com.darkube.pirate.models.MainViewModel
-import com.darkube.pirate.screens.Authentication
+import com.darkube.pirate.screens.authentication.Authentication
 import com.darkube.pirate.screens.Call
 import com.darkube.pirate.screens.Chat
 import com.darkube.pirate.screens.Group

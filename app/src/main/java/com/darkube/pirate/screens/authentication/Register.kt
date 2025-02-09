@@ -1,4 +1,4 @@
-package com.darkube.pirate.screens.authenticate
+package com.darkube.pirate.screens.authentication
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
@@ -40,8 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
+import com.darkube.pirate.components.ErrorMessage
 import com.darkube.pirate.models.MainViewModel
-import com.darkube.pirate.screens.AuthenticatePage
+import com.darkube.pirate.types.AuthenticatePage
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.GreenColor
 import com.darkube.pirate.ui.theme.LightColor
@@ -519,9 +520,6 @@ fun Register(
                             if (!isValidConfirmPasswd || confirmPasswd.isEmpty()) {
                                 return@Button
                             }
-                            mainViewModel.viewModelScope.launch {
-                                mainViewModel.login(username = "sandyblaze")
-                            }
                         },
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -547,18 +545,6 @@ fun Register(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ErrorMessage(flag: Boolean, message: String) {
-    AnimatedVisibility(flag) {
-        Text(
-            message,
-            color = RedColor,
-            fontSize = 13.sp,
-            modifier = Modifier.fillMaxWidth(0.8f),
-        )
     }
 }
 

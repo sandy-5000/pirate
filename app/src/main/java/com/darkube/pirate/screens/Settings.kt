@@ -1,7 +1,6 @@
 package com.darkube.pirate.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -42,7 +40,10 @@ fun Settings(
 ) {
     val userState by mainViewModel.userState.collectAsState()
     val scrollState = rememberScrollState()
-    val userName = userState.getOrDefault("user_name", "pirate")
+    val firstName = userState.getOrDefault("first_name", "pirate")
+    val lastName = userState.getOrDefault("last_name", "")
+    val email = userState.getOrDefault("email", "pirate@ship.com")
+    val username = userState.getOrDefault("username", "pirate")
 
     val topPadding = 68.dp
     val padding = 24.dp
@@ -89,19 +90,19 @@ fun Settings(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = "Sandy Blaze",
+                    text = "$firstName $lastName",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "+91 00000 00000",
+                    text = email,
                     color = Color.LightGray,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal
                 )
                 Text(
-                    text = userName,
+                    text = username,
                     color = Color.LightGray,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal

@@ -1,4 +1,4 @@
-package com.darkube.pirate.screens.authenticate
+package com.darkube.pirate.screens.authentication
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -37,14 +37,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
+import com.darkube.pirate.components.ErrorMessage
+import com.darkube.pirate.components.UnderLoading
 import com.darkube.pirate.models.MainViewModel
-import com.darkube.pirate.screens.AuthenticatePage
+import com.darkube.pirate.types.AuthenticatePage
+import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
 import com.darkube.pirate.utils.fetch
 import kotlinx.coroutines.launch
-
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 @Composable
 fun Login(
@@ -65,8 +73,8 @@ fun Login(
     var username by remember { mutableStateOf("") }
     var passwd by remember { mutableStateOf("") }
     var showPasswd by remember { mutableStateOf(false) }
-
-    fetch("/api")
+    var loginError by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -96,7 +104,10 @@ fun Login(
                 OutlinedTextField(
                     value = username,
                     singleLine = true,
-                    onValueChange = { username = it },
+                    onValueChange = {
+                        loginError = ""
+                        username = it
+                    },
                     label = { Text("Username") },
                     placeholder = { Text("Enter your Username") },
                     modifier = Modifier
@@ -122,7 +133,10 @@ fun Login(
                 OutlinedTextField(
                     value = passwd,
                     singleLine = true,
-                    onValueChange = { passwd = it },
+                    onValueChange = {
+                        loginError = ""
+                        passwd = it
+                    },
                     label = { Text("Password") },
                     placeholder = { Text("Enter your Password") },
                     modifier = Modifier
@@ -166,6 +180,8 @@ fun Login(
                     }
                 )
             }
+            UnderLoading(loading, "Logging In...")
+            ErrorMessage(loginError.isNotEmpty(), loginError)
         }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -212,13 +228,33 @@ fun Login(
             }
             Button(
                 onClick = {
-                    if (username.trim() == "") {
+                    if (username.trim() == "" || passwd.isEmpty()) {
                         return@Button
                     }
-                    mainViewModel.viewModelScope.launch {
-                        mainViewModel.login(username = username)
+                    loading = true
+                    val body = buildJsonObject {
+                        put("username", username.trim())
+                        put("passwd", passwd)
                     }
+                    fetch(
+                        url = "/api/user/login",
+                        callback = { response: JsonElement ->
+                            val error = response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                            if (error == "__ERROR__") {
+                                passwd = ""
+                                loading = false
+                                loginError = "User Doesn't Exists or Incorrect Credentials"
+                                return@fetch
+                            }
+                            mainViewModel.viewModelScope.launch {
+                                mainViewModel.login(userDetails = response)
+                            }
+                        },
+                        type = RequestType.POST,
+                        body = body,
+                    )
                 },
+                enabled = !loading,
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = SecondaryBlue,

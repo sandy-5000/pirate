@@ -1,11 +1,11 @@
-package com.darkube.pirate.screens.authenticate
+package com.darkube.pirate.screens.authentication
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -30,35 +31,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
-import com.darkube.pirate.screens.AuthenticatePage
+import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.AuthenticatePage
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
-import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
+import kotlinx.coroutines.launch
 
 
 @Composable
-fun OTPScreen(
+fun NewPassword(
+    mainViewModel: MainViewModel,
     setAuthenticatePage: (AuthenticatePage) -> Unit,
 ) {
     val backgroundColor = AppBackground
-    val navButtonColor = PrimaryColor
-
-    val mailIcon = R.drawable.mail_icon
-    val keyIcon = R.drawable.key_square_icon
-    val sendIcon = R.drawable.map_arrow_square_icon
-    val submitIcon = R.drawable.recive_square_icon
+    val eyeOpenIcon = R.drawable.eye_open_icon
+    val eyeCloseIcon = R.drawable.eye_closed_icon
+    val shieldIcon = R.drawable.shield_icon
+    val shieldCheckIcon = R.drawable.shield_check_icon
+    val changePasswdIcon = R.drawable.key_square_2_icon
     val returnIcon = R.drawable.undo_left_icon
 
     val iconSize = 20.dp
     val textBoxColor = LightColor
 
-    var email by remember { mutableStateOf("") }
-    var otp by remember { mutableStateOf("") }
+    var newPasswd by remember { mutableStateOf("") }
+    var confirmPasswd by remember { mutableStateOf("") }
+    var showPasswd by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -86,25 +91,49 @@ fun OTPScreen(
                 modifier = Modifier.fillMaxWidth(0.8f),
             ) {
                 OutlinedTextField(
-                    value = email,
+                    value = newPasswd,
                     singleLine = true,
-                    onValueChange = { email = it },
-                    label = { Text("Recovery Email") },
-                    placeholder = { Text("Enter your Recovery Email") },
+                    onValueChange = { newPasswd = it },
+                    label = { Text("New Password") },
+                    placeholder = { Text("Enter New Password") },
                     modifier = Modifier
                         .padding(bottom = 4.dp)
                         .fillMaxWidth(),
+                    visualTransformation = if (showPasswd) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         focusedBorderColor = textBoxColor,
                     ),
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = mailIcon),
-                            contentDescription = "User Email",
+                            painter = painterResource(id = shieldIcon),
+                            contentDescription = "Shield",
                             modifier = Modifier
                                 .size(iconSize),
                         )
+                    },
+                    trailingIcon = {
+                        OutlinedIconButton(
+                            onClick = { showPasswd = !showPasswd },
+                            border = BorderStroke(0.dp, Color.Transparent)
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    id = if (showPasswd) {
+                                        eyeCloseIcon
+                                    } else {
+                                        eyeOpenIcon
+                                    }
+                                ),
+                                contentDescription = "Password visibility",
+                                modifier = Modifier
+                                    .size(iconSize),
+                            )
+                        }
                     }
                 )
             }
@@ -112,11 +141,11 @@ fun OTPScreen(
                 modifier = Modifier.fillMaxWidth(0.8f),
             ) {
                 OutlinedTextField(
-                    value = otp,
+                    value = confirmPasswd,
                     singleLine = true,
-                    onValueChange = { otp = it },
-                    label = { Text("Enter OTP") },
-                    placeholder = { Text("Enter your OTP") },
+                    onValueChange = { confirmPasswd = it },
+                    label = { Text("Confirm Password") },
+                    placeholder = { Text("Confirm your Password") },
                     modifier = Modifier
                         .padding(bottom = 4.dp)
                         .fillMaxWidth(),
@@ -127,7 +156,7 @@ fun OTPScreen(
                     ),
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(id = keyIcon),
+                            painter = painterResource(id = shieldCheckIcon),
                             contentDescription = "Shield",
                             modifier = Modifier
                                 .size(iconSize),
@@ -165,61 +194,29 @@ fun OTPScreen(
                     })
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Button(
-                    onClick = {
+            Button(
+                onClick = {
 
-                    },
-                    shape = RoundedCornerShape(4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = navButtonColor,
-                    ),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
-                ) {
-                    Row {
-                        Text(
-                            "Send OTP",
-                            fontSize = 15.sp,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Icon(
-                            painter = painterResource(id = sendIcon),
-                            contentDescription = "Send OTP",
-                            modifier = Modifier
-                                .size(iconSize),
-                            tint = Color.White,
-                        )
-                    }
-                }
-                Button(
-                    onClick = {
-                        setAuthenticatePage(AuthenticatePage.NEW_PASSWORD)
-                    },
-                    shape = RoundedCornerShape(4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SecondaryBlue,
-                    ),
-                ) {
-                    Row {
-                        Text(
-                            "Submit",
-                            fontSize = 15.sp,
-                            color = backgroundColor
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Icon(
-                            painter = painterResource(id = submitIcon),
-                            contentDescription = "Submit",
-                            modifier = Modifier
-                                .size(iconSize),
-                            tint = backgroundColor
-                        )
-                    }
+                },
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SecondaryBlue,
+                )
+            ) {
+                Row {
+                    Icon(
+                        painter = painterResource(id = changePasswdIcon),
+                        contentDescription = "Change Password",
+                        modifier = Modifier
+                            .size(iconSize),
+                        tint = backgroundColor
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        "Change Password",
+                        fontSize = 15.sp,
+                        color = backgroundColor
+                    )
                 }
             }
         }

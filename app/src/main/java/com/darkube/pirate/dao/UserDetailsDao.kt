@@ -11,6 +11,9 @@ interface UserDetailsDao {
     @Upsert
     suspend fun update(detail: UserDetails)
 
+    @Query("DELETE from user_details")
+    suspend fun deleteAll()
+
     @Query("DELETE from user_details where `key` = :key")
     suspend fun delete(key: String)
 

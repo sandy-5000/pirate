@@ -16,6 +16,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class MainViewModel(
     val navController: NavHostController,
@@ -49,15 +53,27 @@ class MainViewModel(
         }
     }
 
-    suspend fun login(username: String) {
-        dataBase.userDetailsDao.update(UserDetails(key = "user_name", value = username))
+    suspend fun login(userDetails: JsonElement) {
+        val userId = userDetails.jsonObject["_id"]?.jsonPrimitive?.contentOrNull ?: ""
+        val firstName = userDetails.jsonObject["first_name"]?.jsonPrimitive?.contentOrNull ?: ""
+        val lastName = userDetails.jsonObject["last_name"]?.jsonPrimitive?.contentOrNull ?: ""
+        val username = userDetails.jsonObject["username"]?.jsonPrimitive?.contentOrNull ?: ""
+        val email = userDetails.jsonObject["email"]?.jsonPrimitive?.contentOrNull ?: ""
+        val bio = userDetails.jsonObject["bio"]?.jsonPrimitive?.contentOrNull ?: ""
+        val token = userDetails.jsonObject["token"]?.jsonPrimitive?.contentOrNull ?: ""
+        dataBase.userDetailsDao.update(UserDetails(key = "_id", value = userId))
+        dataBase.userDetailsDao.update(UserDetails(key = "first_name", value = firstName))
+        dataBase.userDetailsDao.update(UserDetails(key = "last_name", value = lastName))
+        dataBase.userDetailsDao.update(UserDetails(key = "username", value = username))
+        dataBase.userDetailsDao.update(UserDetails(key = "email", value = email))
+        dataBase.userDetailsDao.update(UserDetails(key = "bio", value = bio))
+        dataBase.userDetailsDao.update(UserDetails(key = "token", value = token))
         dataBase.userDetailsDao.update(UserDetails(key = "logged_in", value = "true"))
         setAllUserDetails()
     }
 
     suspend fun logout() {
-        dataBase.userDetailsDao.delete(key = "user_name")
-        dataBase.userDetailsDao.delete(key = "logged_in")
+        dataBase.userDetailsDao.deleteAll()
         while (navController.currentDestination != null) {
             navController.popBackStack()
         }

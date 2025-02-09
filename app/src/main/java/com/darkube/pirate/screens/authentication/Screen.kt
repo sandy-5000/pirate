@@ -1,4 +1,4 @@
-package com.darkube.pirate.screens
+package com.darkube.pirate.screens.authentication
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -6,14 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.darkube.pirate.models.MainViewModel
-import com.darkube.pirate.screens.authenticate.Login
-import com.darkube.pirate.screens.authenticate.NewPassword
-import com.darkube.pirate.screens.authenticate.OTPScreen
-import com.darkube.pirate.screens.authenticate.Register
-
-enum class AuthenticatePage {
-    LOGIN, REGISTER, OTP, NEW_PASSWORD
-}
+import com.darkube.pirate.types.AuthenticatePage
 
 @Composable
 fun Authentication(
