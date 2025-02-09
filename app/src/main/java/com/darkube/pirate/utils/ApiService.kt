@@ -21,7 +21,7 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://darkube.onrender.com"
+    private const val BASE_URL = "https://the-pirate-api.onrender.com"
 
     private val json = Json {
         ignoreUnknownKeys = true
