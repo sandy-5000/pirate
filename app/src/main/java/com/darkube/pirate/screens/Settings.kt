@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
@@ -35,15 +36,16 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Settings(
-    modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
 ) {
     val userState by mainViewModel.userState.collectAsState()
     val scrollState = rememberScrollState()
     val firstName = userState.getOrDefault("first_name", "pirate")
     val lastName = userState.getOrDefault("last_name", "")
+    val fullName = "$firstName $lastName".trim()
     val email = userState.getOrDefault("email", "pirate@ship.com")
     val username = userState.getOrDefault("username", "pirate")
+    val userBio = userState.getOrDefault("bio", "")
 
     val topPadding = 68.dp
     val padding = 24.dp
@@ -89,24 +91,42 @@ fun Settings(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(
-                    text = "$firstName $lastName",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                if (fullName.isNotEmpty()) {
+                    Text(
+                        text = fullName,
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Text(
                     text = email,
                     color = Color.LightGray,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = username,
                     color = Color.LightGray,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
+                if (userBio.isNotEmpty()) {
+                    Text(
+                        text = userBio,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.padding(12.dp))

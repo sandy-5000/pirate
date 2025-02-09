@@ -43,13 +43,21 @@ import com.darkube.pirate.R
 import com.darkube.pirate.components.ErrorMessage
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.AuthenticatePage
+import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.GreenColor
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
+import com.darkube.pirate.utils.fetch
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 enum class Status {
     AVAILABLE, NOT_AVAILABLE, LOADING
@@ -95,7 +103,50 @@ fun Register(
     var isUsernameAvailable by remember { mutableStateOf(Status.AVAILABLE) }
     var isEmailAvailable by remember { mutableStateOf(Status.AVAILABLE) }
 
-    var step by remember { mutableIntStateOf(1) } 
+    var loading by remember { mutableStateOf(false) }
+    var registerError by remember { mutableStateOf("") }
+
+    var step by remember { mutableIntStateOf(1) }
+
+    // TODO: implement DeBounce
+    val checkAvailability = { type: String ->
+        var makeCall = step == 2
+        var url = "/api/user/search/"
+        if (type == "username") {
+            isUsernameAvailable = Status.LOADING
+            url = "api/user/search/$username"
+            if (username.isEmpty() || !isValidUsername) {
+                makeCall = false
+            }
+        } else if (type == "email") {
+            isEmailAvailable = Status.LOADING
+            url = "api/user/search/$email?type=email"
+            if (email.isEmpty() || !isValidEmail) {
+                makeCall = false
+            }
+        }
+        if (makeCall) {
+            fetch(
+                url = url,
+                callback = { response: JsonElement ->
+                    val error = response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                    if (error == "__ERROR__") {
+                        isEmailAvailable = Status.NOT_AVAILABLE
+                        return@fetch
+                    }
+                    val flag = response.jsonObject["flag"]?.jsonPrimitive?.contentOrNull ?: "true"
+                    if (type == "username") {
+                        isUsernameAvailable =
+                            if (flag == "true") Status.NOT_AVAILABLE else Status.AVAILABLE
+                    } else {
+                        isEmailAvailable =
+                            if (flag == "true") Status.NOT_AVAILABLE else Status.AVAILABLE
+                    }
+                },
+                type = RequestType.GET,
+            )
+        }
+    }
 
     val prevStep = {
         step = (step - 1).coerceAtLeast(1)
@@ -202,6 +253,7 @@ fun Register(
                                 if (it.length < 64) {
                                     isValidUsername = it.isEmpty() || regex.matches(it)
                                     username = it
+                                    checkAvailability("username")
                                 }
                             },
                             isError = !isValidUsername,
@@ -248,6 +300,7 @@ fun Register(
                                 if (it.length < 294) {
                                     isValidEmail = it.isEmpty() || regex.matches(it)
                                     email = it
+                                    checkAvailability("email")
                                 }
                             },
                             isError = !isValidEmail,
@@ -520,7 +573,34 @@ fun Register(
                             if (!isValidConfirmPasswd || confirmPasswd.isEmpty()) {
                                 return@Button
                             }
+                            loading = true
+                            val body = buildJsonObject {
+                                put("first_name", firstName.trim())
+                                put("last_name", lastName.trim())
+                                put("username", username.trim())
+                                put("email", email.trim())
+                                put("passwd", passwd)
+                            }
+
+                            fetch(
+                                url = "/api/user/register",
+                                callback = { response: JsonElement ->
+                                    val error = response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                                    if (error == "__ERROR__") {
+                                        passwd = ""
+                                        loading = false
+                                        registerError = "An Error Occurred During Register."
+                                        return@fetch
+                                    }
+                                    mainViewModel.viewModelScope.launch {
+                                        mainViewModel.login(userDetails = response)
+                                    }
+                                },
+                                type = RequestType.POST,
+                                body = body,
+                            )
                         },
+                        enabled = !loading,
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = SecondaryBlue,

@@ -139,7 +139,6 @@ fun MainScreen(mainViewModel: MainViewModel) {
                     handleBack()
                 }
                 Settings(
-                    modifier = Modifier.padding(innerPadding),
                     mainViewModel = mainViewModel,
                 )
             }
