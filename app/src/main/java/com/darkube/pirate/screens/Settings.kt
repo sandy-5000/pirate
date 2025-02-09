@@ -50,7 +50,7 @@ fun Settings(
     val imageSize = 92.dp
     val logoutButtonColor = RedColor
 
-    val accountIcon = R.drawable.user_id_icon
+    val accountIcon = R.drawable.user_icon
     val ratingIcon = R.drawable.heart_icon
     val appearanceIcon = R.drawable.sun_icon
     val chatIcon = R.drawable.chat_round_line_icon
@@ -60,7 +60,7 @@ fun Settings(
     val dataAndStorageIcon = R.drawable.pie_icon
     val helpIcon = R.drawable.question_icon
     val inviteFriendsIcon = R.drawable.mail_icon
-    val logoutIcon = R.drawable.logout_icon
+    val logoutIcon = R.drawable.exit_icon
 
     Column(
         modifier = Modifier

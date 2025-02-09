@@ -4,10 +4,12 @@ const userSchema = new mongoose.Schema({
   first_name: {
     type: String,
     default: '',
+    maxlength: 255,
   },
   last_name: {
     type: String,
     default: '',
+    maxlength: 255,
   },
   username: {
     type: String,
@@ -24,7 +26,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'email is a required field'],
     validate: {
       validator: function (v) {
-        return /^[a-zA-Z0-9\.]{1,64}@[a-zA-Z0-9]{2,255}.com$/.test(v)
+        return /^[a-zA-Z0-9.]{1,64}@[a-zA-Z0-9]{2,255}.com$/.test(v)
       },
       message: (props) => `${props.value} is not a valid email!`,
     },
