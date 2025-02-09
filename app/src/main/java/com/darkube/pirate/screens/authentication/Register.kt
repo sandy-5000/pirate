@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.components.ErrorMessage
+import com.darkube.pirate.components.UnderLoading
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.AuthenticatePage
 import com.darkube.pirate.types.RequestType
@@ -434,6 +435,7 @@ fun Register(
                 }
             }
         }
+        UnderLoading(loading, "Registering...")
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
