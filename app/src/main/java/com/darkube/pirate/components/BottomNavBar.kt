@@ -1,9 +1,7 @@
 package com.darkube.pirate.components
 
-import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -38,7 +36,7 @@ import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.CallsRoute
 import com.darkube.pirate.utils.ChatRoute
-import com.darkube.pirate.utils.GroupsRoute
+import com.darkube.pirate.utils.RequestsRoute
 import com.darkube.pirate.utils.StoriesRoute
 import com.darkube.pirate.utils.getRouteId
 
@@ -48,7 +46,7 @@ fun BottomNavBar(
 ) {
     if (
         mainViewModel.currentScreen == ChatRoute.javaClass.name ||
-        mainViewModel.currentScreen == GroupsRoute.javaClass.name ||
+        mainViewModel.currentScreen == RequestsRoute.javaClass.name ||
         mainViewModel.currentScreen == CallsRoute.javaClass.name ||
         mainViewModel.currentScreen == StoriesRoute.javaClass.name
     ) {
@@ -79,7 +77,7 @@ fun MainBottomNavBar(
 
     val iconsMap = mapOf(
         "chat" to R.drawable.chat_round_line_icon,
-        "group" to R.drawable.users_group_icon,
+        "requests" to R.drawable.users_group_icon,
         "call" to R.drawable.call_calling_icon,
         "stories" to R.drawable.stories_icons,
     )
@@ -113,17 +111,17 @@ fun MainBottomNavBar(
                 active = ChatRoute.javaClass.name == mainViewModel.currentScreen,
             )
             TabIcon(
-                iconDescription = "Group",
-                icon = iconsMap.getOrDefault("group", R.drawable.tabs_icon),
+                iconDescription = "Requests",
+                icon = iconsMap.getOrDefault("requests", R.drawable.tabs_icon),
                 onClick = {
-                    if (GroupsRoute.javaClass.name == mainViewModel.currentScreen) {
+                    if (RequestsRoute.javaClass.name == mainViewModel.currentScreen) {
                         return@TabIcon
                     }
                     mainViewModel.navController.popBackStack(ChatRoute, false)
-                    mainViewModel.navController.navigate(GroupsRoute)
+                    mainViewModel.navController.navigate(RequestsRoute)
                     mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                 },
-                active = GroupsRoute.javaClass.name == mainViewModel.currentScreen,
+                active = RequestsRoute.javaClass.name == mainViewModel.currentScreen,
             )
             TabIcon(
                 iconDescription = "Call",

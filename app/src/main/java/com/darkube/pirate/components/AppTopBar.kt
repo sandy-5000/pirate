@@ -32,7 +32,7 @@ import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.utils.CallsRoute
 import com.darkube.pirate.utils.ChatRoute
-import com.darkube.pirate.utils.GroupsRoute
+import com.darkube.pirate.utils.RequestsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.StoriesRoute
@@ -40,7 +40,7 @@ import com.darkube.pirate.utils.getRouteId
 
 val titles = mapOf(
     ChatRoute.javaClass.name to "Chats",
-    GroupsRoute.javaClass.name to "User Groups",
+    RequestsRoute.javaClass.name to "Requests",
     CallsRoute.javaClass.name to "Call History",
     StoriesRoute.javaClass.name to "Stories",
     SettingsRoute.javaClass.name to "Settings",
@@ -60,7 +60,7 @@ fun AppTopBar(
 
     val isMainScreen = setOf(
         ChatRoute.javaClass.name,
-        GroupsRoute.javaClass.name,
+        RequestsRoute.javaClass.name,
         CallsRoute.javaClass.name,
         StoriesRoute.javaClass.name
     ).contains(mainViewModel.currentScreen)

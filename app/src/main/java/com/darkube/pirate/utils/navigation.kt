@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 object ChatRoute
 
 @Serializable
-object GroupsRoute
+object RequestsRoute
 
 @Serializable
 object CallsRoute

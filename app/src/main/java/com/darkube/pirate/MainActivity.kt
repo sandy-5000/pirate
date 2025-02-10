@@ -30,7 +30,7 @@ import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.screens.authentication.Authentication
 import com.darkube.pirate.screens.Call
 import com.darkube.pirate.screens.Chat
-import com.darkube.pirate.screens.Group
+import com.darkube.pirate.screens.Requests
 import com.darkube.pirate.screens.Profile
 import com.darkube.pirate.screens.Settings
 import com.darkube.pirate.screens.Stories
@@ -38,7 +38,7 @@ import com.darkube.pirate.ui.theme.PirateTheme
 import com.darkube.pirate.utils.CallsRoute
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.DatabaseProvider
-import com.darkube.pirate.utils.GroupsRoute
+import com.darkube.pirate.utils.RequestsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.StoriesRoute
@@ -111,11 +111,11 @@ fun MainScreen(mainViewModel: MainViewModel) {
                     mainViewModel = mainViewModel,
                 )
             }
-            composable<GroupsRoute> {
+            composable<RequestsRoute> {
                 BackHandler {
                     handleBack()
                 }
-                Group(
+                Requests(
                     modifier = Modifier.padding(innerPadding),
                 )
             }
