@@ -1,5 +1,6 @@
 package com.darkube.pirate.models
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,6 +12,8 @@ import com.darkube.pirate.types.UserDetails
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.getRouteId
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,31 +57,25 @@ class MainViewModel(
     }
 
     suspend fun login(userDetails: JsonElement) {
-        val userId = userDetails.jsonObject["_id"]?.jsonPrimitive?.contentOrNull ?: ""
-        val firstName = userDetails.jsonObject["first_name"]?.jsonPrimitive?.contentOrNull ?: ""
-        val lastName = userDetails.jsonObject["last_name"]?.jsonPrimitive?.contentOrNull ?: ""
-        val username = userDetails.jsonObject["username"]?.jsonPrimitive?.contentOrNull ?: ""
-        val email = userDetails.jsonObject["email"]?.jsonPrimitive?.contentOrNull ?: ""
-        val bio = userDetails.jsonObject["bio"]?.jsonPrimitive?.contentOrNull ?: ""
-        val token = userDetails.jsonObject["token"]?.jsonPrimitive?.contentOrNull ?: ""
-        dataBase.userDetailsDao.update(UserDetails(key = "_id", value = userId))
-        dataBase.userDetailsDao.update(UserDetails(key = "first_name", value = firstName))
-        dataBase.userDetailsDao.update(UserDetails(key = "last_name", value = lastName))
-        dataBase.userDetailsDao.update(UserDetails(key = "username", value = username))
-        dataBase.userDetailsDao.update(UserDetails(key = "email", value = email))
-        dataBase.userDetailsDao.update(UserDetails(key = "bio", value = bio))
-        dataBase.userDetailsDao.update(UserDetails(key = "token", value = token))
+        val keys = listOf("_id", "first_name", "last_name", "username", "email", "bio", "token")
+        keys.forEach { key ->
+            val value = userDetails.jsonObject[key]?.jsonPrimitive?.contentOrNull ?: ""
+            dataBase.userDetailsDao.update(UserDetails(key = key, value = value))
+        }
         dataBase.userDetailsDao.update(UserDetails(key = "logged_in", value = "true"))
         setAllUserDetails()
     }
 
     suspend fun logout() {
         dataBase.userDetailsDao.deleteAll()
+        coroutineScope {
+            val job = async { setAllUserDetails() }
+            job.await()
+        }
         while (navController.currentDestination != null) {
             navController.popBackStack()
         }
         navController.navigate(ChatRoute)
         setScreen(getRouteId(navController.currentDestination))
-        setAllUserDetails()
     }
 }

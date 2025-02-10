@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -99,7 +100,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
             enterTransition = { slideInHorizontally(initialOffsetX = { it }) + fadeIn() },
             exitTransition = { fadeOut() },
             popEnterTransition = { fadeIn() },
-            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) + fadeOut() },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) + fadeOut(tween(1000)) },
         ) {
             composable<ChatRoute> {
                 BackHandler {

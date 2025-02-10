@@ -25,6 +25,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.AppBackground
@@ -95,12 +97,10 @@ fun AppTopBar(
                 }
                 Text(
                     text = titles.getOrDefault(mainViewModel.currentScreen, ""),
+                    fontSize = if (isMainScreen) 20.sp else 16.sp,
+                    fontWeight = if (isMainScreen) FontWeight.SemiBold else FontWeight.Normal,
                     modifier = Modifier.padding(
-                        start = if (isMainScreen) {
-                            titlePadding + titlePadding
-                        } else {
-                            titlePadding
-                        }
+                        start = if (isMainScreen) titlePadding + titlePadding else titlePadding,
                     ),
                 )
             }
