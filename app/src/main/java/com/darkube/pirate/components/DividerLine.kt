@@ -6,13 +6,14 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DividerLine() {
-    val verticalPadding = 8.dp
-    val horizontalPadding = 16.dp
-
+fun DividerLine(
+    verticalPadding: Dp = 8.dp,
+    horizontalPadding: Dp = 16.dp
+) {
     Row(
         modifier = Modifier.padding(
             start = horizontalPadding,

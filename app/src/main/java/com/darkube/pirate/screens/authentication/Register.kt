@@ -606,7 +606,7 @@ fun Register(
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = SecondaryBlue,
-                        )
+                        ),
                     ) {
                         Row {
                             Icon(

@@ -13,7 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
@@ -32,13 +36,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.darkube.pirate.R
+import com.darkube.pirate.components.DividerLine
+import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
+import com.darkube.pirate.ui.theme.SecondaryBlue
 
 
 @Composable
 fun Profile(
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
     val topPadding = 90.dp
     val padding = 10.dp
     val internalPadding = 16.dp
@@ -46,7 +54,7 @@ fun Profile(
     val textBoxColor = LightColor
 
     val context = LocalContext.current
-    val updateIcon = R.drawable.rotate_right_round_svgrepo_com__3_
+    val updateIcon = R.drawable.rotate_right_round_icon
     val editIcon = R.drawable.pen_icon
     val firstNameIcon = R.drawable.user_icon
     val lastNameIcon = R.drawable.dna_icon
@@ -68,13 +76,13 @@ fun Profile(
 
     Column(
         modifier = Modifier
+            .verticalScroll(scrollState)
             .fillMaxHeight()
             .padding(top = padding + topPadding + internalPadding)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(value = firstName, onValueChange = { firstName = it },
@@ -88,7 +96,7 @@ fun Profile(
                     )
                 },
 
-                        leadingIcon = {
+                leadingIcon = {
                     Icon(
                         painter = painterResource(id = firstNameIcon),
                         contentDescription = "firstNameIcon",
@@ -99,8 +107,8 @@ fun Profile(
         }
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(internalPadding),
+                .padding(bottom = 8.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(value = lastName, onValueChange = { lastName = it },
@@ -112,7 +120,7 @@ fun Profile(
                         modifier = Modifier.size(iconSize),
                     )
                 },
-                        leadingIcon = {
+                leadingIcon = {
                     Icon(
                         painter = painterResource(id = lastNameIcon),
                         contentDescription = "lastNameIcon",
@@ -122,32 +130,28 @@ fun Profile(
             )
 
         }
-        Divider()
+        DividerLine(verticalPadding = 16.dp, horizontalPadding = 32.dp)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(internalPadding),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
                 value = userName,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("User Name") }
-            ,          leadingIcon = {
+                label = { Text("User Name") }, leadingIcon = {
                     Icon(
                         painter = painterResource(id = userNameIcon),
                         contentDescription = "userNameIcon",
                         modifier = Modifier.size(iconSize),
                     )
                 })
-
-
         }
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(internalPadding),
+                .padding(bottom = 8.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(value = email, onValueChange = { email = it },
@@ -158,20 +162,19 @@ fun Profile(
                         contentDescription = "edit",
                         modifier = Modifier.size(iconSize),
                     )
-                },     leadingIcon = {
+                }, leadingIcon = {
                     Icon(
                         painter = painterResource(id = emailIcon),
                         contentDescription = "emailIcon",
                         modifier = Modifier.size(iconSize),
                     )
-                })
-
+                }
+            )
         }
-        Divider()
+        DividerLine(verticalPadding = 16.dp, horizontalPadding = 32.dp)
         Row(
             modifier = Modifier
-               .fillMaxWidth()
-                .padding(internalPadding),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
@@ -180,7 +183,6 @@ fun Profile(
                 onValueChange = { newPasswd = it },
                 label = { Text("New Password") },
                 placeholder = { Text("Enter New Password") },
-
                 visualTransformation = if (showPasswd) {
                     VisualTransformation.None
                 } else {
@@ -221,9 +223,8 @@ fun Profile(
         }
         Row(
             modifier = Modifier
-               .fillMaxWidth()
-                .padding(internalPadding),
-           horizontalArrangement = Arrangement.Center
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
                 value = confirmPasswd,
@@ -231,7 +232,6 @@ fun Profile(
                 onValueChange = { confirmPasswd = it },
                 label = { Text("Confirm Password") },
                 placeholder = { Text("Confirm your Password") },
-
                 visualTransformation = PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
@@ -249,8 +249,8 @@ fun Profile(
         }
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(internalPadding),
+                .padding(top = 8.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
@@ -278,36 +278,43 @@ fun Profile(
         Spacer(
             Modifier
                 .fillMaxWidth()
-                .height(18.dp)
+                .height(20.dp)
         )
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(internalPadding),
-            horizontalArrangement = Arrangement.End
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
 
         ) {
-            Button(
-                onClick = {
-                    Toast.makeText(context, "Updating...", Toast.LENGTH_SHORT).show()
+            Row(
 
-                },
-            )
-            {
-                Text(
-                    text = "UPDATE",
-                    color = Color.White
+                modifier = Modifier
+                    .fillMaxWidth(0.8f),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "Updating...", Toast.LENGTH_SHORT).show()
+                    },
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = SecondaryBlue,
+                    ),
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    painter = painterResource(id = updateIcon),
-                    contentDescription = "Accessibility Icon",
-                    tint = Color.White,
-                    modifier = Modifier.size(30.dp),
-                )
-
+                {
+                    Text(
+                        text = "Update",
+                        color = AppBackground
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        painter = painterResource(id = updateIcon),
+                        contentDescription = "Accessibility Icon",
+                        tint = AppBackground,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
-
     }
 }
