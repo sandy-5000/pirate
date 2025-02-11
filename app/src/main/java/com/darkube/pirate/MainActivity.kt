@@ -149,6 +149,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
                 }
                 Profile(
                     modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
                 )
             }
         }
