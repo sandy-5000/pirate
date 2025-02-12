@@ -13,7 +13,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -28,8 +32,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
@@ -70,6 +77,11 @@ fun Login(
     val iconSize = 20.dp
     val textBoxColor = LightColor
 
+    val focusRequesterUserName = remember { FocusRequester() }
+    val focusRequesterPasswd = remember { FocusRequester() }
+
+    val scrollState = rememberScrollState()
+
     var username by remember { mutableStateOf("") }
     var passwd by remember { mutableStateOf("") }
     var showPasswd by remember { mutableStateOf(false) }
@@ -78,9 +90,10 @@ fun Login(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .imePadding()
             .background(color = backgroundColor)
-            .imePadding(),
+            .fillMaxSize()
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -111,11 +124,20 @@ fun Login(
                     label = { Text("Username") },
                     placeholder = { Text("Enter your Username") },
                     modifier = Modifier
+                        .focusRequester(focusRequesterUserName)
                         .padding(bottom = 4.dp)
                         .fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         focusedBorderColor = textBoxColor,
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusRequesterPasswd.requestFocus()
+                        }
                     ),
                     leadingIcon = {
                         Icon(
@@ -140,6 +162,7 @@ fun Login(
                     label = { Text("Password") },
                     placeholder = { Text("Enter your Password") },
                     modifier = Modifier
+                        .focusRequester(focusRequesterPasswd)
                         .padding(bottom = 4.dp)
                         .fillMaxWidth(),
                     visualTransformation = if (showPasswd) {
@@ -150,6 +173,9 @@ fun Login(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         focusedBorderColor = textBoxColor,
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done
                     ),
                     leadingIcon = {
                         Icon(
@@ -239,7 +265,8 @@ fun Login(
                     fetch(
                         url = "/api/user/login",
                         callback = { response: JsonElement ->
-                            val error = response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                            val error =
+                                response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
                             if (error == "__ERROR__") {
                                 passwd = ""
                                 loading = false

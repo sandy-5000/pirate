@@ -15,7 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -31,8 +35,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
@@ -88,6 +95,13 @@ fun Register(
     val iconSize = 20.dp
     val textBoxColor = LightColor
 
+    val focusRequesterFirstName = remember { FocusRequester() }
+    val focusRequesterLastName = remember { FocusRequester() }
+    val focusRequesterUserName = remember { FocusRequester() }
+    val focusRequesterEmail = remember { FocusRequester() }
+    val focusRequesterPassword = remember { FocusRequester() }
+    val focusRequesterConfirmPassword = remember { FocusRequester() }
+
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -103,6 +117,8 @@ fun Register(
 
     var isUsernameAvailable by remember { mutableStateOf(Status.AVAILABLE) }
     var isEmailAvailable by remember { mutableStateOf(Status.AVAILABLE) }
+
+    val scrollState = rememberScrollState()
 
     var loading by remember { mutableStateOf(false) }
     var registerError by remember { mutableStateOf("") }
@@ -158,9 +174,10 @@ fun Register(
 
     Column(
         modifier = Modifier
+            .imePadding()
             .fillMaxSize()
             .background(color = backgroundColor)
-            .imePadding(),
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -194,11 +211,20 @@ fun Register(
                             label = { Text("First Name") },
                             placeholder = { Text("Enter your First Name") },
                             modifier = Modifier
+                                .focusRequester(focusRequesterFirstName)
                                 .padding(bottom = 4.dp)
                                 .fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedLabelColor = Color.White,
                                 focusedBorderColor = textBoxColor,
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusRequesterLastName.requestFocus()
+                                }
                             ),
                             leadingIcon = {
                                 Icon(
@@ -224,11 +250,15 @@ fun Register(
                             label = { Text("Last Name") },
                             placeholder = { Text("Enter your Last Name") },
                             modifier = Modifier
+                                .focusRequester(focusRequesterLastName)
                                 .padding(bottom = 4.dp)
                                 .fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedLabelColor = Color.White,
                                 focusedBorderColor = textBoxColor,
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Done
                             ),
                             leadingIcon = {
                                 Icon(
@@ -261,11 +291,20 @@ fun Register(
                             label = { Text("Username") },
                             placeholder = { Text("Enter your Username") },
                             modifier = Modifier
+                                .focusRequester(focusRequesterUserName)
                                 .padding(bottom = 4.dp)
                                 .fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedLabelColor = Color.White,
                                 focusedBorderColor = textBoxColor,
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusRequesterEmail.requestFocus()
+                                }
                             ),
                             leadingIcon = {
                                 Icon(
@@ -308,11 +347,15 @@ fun Register(
                             label = { Text("User Email") },
                             placeholder = { Text("Enter your Email") },
                             modifier = Modifier
+                                .focusRequester(focusRequesterEmail)
                                 .padding(bottom = 4.dp)
                                 .fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedLabelColor = Color.White,
                                 focusedBorderColor = textBoxColor,
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Done,
                             ),
                             leadingIcon = {
                                 Icon(
@@ -354,12 +397,21 @@ fun Register(
                             label = { Text("Password") },
                             placeholder = { Text("Enter your Password") },
                             modifier = Modifier
+                                .focusRequester(focusRequesterPassword)
                                 .padding(bottom = 4.dp)
                                 .fillMaxWidth(),
                             visualTransformation = if (showPasswd) VisualTransformation.None else PasswordVisualTransformation(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedLabelColor = Color.White,
                                 focusedBorderColor = textBoxColor,
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = {
+                                    focusRequesterConfirmPassword.requestFocus()
+                                }
                             ),
                             leadingIcon = {
                                 Icon(
@@ -410,12 +462,16 @@ fun Register(
                             label = { Text("Confirm Password") },
                             placeholder = { Text("Confirm your Password") },
                             modifier = Modifier
+                                .focusRequester(focusRequesterConfirmPassword)
                                 .padding(bottom = 4.dp)
                                 .fillMaxWidth(),
                             visualTransformation = PasswordVisualTransformation(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedLabelColor = Color.White,
                                 focusedBorderColor = textBoxColor,
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Done
                             ),
                             leadingIcon = {
                                 Icon(
@@ -587,7 +643,9 @@ fun Register(
                             fetch(
                                 url = "/api/user/register",
                                 callback = { response: JsonElement ->
-                                    val error = response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                                    val error =
+                                        response.jsonObject["error"]?.jsonPrimitive?.contentOrNull
+                                            ?: ""
                                     if (error == "__ERROR__") {
                                         passwd = ""
                                         loading = false

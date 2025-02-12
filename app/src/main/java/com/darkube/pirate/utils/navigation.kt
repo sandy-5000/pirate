@@ -3,19 +3,17 @@ package com.darkube.pirate.utils
 import kotlinx.serialization.Serializable
 
 @Serializable
-object ChatRoute
+object EmptyRoute
 
 @Serializable
-object RequestsRoute
-
-@Serializable
-object CallsRoute
-
-@Serializable
-object StoriesRoute
+object HomeRoute
 
 @Serializable
 object SettingsRoute
 
 @Serializable
 object ProfileRoute
+
+@Serializable
+data class ChatRoute(val pirateId: String)
+

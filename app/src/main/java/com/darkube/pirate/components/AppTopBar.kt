@@ -29,27 +29,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.AppBackground
-import com.darkube.pirate.utils.CallsRoute
-import com.darkube.pirate.utils.ChatRoute
-import com.darkube.pirate.utils.RequestsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
-import com.darkube.pirate.utils.StoriesRoute
 import com.darkube.pirate.utils.getRouteId
-
-val titles = mapOf(
-    ChatRoute.javaClass.name to "Chats",
-    RequestsRoute.javaClass.name to "Requests",
-    CallsRoute.javaClass.name to "Call History",
-    StoriesRoute.javaClass.name to "Stories",
-    SettingsRoute.javaClass.name to "Settings",
-    ProfileRoute.javaClass.name to "Profile",
-)
 
 @Composable
 fun AppTopBar(
     mainViewModel: MainViewModel,
+    displayTitle: String = "",
+    isMainScreen: Boolean = false,
 ) {
     val topPadding = 36.dp
     val barHeight = 68.dp
@@ -58,12 +48,17 @@ fun AppTopBar(
     val iconSize = 20.dp
     val backGroundColor = AppBackground
 
-    val isMainScreen = setOf(
-        ChatRoute.javaClass.name,
-        RequestsRoute.javaClass.name,
-        CallsRoute.javaClass.name,
-        StoriesRoute.javaClass.name
-    ).contains(mainViewModel.currentScreen)
+    val pageTitle: String = if (isMainScreen) {
+        val homeScreen by mainViewModel.homeScreenState.collectAsState()
+        when (homeScreen) {
+            HomeScreen.CHATS -> "Chats"
+            HomeScreen.REQUESTS -> "Requests"
+            HomeScreen.CALLS -> "Call History"
+            HomeScreen.STORIES -> "Stories"
+        }
+    } else {
+        displayTitle
+    }
 
     Row(
         modifier = Modifier
@@ -96,7 +91,7 @@ fun AppTopBar(
                     }
                 }
                 Text(
-                    text = titles.getOrDefault(mainViewModel.currentScreen, ""),
+                    text = pageTitle,
                     fontSize = if (isMainScreen) 20.sp else 16.sp,
                     fontWeight = if (isMainScreen) FontWeight.SemiBold else FontWeight.Normal,
                     modifier = Modifier.padding(

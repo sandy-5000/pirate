@@ -7,35 +7,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
-import com.darkube.pirate.utils.CallsRoute
-import com.darkube.pirate.utils.ChatRoute
-import com.darkube.pirate.utils.RequestsRoute
-import com.darkube.pirate.utils.StoriesRoute
 
 @Composable
 fun AppFloatingActionButton(
-    mainViewModel: MainViewModel
-) {
-    if (
-        mainViewModel.currentScreen == ChatRoute.javaClass.name ||
-        mainViewModel.currentScreen == RequestsRoute.javaClass.name ||
-        mainViewModel.currentScreen == CallsRoute.javaClass.name ||
-        mainViewModel.currentScreen == StoriesRoute.javaClass.name
-    ) {
-        MainAppFloatingActionButton(mainViewModel = mainViewModel)
-    }
-}
-
-@Composable
-fun MainAppFloatingActionButton(
     mainViewModel: MainViewModel
 ) {
     val borderRadius = 12.dp
@@ -46,12 +31,12 @@ fun MainAppFloatingActionButton(
     val iconSize = 20.dp
     val iconDescription = "New Chat"
 
-    val icon = when (mainViewModel.currentScreen) {
-        ChatRoute.javaClass.name -> R.drawable.pen_icon
-        RequestsRoute.javaClass.name -> R.drawable.add_circle_icon
-        CallsRoute.javaClass.name -> R.drawable.trash_bin_icon
-        StoriesRoute.javaClass.name -> R.drawable.album_icon
-        else -> R.drawable.tabs_icon
+    val homeScreen by mainViewModel.homeScreenState.collectAsState()
+    val icon = when (homeScreen) {
+        HomeScreen.CHATS -> R.drawable.pen_icon
+        HomeScreen.REQUESTS -> R.drawable.add_circle_icon
+        HomeScreen.CALLS -> R.drawable.trash_bin_icon
+        HomeScreen.STORIES -> R.drawable.album_icon
     }
 
     OutlinedIconButton(

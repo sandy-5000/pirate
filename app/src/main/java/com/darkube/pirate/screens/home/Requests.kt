@@ -1,4 +1,4 @@
-package com.darkube.pirate.screens
+package com.darkube.pirate.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,10 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
 
 @Composable
-fun Call(
+fun Requests(
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -23,7 +22,7 @@ fun Call(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Calls",
+                text = "Requests",
                 modifier = modifier
             )
         }
