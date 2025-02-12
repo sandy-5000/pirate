@@ -297,6 +297,13 @@ fun Profile(
                             .size(iconSize),
                         tint = if (isValidEmail) LightColor else RedColor,
                     )
+                },
+                trailingIcon = {
+                    Icon(
+                        painter = painterResource(id = editIcon),
+                        contentDescription = "edit",
+                        modifier = Modifier.size(iconSize),
+                    )
                 }
             )
         }
