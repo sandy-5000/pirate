@@ -1,6 +1,5 @@
 package com.darkube.pirate.models
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,9 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
+import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.UserDetails
-import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.DataBase
+import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.getRouteId
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -75,7 +75,14 @@ class MainViewModel(
         while (navController.currentDestination != null) {
             navController.popBackStack()
         }
-        navController.navigate(ChatRoute)
+        navController.navigate(HomeRoute)
         setScreen(getRouteId(navController.currentDestination))
+    }
+
+    private val _homeScreenState = MutableStateFlow(HomeScreen.CHATS)
+    val homeScreenState: StateFlow<HomeScreen> = _homeScreenState.asStateFlow()
+
+    fun setHomeScreen(screen: HomeScreen) {
+        _homeScreenState.value = screen
     }
 }

@@ -1,8 +1,5 @@
 package com.darkube.pirate.components
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,11 +15,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,39 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
-import com.darkube.pirate.utils.CallsRoute
-import com.darkube.pirate.utils.ChatRoute
-import com.darkube.pirate.utils.RequestsRoute
-import com.darkube.pirate.utils.StoriesRoute
-import com.darkube.pirate.utils.getRouteId
 
 @Composable
 fun BottomNavBar(
     mainViewModel: MainViewModel,
 ) {
-    if (
-        mainViewModel.currentScreen == ChatRoute.javaClass.name ||
-        mainViewModel.currentScreen == RequestsRoute.javaClass.name ||
-        mainViewModel.currentScreen == CallsRoute.javaClass.name ||
-        mainViewModel.currentScreen == StoriesRoute.javaClass.name
-    ) {
-        var startAnimation by remember { mutableStateOf(false) }
-        LaunchedEffect(Unit) {
-            startAnimation = true
-        }
-        val offsetY by animateDpAsState(
-            targetValue = if (startAnimation) 0.dp else 68.dp,
-            animationSpec = tween(durationMillis = 10, easing = LinearEasing),
-            label = "raise-up-animation"
-        )
-        MainBottomNavBar(
-            mainViewModel = mainViewModel,
-            modifier = Modifier
-                .offset(y = offsetY)
-        )
-    }
+    MainBottomNavBar(mainViewModel = mainViewModel)
 }
 
 @Composable
@@ -74,6 +43,8 @@ fun MainBottomNavBar(
 ) {
     val barHeight = 68.dp
     val backgroundColor = NavBarBackground
+
+    val homeScreen by mainViewModel.homeScreenState.collectAsState()
 
     val iconsMap = mapOf(
         "chat" to R.drawable.chat_round_line_icon,
@@ -99,55 +70,33 @@ fun MainBottomNavBar(
                 iconDescription = "Chat",
                 icon = iconsMap.getOrDefault("chat", R.drawable.tabs_icon),
                 onClick = {
-                    if (ChatRoute.javaClass.name == mainViewModel.currentScreen) {
-                        return@TabIcon
-                    }
-                    while (mainViewModel.navController.currentDestination != null) {
-                        mainViewModel.navController.popBackStack()
-                    }
-                    mainViewModel.navController.navigate(ChatRoute)
-                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                    mainViewModel.setHomeScreen(HomeScreen.CHATS)
                 },
-                active = ChatRoute.javaClass.name == mainViewModel.currentScreen,
+                active = HomeScreen.CHATS == homeScreen,
             )
             TabIcon(
                 iconDescription = "Requests",
                 icon = iconsMap.getOrDefault("requests", R.drawable.tabs_icon),
                 onClick = {
-                    if (RequestsRoute.javaClass.name == mainViewModel.currentScreen) {
-                        return@TabIcon
-                    }
-                    mainViewModel.navController.popBackStack(ChatRoute, false)
-                    mainViewModel.navController.navigate(RequestsRoute)
-                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                    mainViewModel.setHomeScreen(HomeScreen.REQUESTS)
                 },
-                active = RequestsRoute.javaClass.name == mainViewModel.currentScreen,
+                active = HomeScreen.REQUESTS == homeScreen,
             )
             TabIcon(
                 iconDescription = "Call",
                 icon = iconsMap.getOrDefault("call", R.drawable.tabs_icon),
                 onClick = {
-                    if (CallsRoute.javaClass.name == mainViewModel.currentScreen) {
-                        return@TabIcon
-                    }
-                    mainViewModel.navController.popBackStack(ChatRoute, false)
-                    mainViewModel.navController.navigate(CallsRoute)
-                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                    mainViewModel.setHomeScreen(HomeScreen.CALLS)
                 },
-                active = CallsRoute.javaClass.name == mainViewModel.currentScreen,
+                active = HomeScreen.CALLS == homeScreen,
             )
             TabIcon(
                 iconDescription = "Stories",
                 icon = iconsMap.getOrDefault("stories", R.drawable.tabs_icon),
                 onClick = {
-                    if (StoriesRoute.javaClass.name == mainViewModel.currentScreen) {
-                        return@TabIcon
-                    }
-                    mainViewModel.navController.popBackStack(ChatRoute, false)
-                    mainViewModel.navController.navigate(StoriesRoute)
-                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                    mainViewModel.setHomeScreen(HomeScreen.STORIES)
                 },
-                active = StoriesRoute.javaClass.name == mainViewModel.currentScreen,
+                active = HomeScreen.STORIES == homeScreen,
             )
         }
     }

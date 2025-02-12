@@ -1,5 +1,6 @@
 package com.darkube.pirate.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun Settings(
     mainViewModel: MainViewModel,
+    modifier: Modifier = Modifier,
 ) {
     val userState by mainViewModel.userState.collectAsState()
     val scrollState = rememberScrollState()
@@ -46,8 +48,6 @@ fun Settings(
     val username = userState.getOrDefault("username", "pirate")
     val userBio = userState.getOrDefault("bio", "")
 
-    val topPadding = 68.dp
-    val padding = 24.dp
     val internalPadding = 16.dp
     val imageSize = 92.dp
     val logoutButtonColor = RedColor
@@ -65,9 +65,8 @@ fun Settings(
     val logoutIcon = R.drawable.exit_icon
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .verticalScroll(scrollState)
-            .padding(top = padding + topPadding + internalPadding),
     ) {
         Row(
             modifier = Modifier
@@ -85,7 +84,8 @@ fun Settings(
                 PixelAvatar(username = username)
             }
             Column(
-                modifier = Modifier.padding(start = internalPadding),
+                modifier = Modifier
+                    .padding(start = internalPadding),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -100,6 +100,7 @@ fun Settings(
                     )
                 }
                 Text(
+                    modifier = Modifier.fillMaxWidth(),
                     text = email,
                     color = Color.LightGray,
                     fontSize = 14.sp,

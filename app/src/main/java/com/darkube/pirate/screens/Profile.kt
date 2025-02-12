@@ -3,6 +3,7 @@ package com.darkube.pirate.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,6 +27,7 @@ import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,10 +36,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -46,7 +54,8 @@ import com.darkube.pirate.components.PixelAvatar
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
-import com.darkube.pirate.ui.theme.SecondaryBlue
+import com.darkube.pirate.ui.theme.NavBarBackground
+import com.darkube.pirate.ui.theme.PrimaryColor
 
 
 @Composable
@@ -57,11 +66,19 @@ fun Profile(
     val scrollState = rememberScrollState()
     val iconSize = 20.dp
     val textBoxColor = LightColor
+    val textBoxBackground = NavBarBackground
 
     val userState by mainViewModel.userState.collectAsState()
 
+    val focusRequesterFirstName = remember { FocusRequester() }
+    val focusRequesterLastName = remember { FocusRequester() }
+    val focusRequesterEmail = remember { FocusRequester() }
+    val focusRequesterNewPassword = remember { FocusRequester() }
+    val focusRequesterConfirmPassword = remember { FocusRequester() }
+    val focusRequesterOldPassword = remember { FocusRequester() }
+
     val context = LocalContext.current
-    val updateIcon = R.drawable.rotate_right_round_icon
+    val saveIcon = R.drawable.file_check_icon
     val editIcon = R.drawable.pen_icon
     val firstNameIcon = R.drawable.user_icon
     val lastNameIcon = R.drawable.dna_icon
@@ -71,6 +88,8 @@ fun Profile(
     val eyeCloseIcon = R.drawable.eye_closed_icon
     val shieldIcon = R.drawable.shield_icon
     val shieldCheckIcon = R.drawable.shield_check_icon
+    val updateEmailIcon = R.drawable.pen_new_round_icon
+    val changePasswdIcon = R.drawable.key_square_2_icon
 
     var firstName by remember { mutableStateOf(userState.getOrDefault("first_name", "")) }
     var lastName by remember { mutableStateOf(userState.getOrDefault("last_name", "")) }
@@ -83,9 +102,9 @@ fun Profile(
 
     Column(
         modifier = modifier
-            .verticalScroll(scrollState)
-            .fillMaxHeight()
             .imePadding()
+            .fillMaxHeight()
+            .verticalScroll(scrollState)
     ) {
         Row(
             modifier = Modifier
@@ -113,7 +132,7 @@ fun Profile(
         }
         Row(
             modifier = Modifier
-                .padding(bottom = 8.dp)
+                .padding(bottom = 12.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
@@ -133,13 +152,27 @@ fun Profile(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            OutlinedTextField(
+            TextField(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .focusRequester(focusRequesterFirstName)
+                    .clip(shape = RoundedCornerShape(32.dp))
+                    .background(textBoxBackground),
                 value = firstName, onValueChange = { firstName = it },
                 placeholder = { Text("Enter First Name") },
                 label = { Text("First Name") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
-                    focusedBorderColor = textBoxColor,
+                    focusedBorderColor = textBoxBackground,
+                    unfocusedBorderColor = textBoxBackground,
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusRequesterLastName.requestFocus()
+                    }
                 ),
                 leadingIcon = {
                     Icon(
@@ -163,13 +196,22 @@ fun Profile(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            OutlinedTextField(
+            TextField(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .focusRequester(focusRequesterLastName)
+                    .clip(shape = RoundedCornerShape(32.dp))
+                    .background(textBoxBackground),
                 value = lastName, onValueChange = { lastName = it },
                 placeholder = { Text("Enter Last Name") },
                 label = { Text("Last Name") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
-                    focusedBorderColor = textBoxColor,
+                    focusedBorderColor = textBoxBackground,
+                    unfocusedBorderColor = textBoxBackground,
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
                 ),
                 leadingIcon = {
                     Icon(
@@ -188,8 +230,42 @@ fun Profile(
             )
 
         }
-        DividerLine(verticalPadding = 20.dp, horizontalPadding = 16.dp)
-
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "Updating...", Toast.LENGTH_SHORT).show()
+                    },
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                    ),
+                )
+                {
+                    Icon(
+                        painter = painterResource(id = saveIcon),
+                        contentDescription = "Save",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Save",
+                        color = Color.White,
+                    )
+                }
+            }
+        }
+        DividerLine(verticalPadding = 20.dp, horizontalPadding = 40.dp)
         Row(
             modifier = Modifier
                 .padding(bottom = 8.dp)
@@ -212,14 +288,15 @@ fun Profile(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            OutlinedTextField(
+            TextField(
                 value = userName,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("User Name") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
-                    focusedBorderColor = textBoxColor,
+                    focusedBorderColor = AppBackground,
+                    unfocusedBorderColor = AppBackground,
                 ),
                 leadingIcon = {
                     Icon(
@@ -235,13 +312,19 @@ fun Profile(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            OutlinedTextField(
-                value = email, onValueChange = { email = it },
+            TextField(
+                modifier = Modifier.focusRequester(focusRequesterEmail),
+                value = email,
+                onValueChange = { email = it },
                 placeholder = { Text("Enter Email") },
                 label = { Text("Email") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
-                    focusedBorderColor = textBoxColor,
+                    focusedBorderColor = AppBackground,
+                    unfocusedBorderColor = AppBackground,
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
                 ),
                 leadingIcon = {
                     Icon(
@@ -259,7 +342,42 @@ fun Profile(
                 },
             )
         }
-        DividerLine(verticalPadding = 20.dp, horizontalPadding = 16.dp)
+        Spacer(Modifier.height(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "Updating...", Toast.LENGTH_SHORT).show()
+                    },
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                    ),
+                )
+                {
+                    Icon(
+                        painter = painterResource(id = updateEmailIcon),
+                        contentDescription = "Update Email",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Update Email",
+                        color = Color.White,
+                    )
+                }
+            }
+        }
+        DividerLine(verticalPadding = 20.dp, horizontalPadding = 40.dp)
         Row(
             modifier = Modifier
                 .padding(bottom = 8.dp)
@@ -282,6 +400,7 @@ fun Profile(
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
+                modifier = Modifier.focusRequester(focusRequesterNewPassword),
                 value = newPasswd,
                 singleLine = true,
                 onValueChange = { newPasswd = it },
@@ -295,6 +414,14 @@ fun Profile(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
                     focusedBorderColor = textBoxColor,
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusRequesterConfirmPassword.requestFocus()
+                    }
                 ),
                 leadingIcon = {
                     Icon(
@@ -331,6 +458,7 @@ fun Profile(
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
+                modifier = Modifier.focusRequester(focusRequesterConfirmPassword),
                 value = confirmPasswd,
                 singleLine = true,
                 onValueChange = { confirmPasswd = it },
@@ -340,6 +468,14 @@ fun Profile(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
                     focusedBorderColor = textBoxColor,
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusRequesterOldPassword.requestFocus()
+                    }
                 ),
                 leadingIcon = {
                     Icon(
@@ -358,16 +494,19 @@ fun Profile(
             horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
+                modifier = Modifier.focusRequester(focusRequesterOldPassword),
                 value = oldPasswd,
                 singleLine = true,
                 onValueChange = { oldPasswd = it },
                 label = { Text("Old Password") },
                 placeholder = { Text("Enter Old Password") },
-
                 visualTransformation = PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedLabelColor = Color.White,
                     focusedBorderColor = textBoxColor,
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
                 ),
                 leadingIcon = {
                     Icon(
@@ -387,7 +526,6 @@ fun Profile(
 
         ) {
             Row(
-
                 modifier = Modifier
                     .fillMaxWidth(0.8f),
                 horizontalArrangement = Arrangement.End
@@ -398,20 +536,20 @@ fun Profile(
                     },
                     shape = RoundedCornerShape(4.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = SecondaryBlue,
+                        containerColor = PrimaryColor,
                     ),
                 )
                 {
-                    Text(
-                        text = "Update",
-                        color = AppBackground
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        painter = painterResource(id = updateIcon),
-                        contentDescription = "Accessibility Icon",
-                        tint = AppBackground,
+                        painter = painterResource(id = changePasswdIcon),
+                        contentDescription = "Change Password",
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Change Password",
+                        color = Color.White,
                     )
                 }
             }

@@ -1,4 +1,4 @@
-package com.darkube.pirate.screens
+package com.darkube.pirate.screens.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,9 +30,11 @@ import androidx.compose.ui.unit.sp
 import com.darkube.pirate.components.PixelAvatar
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.PrimaryColor
+import com.darkube.pirate.utils.ChatRoute
+import com.darkube.pirate.utils.getRouteId
 
 enum class ChatList {
-    MATEYS, CREWS
+    PIRATES, CREWS
 }
 
 @Composable
@@ -43,7 +45,7 @@ fun Chat(
     val scrollState = rememberScrollState()
     val horizontalPadding = 24.dp
 
-    var selectedFilter by remember { mutableStateOf(ChatList.MATEYS) }
+    var selectedFilter by remember { mutableStateOf(ChatList.PIRATES) }
 
     val mateys = listOf(
         listOf("kakarot", "Hey, how strong are we talking?"),
@@ -77,11 +79,11 @@ fun Chat(
         ) {
             InputChip(
                 modifier = Modifier.padding(end = 12.dp),
-                selected = selectedFilter == ChatList.MATEYS,
+                selected = selectedFilter == ChatList.PIRATES,
                 onClick = {
-                    selectedFilter = ChatList.MATEYS
+                    selectedFilter = ChatList.PIRATES
                 },
-                label = { Text("Mateys") },
+                label = { Text("Pirates") },
                 colors = InputChipDefaults.inputChipColors(
                     selectedContainerColor = PrimaryColor,
                 )
@@ -99,14 +101,14 @@ fun Chat(
             )
         }
         when (selectedFilter) {
-            ChatList.MATEYS ->
+            ChatList.PIRATES ->
                 mateys.forEach { details ->
-                    ChatRow(details[0], details[1])
+                    ChatRow(details[0], details[1], mainViewModel)
                 }
 
             ChatList.CREWS ->
                 crews.forEach { details ->
-                    ChatRow(details[0], details[1])
+                    ChatRow(details[0], details[1], mainViewModel)
                 }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -117,13 +119,15 @@ fun Chat(
 fun ChatRow(
     username: String,
     lastMessage: String = "",
+    mainViewModel: MainViewModel,
 ) {
     val horizontalPadding = 24.dp
 
     Row(
         modifier = Modifier
             .clickable(onClick = {
-
+                mainViewModel.navController.navigate(ChatRoute(pirateId = username))
+                mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
             })
             .padding(start = horizontalPadding, end = horizontalPadding)
             .fillMaxWidth()

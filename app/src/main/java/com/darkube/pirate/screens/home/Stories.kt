@@ -1,4 +1,4 @@
-package com.darkube.pirate.screens
+package com.darkube.pirate.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun Requests(
+fun Stories(
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -22,7 +22,7 @@ fun Requests(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Requests",
+                text = "Stories",
                 modifier = modifier
             )
         }
