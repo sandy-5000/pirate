@@ -50,13 +50,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.components.DividerLine
+import com.darkube.pirate.components.ErrorMessage
 import com.darkube.pirate.components.PixelAvatar
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.screens.authentication.AvailableStatus
+import com.darkube.pirate.screens.authentication.Status
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
+import com.darkube.pirate.ui.theme.RedColor
+import com.darkube.pirate.types.RequestType
+import com.darkube.pirate.utils.fetch
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
-
 
 @Composable
 fun Profile(
@@ -100,6 +109,34 @@ fun Profile(
     var oldPasswd by remember { mutableStateOf("") }
     var showPasswd by remember { mutableStateOf(false) }
 
+    val currentEmail = userState.getOrDefault("email", "")
+    var isValidEmail by remember { mutableStateOf(true) }
+    var isEmailAvailable by remember { mutableStateOf(Status.AVAILABLE) }
+
+    val checkAvailability = {
+        var makeCall = true
+        isEmailAvailable = Status.LOADING
+        val url = "api/user/search/$email?type=email"
+        if (email.isEmpty() || !isValidEmail) {
+            makeCall = false
+        }
+        if (makeCall) {
+            fetch(
+                url = url,
+                callback = { response: JsonElement ->
+                    val error = response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                    if (error == "__ERROR__") {
+                        isEmailAvailable = Status.NOT_AVAILABLE
+                        return@fetch
+                    }
+                    val flag = response.jsonObject["flag"]?.jsonPrimitive?.contentOrNull ?: "true"
+                    isEmailAvailable =
+                        if (flag == "true") Status.NOT_AVAILABLE else Status.AVAILABLE
+                },
+                type = RequestType.GET,
+            )
+        }
+    }
     Column(
         modifier = modifier
             .imePadding()
@@ -312,35 +349,64 @@ fun Profile(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            TextField(
-                modifier = Modifier.focusRequester(focusRequesterEmail),
-                value = email,
-                onValueChange = { email = it },
-                placeholder = { Text("Enter Email") },
-                label = { Text("Email") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedLabelColor = Color.White,
-                    focusedBorderColor = AppBackground,
-                    unfocusedBorderColor = AppBackground,
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done
-                ),
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = emailIcon),
-                        contentDescription = "emailIcon",
-                        modifier = Modifier.size(iconSize),
-                    )
-                },
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(id = editIcon),
-                        contentDescription = "edit",
-                        modifier = Modifier.size(iconSize),
-                    )
-                },
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                TextField(
+                    modifier = Modifier.focusRequester(focusRequesterEmail),
+                    value = email,
+                    singleLine = true,
+                    onValueChange = {
+                        val regex = "^[a-zA-Z0-9.]{1,64}@[a-zA-Z0-9]{2,255}.com$".toRegex()
+                        if (it.length < 294) {
+                            isValidEmail = it.isEmpty() || regex.matches(it)
+                            email = it
+                            checkAvailability()
+                        }
+                    },
+                    isError = !isValidEmail,
+                    placeholder = { Text("Enter Email") },
+                    label = { Text("Email") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedLabelColor = Color.White,
+                        focusedBorderColor = AppBackground,
+                        unfocusedBorderColor = AppBackground,
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done
+                    ),
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = emailIcon),
+                            contentDescription = "Email",
+                            modifier = Modifier
+                                .size(iconSize),
+                            tint = if (isValidEmail) LightColor else RedColor,
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            painter = painterResource(id = editIcon),
+                            contentDescription = "edit",
+                            modifier = Modifier.size(iconSize),
+                        )
+                    }
+                )
+                ErrorMessage(
+                    !isValidEmail,
+                    "Invalid Email Format.",
+                )
+                if (isValidEmail && email.isNotEmpty() && email != currentEmail) {
+                    val message = when (isEmailAvailable) {
+                        Status.AVAILABLE -> "Email is Available to Register."
+                        Status.NOT_AVAILABLE -> "Email is Already Registered."
+                        Status.LOADING -> "checking availability..."
+                    }
+                    AvailableStatus(isEmailAvailable, message)
+                }
+            }
         }
         Spacer(Modifier.height(4.dp))
         Row(
