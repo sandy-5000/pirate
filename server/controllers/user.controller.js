@@ -4,11 +4,7 @@ import UserService from '#~/services/user.service'
 import JwtService from '#~/services/jwt.service'
 import { validateToken } from '#~/middlewares/jwt.middleware'
 import { ERRORS } from '#~/utils/error.types'
-
-const HANDLER_TYPE = {
-  USERNAME: 'username',
-  EMAIL: 'email',
-}
+import { HANDLER_TYPE, UPDATE_TYPE } from '#~/utils/enums.constants'
 
 const app = express.Router()
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -90,6 +86,70 @@ app.route('/search/:handler').get(async (req, res) => {
     })
   }
 })
+
+app
+  .route('/profile')
+  .get(validateToken, async (req, res) => {
+    try {
+      const { _id = '' } = req.token_data || {}
+      let user = await UserService.details({ _id })
+      user = JSON.parse(JSON.stringify(user))
+      return res.json({ ...user })
+    } catch (e) {
+      if (e.message === ERRORS.INTERNAL_SERVER_ERROR) {
+        return res.status(500).json({
+          error: ERRORS.INTERNAL_SERVER_ERROR,
+        })
+      }
+      return res.status(400).json({
+        error: e.message,
+      })
+    }
+  })
+  .post(validateToken, async (req, res) => {
+    const { type = '' } = req.query
+    if (!Object.values(UPDATE_TYPE).includes(type)) {
+      return res.status(400).json({ error: ERRORS.INVALID_REQUEST })
+    }
+    try {
+      const { _id = '' } = req.token_data || {}
+      const {
+        first_name = '',
+        last_name = '',
+        email = '',
+        old_passwd = '',
+        new_passwd = '',
+      } = req.body
+      let user = await UserService.update({
+        _id,
+        type,
+        first_name,
+        last_name,
+        email,
+        old_passwd,
+        new_passwd,
+      })
+      user = JSON.parse(JSON.stringify(user))
+      const payload = {
+        _id: user._id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        username: user.username,
+        email: user.email,
+      }
+      const token = JwtService.sign(payload)
+      return res.json({ ...user, passwd: '', token })
+    } catch (e) {
+      if (e.message === ERRORS.INTERNAL_SERVER_ERROR) {
+        return res.status(500).json({
+          error: ERRORS.INTERNAL_SERVER_ERROR,
+        })
+      }
+      return res.status(400).json({
+        error: e.message,
+      })
+    }
+  })
 
 app.route('/secure').post(validateToken, async (req, res) => {
   res.json(req.token_data)
