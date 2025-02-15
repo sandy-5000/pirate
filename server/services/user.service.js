@@ -61,6 +61,7 @@ export default class UserService {
     const user = await _users.findById(_id, {
       first_name: 1,
       last_name: 1,
+      username: 1,
       email: 1,
       passwd: 1,
       bio: 1,
