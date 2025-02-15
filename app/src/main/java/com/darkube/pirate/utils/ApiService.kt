@@ -1,5 +1,6 @@
 package com.darkube.pirate.utils
 
+import android.util.Log
 import com.darkube.pirate.types.RequestType
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.coroutines.CoroutineScope
@@ -15,15 +16,23 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.HeaderMap
 import retrofit2.http.POST
 import retrofit2.http.Url
 
 interface ApiService {
     @GET
-    suspend fun get(@Url url: String): Response<JsonElement>
+    suspend fun get(
+        @Url url: String,
+        @HeaderMap headers: Map<String, String> = emptyMap(),
+    ): Response<JsonElement>
 
     @POST
-    suspend fun post(@Url url: String, @Body body: JsonElement): Response<JsonElement>
+    suspend fun post(
+        @Url url: String,
+        @Body body: JsonElement,
+        @HeaderMap headers: Map<String, String> = emptyMap(),
+    ): Response<JsonElement>
 }
 
 object RetrofitClient {
@@ -47,12 +56,17 @@ fun fetch(
     callback: (response: JsonElement) -> Unit,
     type: RequestType = RequestType.GET,
     body: JsonElement = JsonObject(emptyMap()),
+    headers: Map<String, String> = emptyMap(),
 ) {
     CoroutineScope(Dispatchers.IO).launch {
         try {
             val response: Response<JsonElement> = when (type) {
-                RequestType.GET -> RetrofitClient.apiService.get(url)
-                RequestType.POST -> RetrofitClient.apiService.post(url, body)
+                RequestType.GET -> RetrofitClient.apiService.get(url = url, headers = headers)
+                RequestType.POST -> RetrofitClient.apiService.post(
+                    url = url,
+                    body = body,
+                    headers = headers
+                )
             }
             if (response.isSuccessful) {
                 callback(response.body() ?: JsonObject(emptyMap()))
@@ -62,6 +76,7 @@ fun fetch(
                 })
             }
         } catch (e: Exception) {
+            Log.d("api-err", e.message ?: "")
             val errorResponse = buildJsonObject {
                 put("error", e.message ?: "UNKNOWN_ERROR")
             }

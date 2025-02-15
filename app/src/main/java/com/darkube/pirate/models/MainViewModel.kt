@@ -85,4 +85,10 @@ class MainViewModel(
     fun setHomeScreen(screen: HomeScreen) {
         _homeScreenState.value = screen
     }
+
+    fun getHeaders(): Map<String, String> {
+        val headers = mutableMapOf<String, String>()
+        headers["token"] = userState.value.getOrDefault("token", "")
+        return headers
+    }
 }

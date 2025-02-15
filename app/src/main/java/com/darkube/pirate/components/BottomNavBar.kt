@@ -82,14 +82,14 @@ fun MainBottomNavBar(
                 },
                 active = HomeScreen.REQUESTS == homeScreen,
             )
-            TabIcon(
-                iconDescription = "Call",
-                icon = iconsMap.getOrDefault("call", R.drawable.tabs_icon),
-                onClick = {
-                    mainViewModel.setHomeScreen(HomeScreen.CALLS)
-                },
-                active = HomeScreen.CALLS == homeScreen,
-            )
+//            TabIcon(
+//                iconDescription = "Call",
+//                icon = iconsMap.getOrDefault("call", R.drawable.tabs_icon),
+//                onClick = {
+//                    mainViewModel.setHomeScreen(HomeScreen.CALLS)
+//                },
+//                active = HomeScreen.CALLS == homeScreen,
+//            )
             TabIcon(
                 iconDescription = "Stories",
                 icon = iconsMap.getOrDefault("stories", R.drawable.tabs_icon),

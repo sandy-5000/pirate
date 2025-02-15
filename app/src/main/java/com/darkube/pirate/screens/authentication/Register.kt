@@ -646,7 +646,7 @@ fun Register(
                                     val error =
                                         response.jsonObject["error"]?.jsonPrimitive?.contentOrNull
                                             ?: ""
-                                    if (error == "__ERROR__") {
+                                    if (error.isNotEmpty()) {
                                         passwd = ""
                                         loading = false
                                         registerError = "An Error Occurred During Register."

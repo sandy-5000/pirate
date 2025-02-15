@@ -267,7 +267,7 @@ fun Login(
                         callback = { response: JsonElement ->
                             val error =
                                 response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
-                            if (error == "__ERROR__") {
+                            if (error.isNotEmpty()) {
                                 passwd = ""
                                 loading = false
                                 loginError = "User Doesn't Exists or Incorrect Credentials"
