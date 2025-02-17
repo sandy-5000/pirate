@@ -14,4 +14,19 @@ export default class PushTokenService {
       throw new Error(ERRORS.INTERNAL_SERVER_ERROR)
     }
   }
+
+  static async getToken(user_id) {
+    try {
+      const result = await _pushTokens.findOne({ user_id })
+      if (!result) {
+        throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
+      }
+      return result
+    } catch (e) {
+      if (e.message === ERRORS.AUTH.USER_NOT_FOUND) {
+        throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
+      }
+      throw new Error(ERRORS.INTERNAL_SERVER_ERROR)
+    }
+  }
 }

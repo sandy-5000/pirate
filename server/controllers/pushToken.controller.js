@@ -24,8 +24,15 @@ app.route('/update').put(validateToken, async (req, res) => {
 
 app.route('/message/:pirateId').post(validateToken, async (req, res) => {
   const { pirateId } = req.params
+  const { message } = req.body
   try {
     const user_id = await UserService.userId({ username: pirateId })
+    const result = await PushTokenService.getToken(user_id)
+    return res.status(200).json({
+      user_id: user_id._id,
+      token: result?.token || '',
+      message,
+    })
   } catch (e) {
     return res.status(500).json({
       error: ERRORS.INTERNAL_SERVER_ERROR,
