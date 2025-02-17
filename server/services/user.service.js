@@ -47,6 +47,19 @@ export default class UserService {
     }
   }
 
+  static async userId({ username }) {
+    const user = await _users.findOne(
+      { username },
+      {
+        _id: 1,
+      },
+    )
+    if (!user) {
+      throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
+    }
+    return user
+  }
+
   static async details({ _id }) {
     const user = await _users.findById(_id, {
       first_name: 1,

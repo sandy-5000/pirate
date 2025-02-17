@@ -122,9 +122,5 @@ app
     }
   })
 
-app.route('/secure').post(validateToken, async (req, res) => {
-  res.json(req.token_data)
-})
-
 const userController = app
 export default userController

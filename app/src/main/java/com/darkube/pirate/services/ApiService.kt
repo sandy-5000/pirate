@@ -17,6 +17,7 @@ import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.HeaderMap
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Url
 
@@ -29,6 +30,13 @@ interface ApiService {
 
     @POST
     suspend fun post(
+        @Url url: String,
+        @Body body: JsonElement,
+        @HeaderMap headers: Map<String, String> = emptyMap(),
+    ): Response<JsonElement>
+
+    @PATCH
+    suspend fun patch(
         @Url url: String,
         @Body body: JsonElement,
         @HeaderMap headers: Map<String, String> = emptyMap(),
@@ -67,6 +75,11 @@ fun fetch(
                     body = body,
                     headers = headers
                 )
+                RequestType.PATCH -> RetrofitClient.apiService.patch(
+                    url = url,
+                    body = body,
+                    headers = headers
+                )
             }
             if (response.isSuccessful) {
                 callback(response.body() ?: JsonObject(emptyMap()))
@@ -76,7 +89,7 @@ fun fetch(
                 })
             }
         } catch (e: Exception) {
-            Log.d("api-err", e.message ?: "")
+            Log.d("api-error", e.message ?: "")
             val errorResponse = buildJsonObject {
                 put("error", e.message ?: "UNKNOWN_ERROR")
             }
