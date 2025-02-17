@@ -14,15 +14,9 @@ app.route('/login').post(async (req, res) => {
   try {
     let user = await UserService.authenticate(username, passwd)
     user = JSON.parse(JSON.stringify(user))
-    const payload = {
-      _id: user._id,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      username: user.username,
-      email: user.email,
-    }
+    const payload = UserService.payload(user)
     const token = JwtService.sign(payload)
-    return res.json({ ...user, passwd: '', token })
+    return res.json({ result: { ...user, passwd: '' }, token })
   } catch (e) {
     if (
       e.message === ERRORS.AUTH.INVALID_CREDENTIALS ||
@@ -50,15 +44,9 @@ app.route('/register').post(async (req, res) => {
       passwd,
     })
     user = JSON.parse(JSON.stringify(user))
-    const payload = {
-      _id: user._id,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      username: user.username,
-      email: user.email,
-    }
+    const payload = UserService.payload(user)
     const token = JwtService.sign(payload)
-    return res.json({ ...user, passwd: '', token })
+    return res.json({ result: { ...user, passwd: '' }, token })
   } catch (e) {
     if (e.message === ERRORS.ACCOUNT.ALREADY_EXISTS) {
       return res.status(409).json({
@@ -94,7 +82,7 @@ app
       const { _id = '' } = req.token_data || {}
       let user = await UserService.details({ _id })
       user = JSON.parse(JSON.stringify(user))
-      return res.json({ ...user })
+      return res.json({ result: { ...user } })
     } catch (e) {
       if (e.message === ERRORS.INTERNAL_SERVER_ERROR) {
         return res.status(500).json({
@@ -106,39 +94,22 @@ app
       })
     }
   })
-  .post(validateToken, async (req, res) => {
+  .patch(validateToken, async (req, res) => {
     const { type = '' } = req.query
     if (!Object.values(UPDATE_TYPE).includes(type)) {
       return res.status(400).json({ error: ERRORS.INVALID_REQUEST })
     }
     try {
       const { _id = '' } = req.token_data || {}
-      const {
-        first_name = '',
-        last_name = '',
-        email = '',
-        old_passwd = '',
-        new_passwd = '',
-      } = req.body
       let user = await UserService.update({
         _id,
         type,
-        first_name,
-        last_name,
-        email,
-        old_passwd,
-        new_passwd,
+        ...(req.body || {}),
       })
       user = JSON.parse(JSON.stringify(user))
-      const payload = {
-        _id: user._id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        username: user.username,
-        email: user.email,
-      }
+      const payload = UserService.payload(user)
       const token = JwtService.sign(payload)
-      return res.json({ ...user, passwd: '', token })
+      return res.json({ result: { ...user, passwd: '' }, token })
     } catch (e) {
       if (e.message === ERRORS.INTERNAL_SERVER_ERROR) {
         return res.status(500).json({

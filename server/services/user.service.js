@@ -4,6 +4,17 @@ import { ERRORS } from '#~/utils/error.types'
 import { compare, hash } from 'bcrypt'
 
 export default class UserService {
+  static payload(user) {
+    const payload = {
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      username: user.username,
+      email: user.email,
+    }
+    return payload
+  }
+
   static async authenticate(username, passwd) {
     const user = await _users.findOne({ username })
     if (!user) {
