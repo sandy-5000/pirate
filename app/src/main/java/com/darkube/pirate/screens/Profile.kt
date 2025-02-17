@@ -94,8 +94,8 @@ fun Profile(
     val focusRequesterNewPassword = remember { FocusRequester() }
     val focusRequesterConfirmPassword = remember { FocusRequester() }
     val focusRequesterOldPassword = remember { FocusRequester() }
-
     val context = LocalContext.current
+
     val saveIcon = R.drawable.file_check_icon
     val editIcon = R.drawable.pen_icon
     val firstNameIcon = R.drawable.user_icon
