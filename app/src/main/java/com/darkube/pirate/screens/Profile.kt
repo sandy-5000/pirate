@@ -64,7 +64,7 @@ import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.types.RequestType
-import com.darkube.pirate.utils.fetch
+import com.darkube.pirate.services.fetch
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -208,8 +208,11 @@ fun Profile(
                     ProfileUpdateType.EMAIL -> "Email Updated Successfully."
                     ProfileUpdateType.PASSWORD -> "Password Updated Successfully."
                 }
+                val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                    ?: buildJsonObject { emptyMap<String, String>() }
+                val token: String = response.jsonObject["token"]?.jsonPrimitive?.contentOrNull ?: ""
                 mainViewModel.viewModelScope.launch {
-                    mainViewModel.login(userDetails = response)
+                    mainViewModel.login(userDetails = result, token = token)
                     when (type) {
                         ProfileUpdateType.DISPLAY_NAME -> loadingNameUpdate = false
                         ProfileUpdateType.EMAIL -> loadingEmailUpdate = false
@@ -220,7 +223,7 @@ fun Profile(
                     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                 }
             },
-            type = RequestType.POST,
+            type = RequestType.PATCH,
             body = body,
             headers = headers,
         )

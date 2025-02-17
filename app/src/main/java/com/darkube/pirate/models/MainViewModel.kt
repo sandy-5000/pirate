@@ -7,7 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
+import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.HomeScreen
+import com.darkube.pirate.types.ProfileUpdateType
+import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.types.UserDetails
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.HomeRoute
@@ -19,10 +22,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 class MainViewModel(
     val navController: NavHostController,
@@ -56,12 +61,13 @@ class MainViewModel(
         }
     }
 
-    suspend fun login(userDetails: JsonElement) {
-        val keys = listOf("_id", "first_name", "last_name", "username", "email", "bio", "token")
+    suspend fun login(userDetails: JsonObject, token: String) {
+        val keys = listOf("_id", "first_name", "last_name", "username", "email", "bio")
         keys.forEach { key ->
             val value = userDetails.jsonObject[key]?.jsonPrimitive?.contentOrNull ?: ""
             dataBase.userDetailsDao.update(UserDetails(key = key, value = value))
         }
+        dataBase.userDetailsDao.update(UserDetails(key = "token", value = token))
         dataBase.userDetailsDao.update(UserDetails(key = "logged_in", value = "true"))
         setAllUserDetails()
     }
@@ -90,5 +96,18 @@ class MainViewModel(
         val headers = mutableMapOf<String, String>()
         headers["token"] = userState.value.getOrDefault("token", "")
         return headers
+    }
+
+    fun updatePushToken(token: String) {
+        val body: JsonObject = buildJsonObject {
+            put("token", token)
+        }
+        fetch(
+            url = "/api/pushtoken/update",
+            callback = {},
+            type = RequestType.PUT,
+            body = body,
+            headers = getHeaders(),
+        )
     }
 }

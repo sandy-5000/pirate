@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "2.1.0"
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -74,4 +75,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.okhttp)
+
+    // firebase dependencies
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 }

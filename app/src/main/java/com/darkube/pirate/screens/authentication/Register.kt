@@ -58,9 +58,10 @@ import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
-import com.darkube.pirate.utils.fetch
+import com.darkube.pirate.services.fetch
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -652,8 +653,11 @@ fun Register(
                                         registerError = "An Error Occurred During Register."
                                         return@fetch
                                     }
+                                    val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                                        ?: buildJsonObject { emptyMap<String, String>() }
+                                    val token: String = response.jsonObject["token"]?.jsonPrimitive?.contentOrNull ?: ""
                                     mainViewModel.viewModelScope.launch {
-                                        mainViewModel.login(userDetails = response)
+                                        mainViewModel.login(userDetails = result, token = token)
                                     }
                                 },
                                 type = RequestType.POST,

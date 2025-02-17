@@ -26,7 +26,9 @@ import com.darkube.pirate.R
 import com.darkube.pirate.ui.theme.AppBackground
 
 @Composable
-fun Loading() {
+fun Loading(
+    modifier: Modifier,
+) {
     var startAnimation by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 1.1f,
@@ -41,7 +43,7 @@ fun Loading() {
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(AppBackground),
         verticalArrangement = Arrangement.Center,

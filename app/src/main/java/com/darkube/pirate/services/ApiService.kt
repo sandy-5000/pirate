@@ -1,4 +1,4 @@
-package com.darkube.pirate.utils
+package com.darkube.pirate.services
 
 import android.util.Log
 import com.darkube.pirate.types.RequestType
@@ -19,6 +19,7 @@ import retrofit2.http.GET
 import retrofit2.http.HeaderMap
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Url
 
 interface ApiService {
@@ -30,6 +31,13 @@ interface ApiService {
 
     @POST
     suspend fun post(
+        @Url url: String,
+        @Body body: JsonElement,
+        @HeaderMap headers: Map<String, String> = emptyMap(),
+    ): Response<JsonElement>
+
+    @PUT
+    suspend fun put(
         @Url url: String,
         @Body body: JsonElement,
         @HeaderMap headers: Map<String, String> = emptyMap(),
@@ -71,6 +79,11 @@ fun fetch(
             val response: Response<JsonElement> = when (type) {
                 RequestType.GET -> RetrofitClient.apiService.get(url = url, headers = headers)
                 RequestType.POST -> RetrofitClient.apiService.post(
+                    url = url,
+                    body = body,
+                    headers = headers
+                )
+                RequestType.PUT -> RetrofitClient.apiService.put(
                     url = url,
                     body = body,
                     headers = headers

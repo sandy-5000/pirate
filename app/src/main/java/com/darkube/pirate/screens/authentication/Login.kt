@@ -52,9 +52,10 @@ import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
-import com.darkube.pirate.utils.fetch
+import com.darkube.pirate.services.fetch
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -273,8 +274,11 @@ fun Login(
                                 loginError = "User Doesn't Exists or Incorrect Credentials"
                                 return@fetch
                             }
+                            val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                                ?: buildJsonObject { emptyMap<String, String>() }
+                            val token: String = response.jsonObject["token"]?.jsonPrimitive?.contentOrNull ?: ""
                             mainViewModel.viewModelScope.launch {
-                                mainViewModel.login(userDetails = response)
+                                mainViewModel.login(userDetails = result, token = token)
                             }
                         },
                         type = RequestType.POST,

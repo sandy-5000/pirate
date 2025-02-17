@@ -1,5 +1,5 @@
 package com.darkube.pirate.types
 
 enum class RequestType {
-    GET, POST
+    GET, POST, PUT, PATCH
 }

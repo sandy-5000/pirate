@@ -48,11 +48,12 @@ fun Chat(
     var selectedFilter by remember { mutableStateOf(ChatList.PIRATES) }
 
     val mateys = listOf(
+        listOf("sandy-blaze.0", "Hey, what are you doing?"),
+        listOf("jhema.7", "Nani?"),
         listOf("kakarot", "Hey, how strong are we talking?"),
         listOf("luffy", "I will become the Pirate King."),
         listOf("naruto", "I will become the Hokage."),
         listOf("captain", "The time has come my CREW, charge..."),
-        listOf("sandy-blaze.0", "Hey, what are you doing?"),
         listOf("cassi-storm", "doing something?"),
         listOf("twin-braids", "Hello, what are you doing?"),
         listOf("abs-zero", "Let's freeze the whole world."),

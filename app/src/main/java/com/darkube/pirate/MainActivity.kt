@@ -2,6 +2,7 @@ package com.darkube.pirate
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -10,16 +11,14 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,15 +37,23 @@ import com.darkube.pirate.screens.home.Home
 import com.darkube.pirate.ui.theme.PirateTheme
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.DatabaseProvider
-import com.darkube.pirate.utils.EmptyRoute
 import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        intent?.extras?.let { extras ->
+            for (key in extras.keySet()) {
+                val value = extras.getString(key)
+                Log.d("token-extras", "Key: $key Value: $value")
+            }
+        }
+
         setContent {
             PirateTheme {
                 Screen(context = this)
@@ -62,23 +69,42 @@ fun Screen(context: Context) {
     val mainViewModel = MainViewModel(navController = navController, dataBase = database)
     mainViewModel.setScreen(HomeRoute.javaClass.name)
     mainViewModel.setAllUserDetails()
-    Auth(mainViewModel = mainViewModel)
+    AuthenticatedScreen(mainViewModel = mainViewModel)
 }
 
 @Composable
-fun Auth(mainViewModel: MainViewModel) {
+fun AuthenticatedScreen(mainViewModel: MainViewModel) {
     val userState by mainViewModel.userState.collectAsState()
-    if (userState.getOrDefault("logged_in", "false") == "loading") {
-        Loading()
-    } else if (userState.getOrDefault("logged_in", "false") == "true") {
-        MainScreen(mainViewModel = mainViewModel)
-    } else {
-        Authentication(mainViewModel = mainViewModel)
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+    ) { innerPadding ->
+        if (userState.getOrDefault("logged_in", "false") == "loading") {
+            Loading(modifier = Modifier.padding(innerPadding))
+        } else if (userState.getOrDefault("logged_in", "false") == "true") {
+            MainScreen(mainViewModel = mainViewModel)
+        } else {
+            Authentication(
+                mainViewModel = mainViewModel,
+                modifier = Modifier.padding(innerPadding),
+            )
+        }
     }
 }
 
 @Composable
 fun MainScreen(mainViewModel: MainViewModel) {
+    LaunchedEffect(Unit) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                mainViewModel.updatePushToken(token)
+            } else {
+                Log.e("token-error", "Failed to get FCM token", task.exception)
+            }
+        }
+    }
+
     fun handleBack() {
         mainViewModel.navController.popBackStack()
         if (HomeRoute.javaClass.name != mainViewModel.currentScreen) {
@@ -88,125 +114,111 @@ fun MainScreen(mainViewModel: MainViewModel) {
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-    ) { innerPadding ->
-        NavHost(
-            navController = mainViewModel.navController,
-            startDestination = HomeRoute,
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { it },
-                    animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
-                )
-            },
-            exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { -it / 2 },
-                    animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
-                )
-            },
-            popExitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { it },
-                    animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
-                )
-            },
-            popEnterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { -it / 2 },
-                    animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
-                )
-            },
-        ) {
-            composable<HomeRoute> {
-                BackHandler {
-                    handleBack()
-                }
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = { AppTopBar(mainViewModel = mainViewModel, isMainScreen = true) },
-                    bottomBar = { BottomNavBar(mainViewModel = mainViewModel) },
-                    floatingActionButton = { AppFloatingActionButton(mainViewModel = mainViewModel) }
-                ) { innerPadding ->
-                    Home(
-                        modifier = Modifier.padding(innerPadding),
-                        mainViewModel = mainViewModel,
-                    )
-                }
+    NavHost(
+        navController = mainViewModel.navController,
+        startDestination = HomeRoute,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+            )
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 2 },
+                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+            )
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+            )
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 2 },
+                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+            )
+        },
+    ) {
+        composable<HomeRoute> {
+            BackHandler {
+                handleBack()
             }
-            composable<SettingsRoute> {
-                BackHandler {
-                    handleBack()
-                }
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        AppTopBar(
-                            mainViewModel = mainViewModel,
-                            displayTitle = "Settings",
-                            isMainScreen = false
-                        )
-                    },
-                ) { innerPadding ->
-                    Settings(
-                        mainViewModel = mainViewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = { AppTopBar(mainViewModel = mainViewModel, isMainScreen = true) },
+                bottomBar = { BottomNavBar(mainViewModel = mainViewModel) },
+                floatingActionButton = { AppFloatingActionButton(mainViewModel = mainViewModel) }
+            ) { innerPadding ->
+                Home(
+                    modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
+                )
             }
-            composable<ProfileRoute> {
-                BackHandler {
-                    handleBack()
-                }
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        AppTopBar(
-                            mainViewModel = mainViewModel,
-                            displayTitle = "Profile",
-                            isMainScreen = false
-                        )
-                    },
-                ) { innerPadding ->
-                    Profile(
-                        modifier = Modifier.padding(innerPadding),
-                        mainViewModel = mainViewModel,
-                    )
-                }
+        }
+        composable<SettingsRoute> {
+            BackHandler {
+                handleBack()
             }
-            composable<ChatRoute> {
-                BackHandler {
-                    handleBack()
-                }
-                val args = it.toRoute<ChatRoute>()
-                val pirateId = args.pirateId
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        AppTopBar(
-                            mainViewModel = mainViewModel,
-                            displayTitle = pirateId,
-                            isMainScreen = false
-                        )
-                    },
-                ) { innerPadding ->
-                    Conversation(
-                        modifier = Modifier.padding(innerPadding),
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    AppTopBar(
                         mainViewModel = mainViewModel,
-                        pirateId = pirateId,
+                        displayTitle = "Settings",
+                        isMainScreen = false
                     )
-                }
+                },
+            ) { innerPadding ->
+                Settings(
+                    mainViewModel = mainViewModel,
+                    modifier = Modifier.padding(innerPadding)
+                )
             }
-            composable<EmptyRoute> {
-                Box(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("You Reached an Empty Route.")
-                }
+        }
+        composable<ProfileRoute> {
+            BackHandler {
+                handleBack()
+            }
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    AppTopBar(
+                        mainViewModel = mainViewModel,
+                        displayTitle = "Profile",
+                        isMainScreen = false
+                    )
+                },
+            ) { innerPadding ->
+                Profile(
+                    modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
+                )
+            }
+        }
+        composable<ChatRoute> {
+            BackHandler {
+                handleBack()
+            }
+            val args = it.toRoute<ChatRoute>()
+            val pirateId = args.pirateId
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    AppTopBar(
+                        mainViewModel = mainViewModel,
+                        displayTitle = pirateId,
+                        isMainScreen = false
+                    )
+                },
+            ) { innerPadding ->
+                Conversation(
+                    modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
+                    pirateId = pirateId,
+                )
             }
         }
     }
