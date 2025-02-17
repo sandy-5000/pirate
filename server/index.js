@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
+import admin from 'firebase-admin'
+import { readFileSync } from 'fs'
 import userController from '#~/controllers/user.controller'
 import pushTokenController from '#~/controllers/pushToken.controller'
 import { ERRORS } from '#~/utils/error.types'
@@ -10,6 +12,11 @@ dotenv.config()
 const app = express()
 app.use(express.json())
 app.use(cors())
+
+const serviceAccount = JSON.parse(readFileSync('pirate.firebase.json', 'utf-8'))
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+})
 
 const PORT = process.env.PORT || 5000
 const HOST = process.env.HOST || '0.0.0.0'

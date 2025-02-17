@@ -1,3 +1,4 @@
+import admin from 'firebase-admin'
 import _pushTokens from '#~/models/pushToken.model'
 import { ERRORS } from '#~/utils/error.types'
 
@@ -27,6 +28,25 @@ export default class PushTokenService {
         throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
       }
       throw new Error(ERRORS.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  static async notify(token, title, body, type = '') {
+    const message = {
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        type,
+      },
+      token,
+    }
+    try {
+      const response = await admin.messaging().send(message)
+      return response
+    } catch (error) {
+      return error
     }
   }
 }

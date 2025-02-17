@@ -3,6 +3,7 @@ import bodyParser from 'body-parser'
 import PushTokenService from '#~/services/pushToken.service'
 import UserService from '#~/services/user.service'
 import { validateToken } from '#~/middlewares/jwt.middleware'
+import { NOTIFICATION_TYPE } from '#~/utils/enums.constants'
 
 const app = express.Router()
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -27,11 +28,15 @@ app.route('/message/:pirateId').post(validateToken, async (req, res) => {
   const { message } = req.body
   try {
     const user_id = await UserService.userId({ username: pirateId })
-    const result = await PushTokenService.getToken(user_id)
-    return res.status(200).json({
-      user_id: user_id._id,
-      token: result?.token || '',
+    const tokenData = await PushTokenService.getToken(user_id)
+    const result = await PushTokenService.notify(
+      tokenData?.token || '',
+      pirateId,
       message,
+      NOTIFICATION_TYPE.MESSAGE,
+    )
+    return res.status(200).json({
+      result,
     })
   } catch (e) {
     return res.status(500).json({
