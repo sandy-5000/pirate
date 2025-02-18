@@ -45,8 +45,8 @@ export default class PushTokenService {
     try {
       const response = await admin.messaging().send(message)
       return response
-    } catch (error) {
-      return error
+    } catch (e) {
+      throw new Error(e.message)
     }
   }
 }

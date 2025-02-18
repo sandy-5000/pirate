@@ -44,6 +44,12 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: new Date(),
   },
+  friends: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
 })
 
 userSchema.index({ username: 1 }, { unique: true })

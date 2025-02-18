@@ -1,4 +1,5 @@
 import _users from '#~/models/user.model'
+import _friends from '#~/models/friends.model'
 import { UPDATE_TYPE } from '#~/utils/enums.constants'
 import { ERRORS } from '#~/utils/error.types'
 import { compare, hash } from 'bcrypt'
@@ -36,6 +37,7 @@ export default class UserService {
         username,
         email,
         passwd: hashedPasswd,
+        friends: [],
       })
       const result = await new_user.save()
       return result

@@ -6,6 +6,7 @@ import admin from 'firebase-admin'
 import { readFileSync } from 'fs'
 import userController from '#~/controllers/user.controller'
 import pushTokenController from '#~/controllers/pushToken.controller'
+import friendsController from '#~/controllers/friends.controller'
 import { ERRORS } from '#~/utils/error.types'
 dotenv.config()
 
@@ -30,6 +31,7 @@ app.get('/api', (_, res) => {
 
 app.use('/api/user', userController)
 app.use('/api/pushtoken', pushTokenController)
+app.use('/api/friends', friendsController)
 
 app.use('*', (_, res) =>
   res.status(403).json({

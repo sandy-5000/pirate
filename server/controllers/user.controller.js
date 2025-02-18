@@ -48,6 +48,7 @@ app.route('/register').post(async (req, res) => {
     const token = JwtService.sign(payload)
     return res.json({ result: { ...user, passwd: '' }, token })
   } catch (e) {
+    console.log(e)
     if (e.message === ERRORS.ACCOUNT.ALREADY_EXISTS) {
       return res.status(409).json({
         error: ERRORS.ACCOUNT.ALREADY_EXISTS,
