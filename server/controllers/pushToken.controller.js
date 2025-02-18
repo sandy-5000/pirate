@@ -26,12 +26,13 @@ app.route('/update').put(validateToken, async (req, res) => {
 app.route('/message/:pirateId').post(validateToken, async (req, res) => {
   const { pirateId } = req.params
   const { message } = req.body
+  const { username = '' } = req.token_data || {}
   try {
     const user_id = await UserService.userId({ username: pirateId })
     const tokenData = await PushTokenService.getToken(user_id)
     const result = await PushTokenService.notify(
       tokenData?.token || '',
-      pirateId,
+      username,
       message,
       NOTIFICATION_TYPE.MESSAGE,
     )
