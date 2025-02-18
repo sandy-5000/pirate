@@ -83,7 +83,7 @@ fun AuthenticatedScreen(mainViewModel: MainViewModel) {
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
         if (userState.getOrDefault("logged_in", "false") == "loading") {
-            Loading(modifier = Modifier.padding(innerPadding))
+            Loading(modifier = Modifier.padding(innerPadding), durationMillis = 1500)
         } else if (userState.getOrDefault("logged_in", "false") == "true") {
             MainScreen(mainViewModel = mainViewModel)
         } else {
