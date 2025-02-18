@@ -25,10 +25,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.darkube.pirate.components.AppFloatingActionButton
-import com.darkube.pirate.components.AppTopBar
+import com.darkube.pirate.components.BasicTopBar
 import com.darkube.pirate.components.BottomNavBar
 import com.darkube.pirate.components.ChatInput
+import com.darkube.pirate.components.ChatScreenTopBar
 import com.darkube.pirate.components.Loading
+import com.darkube.pirate.components.MainScreenTopBar
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.screens.authentication.Authentication
 import com.darkube.pirate.screens.Conversation
@@ -149,7 +151,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
             }
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
-                topBar = { AppTopBar(mainViewModel = mainViewModel, isMainScreen = true) },
+                topBar = { MainScreenTopBar(mainViewModel = mainViewModel) },
                 bottomBar = { BottomNavBar(mainViewModel = mainViewModel) },
                 floatingActionButton = { AppFloatingActionButton(mainViewModel = mainViewModel) }
             ) { innerPadding ->
@@ -166,10 +168,9 @@ fun MainScreen(mainViewModel: MainViewModel) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
-                    AppTopBar(
+                    BasicTopBar(
                         mainViewModel = mainViewModel,
-                        displayTitle = "Settings",
-                        isMainScreen = false
+                        pageTitle = "Settings",
                     )
                 },
             ) { innerPadding ->
@@ -186,10 +187,9 @@ fun MainScreen(mainViewModel: MainViewModel) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
-                    AppTopBar(
+                    BasicTopBar(
                         mainViewModel = mainViewModel,
-                        displayTitle = "Profile",
-                        isMainScreen = false
+                        pageTitle = "Profile",
                     )
                 },
             ) { innerPadding ->
@@ -208,10 +208,9 @@ fun MainScreen(mainViewModel: MainViewModel) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
-                    AppTopBar(
+                    ChatScreenTopBar(
                         mainViewModel = mainViewModel,
-                        displayTitle = pirateId,
-                        isMainScreen = false
+                        pageTitle = pirateId,
                     )
                 },
                 bottomBar = {

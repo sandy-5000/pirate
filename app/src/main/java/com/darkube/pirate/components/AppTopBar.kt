@@ -36,28 +36,21 @@ import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.getRouteId
 
 @Composable
-fun AppTopBar(
+fun MainScreenTopBar(
     mainViewModel: MainViewModel,
-    displayTitle: String = "",
-    isMainScreen: Boolean = false,
 ) {
     val topPadding = 36.dp
     val barHeight = 68.dp
     val sidesPadding = 18.dp
-    val titlePadding = 16.dp
-    val iconSize = 20.dp
+    val titlePadding = 32.dp
     val backGroundColor = AppBackground
 
-    val pageTitle: String = if (isMainScreen) {
-        val homeScreen by mainViewModel.homeScreenState.collectAsState()
-        when (homeScreen) {
-            HomeScreen.CHATS -> "Chats"
-            HomeScreen.REQUESTS -> "Requests"
-            HomeScreen.CALLS -> "Call History"
-            HomeScreen.STORIES -> "Stories"
-        }
-    } else {
-        displayTitle
+    val homeScreen by mainViewModel.homeScreenState.collectAsState()
+    val pageTitle: String = when (homeScreen) {
+        HomeScreen.CHATS -> "Chats"
+        HomeScreen.REQUESTS -> "Requests"
+        HomeScreen.CALLS -> "Call History"
+        HomeScreen.STORIES -> "Stories"
     }
 
     Row(
@@ -74,28 +67,12 @@ fun AppTopBar(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (!isMainScreen) {
-                    IconButton(
-                        modifier = Modifier.padding(start = titlePadding),
-                        onClick = {
-                            mainViewModel.navController.popBackStack()
-                            mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.arrow_left_icon),
-                            contentDescription = "Back",
-                            modifier = Modifier
-                                .size(iconSize),
-                        )
-                    }
-                }
                 Text(
                     text = pageTitle,
-                    fontSize = if (isMainScreen) 20.sp else 16.sp,
-                    fontWeight = if (isMainScreen) FontWeight.SemiBold else FontWeight.Normal,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(
-                        start = if (isMainScreen) titlePadding + titlePadding else titlePadding,
+                        start = titlePadding,
                     ),
                 )
             }
@@ -105,15 +82,126 @@ fun AppTopBar(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(end = sidesPadding),
         ) {
-            if (isMainScreen) {
-                TopBarOptions(mainViewModel = mainViewModel)
+            MainScreenTopBarOptions(mainViewModel = mainViewModel)
+        }
+    }
+}
+
+@Composable
+fun ChatScreenTopBar(
+    mainViewModel: MainViewModel,
+    pageTitle: String,
+) {
+    val topPadding = 36.dp
+    val barHeight = 68.dp
+    val iconPadding = 16.dp
+    val titlePadding = 4.dp
+    val iconSize = 20.dp
+    val sidesPadding = 18.dp
+    val backGroundColor = AppBackground
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = backGroundColor)
+            .padding(top = topPadding)
+            .height(barHeight),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    modifier = Modifier.padding(start = iconPadding),
+                    onClick = {
+                        mainViewModel.navController.popBackStack()
+                        mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.arrow_left_icon),
+                        contentDescription = "Back",
+                        modifier = Modifier
+                            .size(iconSize),
+                    )
+                }
+                Text(
+                    text = pageTitle,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(
+                        start = titlePadding,
+                    ),
+                )
+            }
+        }
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(end = sidesPadding),
+        ) {
+            ChatScreenTopBarOptions(mainViewModel = mainViewModel)
+        }
+    }
+}
+
+@Composable
+fun BasicTopBar(
+    mainViewModel: MainViewModel,
+    pageTitle: String,
+) {
+    val topPadding = 36.dp
+    val barHeight = 68.dp
+    val titlePadding = 16.dp
+    val iconSize = 20.dp
+    val backGroundColor = AppBackground
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = backGroundColor)
+            .padding(top = topPadding)
+            .height(barHeight),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    modifier = Modifier.padding(start = titlePadding),
+                    onClick = {
+                        mainViewModel.navController.popBackStack()
+                        mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.arrow_left_icon),
+                        contentDescription = "Back",
+                        modifier = Modifier
+                            .size(iconSize),
+                    )
+                }
+                Text(
+                    text = pageTitle,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(
+                        start = titlePadding,
+                    ),
+                )
             }
         }
     }
 }
 
 @Composable
-fun TopBarOptions(
+fun MainScreenTopBarOptions(
     mainViewModel: MainViewModel,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -187,6 +275,62 @@ fun TopBarOptions(
             onClick = {
                 mainViewModel.navController.navigate(SettingsRoute)
                 mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                expanded = false
+            })
+    }
+}
+
+@Composable
+fun ChatScreenTopBarOptions(
+    mainViewModel: MainViewModel,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+
+    IconButton(onClick = { expanded = !expanded }) {
+        Icon(
+            imageVector = Icons.Default.MoreVert, contentDescription = "Menu"
+        )
+    }
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        modifier = Modifier
+            .width(screenWidth * 0.5f)
+            .background(NavBarBackground),
+    ) {
+        DropdownMenuItem(
+            text = {
+                Text(
+                    "Chat Settings",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
+            onClick = {
+                Toast.makeText(context, "Chat Settings", Toast.LENGTH_SHORT).show()
+                expanded = false
+            })
+        DropdownMenuItem(
+            text = {
+                Text(
+                    "Search in Chat",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
+            onClick = {
+                Toast.makeText(context, "Search in Chat", Toast.LENGTH_SHORT).show()
+                expanded = false
+            })
+        DropdownMenuItem(
+            text = {
+                Text(
+                    "Mute Notifications",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
+            onClick = {
+                Toast.makeText(context, "Mute Notifications", Toast.LENGTH_SHORT).show()
                 expanded = false
             })
     }
