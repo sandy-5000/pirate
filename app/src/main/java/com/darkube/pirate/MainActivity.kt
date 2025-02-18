@@ -43,7 +43,9 @@ import com.darkube.pirate.utils.DatabaseProvider
 import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
+import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
+import com.darkube.pirate.screens.InviteFriends
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -194,6 +196,25 @@ fun MainScreen(mainViewModel: MainViewModel) {
                 },
             ) { innerPadding ->
                 Profile(
+                    modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
+                )
+            }
+        }
+        composable<InviteFriendsRoute> {
+            BackHandler {
+                handleBack()
+            }
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    BasicTopBar(
+                        mainViewModel = mainViewModel,
+                        pageTitle = "InviteFriends",
+                    )
+                },
+            ) { innerPadding ->
+                InviteFriends(
                     modifier = Modifier.padding(innerPadding),
                     mainViewModel = mainViewModel,
                 )
