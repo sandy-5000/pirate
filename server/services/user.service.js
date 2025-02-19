@@ -17,7 +17,7 @@ export default class UserService {
   }
 
   static async authenticate(username, passwd) {
-    const user = await _users.findOne({ username })
+    const user = await _users.findOne({ username }, { friends: 0 })
     if (!user) {
       throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
     }
@@ -122,6 +122,24 @@ export default class UserService {
       return Boolean(user)
     } catch (e) {
       throw new Error(ERRORS.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  static async friends({ _id }) {
+    try {
+      const friendsList = await _users
+        .findById(_id, { friends: 1 })
+        .populate({
+          path: 'friends',
+          select: 'username _id first_name last_name',
+        })
+        .exec()
+      if (!friendsList) {
+        throw new Error(ERRORS.INVALID_REQUEST)
+      }
+      return friendsList
+    } catch (e) {
+      throw new Error(e.message)
     }
   }
 }

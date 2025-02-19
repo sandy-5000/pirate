@@ -16,7 +16,7 @@ app.route('/login').post(async (req, res) => {
     user = JSON.parse(JSON.stringify(user))
     const payload = UserService.payload(user)
     const token = JwtService.sign(payload)
-    return res.json({ result: { ...user, passwd: '' }, token })
+    return res.status(200).json({ result: { ...user, passwd: '' }, token })
   } catch (e) {
     if (
       e.message === ERRORS.AUTH.INVALID_CREDENTIALS ||
@@ -46,7 +46,7 @@ app.route('/register').post(async (req, res) => {
     user = JSON.parse(JSON.stringify(user))
     const payload = UserService.payload(user)
     const token = JwtService.sign(payload)
-    return res.json({ result: { ...user, passwd: '' }, token })
+    return res.status(201).json({ result: { ...user, passwd: '' }, token })
   } catch (e) {
     console.log(e)
     if (e.message === ERRORS.ACCOUNT.ALREADY_EXISTS) {
@@ -72,6 +72,18 @@ app.route('/search/:handler').get(async (req, res) => {
   } catch (e) {
     return res.status(500).json({
       error: ERRORS.INTERNAL_SERVER_ERROR,
+    })
+  }
+})
+
+app.route('/friends').get(validateToken, async (req, res) => {
+  try {
+    const { _id = '' } = req.token_data || {}
+    let friendsList = await UserService.friends({ _id })
+    return res.status(200).json({ result: friendsList })
+  } catch (e) {
+    return res.status(400).json({
+      error: e.message,
     })
   }
 })
@@ -110,7 +122,7 @@ app
       user = JSON.parse(JSON.stringify(user))
       const payload = UserService.payload(user)
       const token = JwtService.sign(payload)
-      return res.json({ result: { ...user, passwd: '' }, token })
+      return res.status(200).json({ result: { ...user, passwd: '' }, token })
     } catch (e) {
       if (e.message === ERRORS.INTERNAL_SERVER_ERROR) {
         return res.status(500).json({
