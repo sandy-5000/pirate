@@ -22,7 +22,7 @@ fun Stories(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Stories",
+                text = "Under Construction",
                 modifier = modifier
             )
         }

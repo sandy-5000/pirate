@@ -98,7 +98,7 @@ fun fetch(
                 callback(response.body() ?: JsonObject(emptyMap()))
             } else {
                 callback(buildJsonObject {
-                    put("error", "__ERROR__")
+                    put("error", response.body().toString())
                 })
             }
         } catch (e: Exception) {

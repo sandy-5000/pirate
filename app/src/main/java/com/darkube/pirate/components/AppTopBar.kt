@@ -82,7 +82,7 @@ fun MainScreenTopBar(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(end = sidesPadding),
         ) {
-            MainScreenTopBarOptions(mainViewModel = mainViewModel)
+            MainScreenTopBarOptions(mainViewModel = mainViewModel, homeScreen = homeScreen)
         }
     }
 }
@@ -203,6 +203,7 @@ fun BasicTopBar(
 @Composable
 fun MainScreenTopBarOptions(
     mainViewModel: MainViewModel,
+    homeScreen: HomeScreen,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -220,17 +221,19 @@ fun MainScreenTopBarOptions(
             .width(screenWidth * 0.5f)
             .background(NavBarBackground),
     ) {
-        DropdownMenuItem(
-            text = {
-                Text(
-                    "New group",
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            },
-            onClick = {
-                Toast.makeText(context, "New group", Toast.LENGTH_SHORT).show()
-                expanded = false
-            })
+//        if (HomeScreen.CHATS == homeScreen) {
+//            DropdownMenuItem(
+//                text = {
+//                    Text(
+//                        "New group",
+//                        modifier = Modifier.padding(start = 8.dp),
+//                    )
+//                },
+//                onClick = {
+//                    Toast.makeText(context, "New group", Toast.LENGTH_SHORT).show()
+//                    expanded = false
+//                })
+//        }
         DropdownMenuItem(
             text = {
                 Text(
@@ -242,17 +245,19 @@ fun MainScreenTopBarOptions(
                 Toast.makeText(context, "Invite friends", Toast.LENGTH_SHORT).show()
                 expanded = false
             })
-        DropdownMenuItem(
-            text = {
-                Text(
-                    "Mark all read",
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            },
-            onClick = {
-                Toast.makeText(context, "Mark all read", Toast.LENGTH_SHORT).show()
-                expanded = false
-            })
+        if (HomeScreen.CHATS == homeScreen) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        "Mark all read",
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                },
+                onClick = {
+                    Toast.makeText(context, "Mark all read", Toast.LENGTH_SHORT).show()
+                    expanded = false
+                })
+        }
         DropdownMenuItem(
             text = {
                 Text(

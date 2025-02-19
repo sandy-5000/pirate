@@ -1,5 +1,6 @@
 package com.darkube.pirate.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -46,6 +47,8 @@ import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightRedColor
 import com.darkube.pirate.ui.theme.PrimaryColor
+import com.darkube.pirate.utils.ChatRoute
+import com.darkube.pirate.utils.getRouteId
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -55,6 +58,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 enum class RequestScreen {
     MESSAGE_REQUESTS, PENDING_REQUESTS, FRIENDS
@@ -85,16 +89,13 @@ fun Requests(
 
     var selectedFilter by remember { mutableStateOf(RequestScreen.MESSAGE_REQUESTS) }
 
-    var requests__ by remember {
-        mutableStateOf(arrayOf<Array<String>>())
-    }
     var requests by remember { mutableStateOf(arrayOf<Details>()) }
     var pendings by remember { mutableStateOf(arrayOf<Details>()) }
     var friends by remember { mutableStateOf(arrayOf<Details>()) }
 
     val headers = mainViewModel.getHeaders()
 
-    LaunchedEffect(Unit) {
+    val fetchMessageRequests = {
         loadingMessageRequest = false
         fetch(
             url = "/api/user/message-requests",
@@ -121,6 +122,9 @@ fun Requests(
             headers = headers,
             type = RequestType.GET,
         )
+    }
+
+    val fetchPendingRequests = {
         loadingPendingRequest = false
         fetch(
             url = "/api/user/pending-requests",
@@ -147,6 +151,9 @@ fun Requests(
             headers = headers,
             type = RequestType.GET,
         )
+    }
+
+    val fetchFriends = {
         loadingFriends = false
         fetch(
             url = "/api/user/friends",
@@ -174,15 +181,12 @@ fun Requests(
             headers = headers,
             type = RequestType.GET,
         )
-        requests__ = arrayOf(
-            arrayOf("Sandy Blaze", "sandy-blaze.0", ""),
-            arrayOf("Cassi Storm", "cassi-storm", ""),
-            arrayOf("Show Bitch", "show-bitch", ""),
-            arrayOf("Call none", "call.none.1", ""),
-            arrayOf("Captain", "captain", ""),
-            arrayOf("Deep Seek", "deep-seek.100", ""),
-            arrayOf("Twin Braids", "twin-braids", ""),
-        )
+    }
+
+    LaunchedEffect(Unit) {
+        fetchMessageRequests()
+        fetchPendingRequests()
+        fetchFriends()
     }
 
     Column(
@@ -239,14 +243,19 @@ fun Requests(
             ) {
                 if (loadingMessageRequest) {
                     Loading(modifier = modifier.weight(1f))
-                } else if (requests__.isEmpty()) {
+                } else if (requests.isEmpty()) {
                     EmptyList("No Message Requests", modifier = Modifier.weight(1f))
                 }
                 requests.forEach { messageRequest ->
                     MessageRequest(
-                        messageRequest.firstName + " " + messageRequest.lastName,
-                        messageRequest.username,
-                        messageRequest.id
+                        displayName = messageRequest.firstName + " " + messageRequest.lastName,
+                        username = messageRequest.username,
+                        userId = messageRequest.id,
+                        mainViewModel = mainViewModel,
+                        reload = {
+                            fetchMessageRequests()
+                            fetchFriends()
+                        },
                     )
                 }
                 Spacer(modifier = Modifier.height(60.dp))
@@ -259,14 +268,19 @@ fun Requests(
             ) {
                 if (loadingPendingRequest) {
                     Loading(modifier = modifier.weight(1f))
-                } else if (requests__.isEmpty()) {
+                } else if (pendings.isEmpty()) {
                     EmptyList("No Pending Requests", modifier = Modifier.weight(1f))
                 }
                 pendings.forEach { pendingRequest ->
                     PendingRequest(
-                        pendingRequest.firstName + " " + pendingRequest.lastName,
-                        pendingRequest.username,
-                        pendingRequest.id
+                        displayName = pendingRequest.firstName + " " + pendingRequest.lastName,
+                        username = pendingRequest.username,
+                        userId = pendingRequest.id,
+                        mainViewModel = mainViewModel,
+                        reload = {
+                            fetchPendingRequests()
+                            fetchFriends()
+                        },
                     )
                 }
                 Spacer(modifier = Modifier.height(60.dp))
@@ -279,11 +293,17 @@ fun Requests(
             ) {
                 if (loadingFriends) {
                     Loading(modifier = modifier.weight(1f))
-                } else if (requests__.isEmpty()) {
+                } else if (friends.isEmpty()) {
                     EmptyList("You Have No Friends", modifier = Modifier.weight(1f))
                 }
                 friends.forEach { friend ->
-                    Friend(friend.firstName + " " + friend.lastName, friend.username, friend.id)
+                    Friend(
+                        displayName = friend.firstName + " " + friend.lastName,
+                        username = friend.username,
+                        userId = friend.id,
+                        mainViewModel = mainViewModel,
+                        reload = { fetchFriends() },
+                    )
                 }
                 Spacer(modifier = Modifier.height(60.dp))
             }
@@ -292,7 +312,13 @@ fun Requests(
 }
 
 @Composable
-fun MessageRequest(displayName: String, username: String, userId: String) {
+fun MessageRequest(
+    displayName: String,
+    username: String,
+    userId: String,
+    mainViewModel: MainViewModel,
+    reload: () -> Unit
+) {
     var loading by remember { mutableStateOf(false) }
     val horizontalPadding = 28.dp
     val verticalPadding = 24.dp
@@ -301,6 +327,11 @@ fun MessageRequest(displayName: String, username: String, userId: String) {
     val rejectIcon = R.drawable.close_circle_icon
     val iconSize = 24.dp
     val backgroundColor = AppBackground
+
+    val headers = mainViewModel.getHeaders()
+    val body = buildJsonObject {
+        put("sender_id", userId)
+    }
 
     Row(
         modifier = Modifier
@@ -327,7 +358,20 @@ fun MessageRequest(displayName: String, username: String, userId: String) {
                 .padding(start = 4.dp),
         ) {
             IconButton(
-                onClick = {},
+                onClick = {
+                    loading = true
+                    fetch(
+                        url = "/api/friends/accept",
+                        callback = { response: JsonElement ->
+                            Log.d("api-res", response.toString())
+                            reload()
+                            loading = false
+                        },
+                        body = body,
+                        headers = headers,
+                        type = RequestType.POST,
+                    )
+                },
                 enabled = !loading,
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(4.dp))
@@ -344,7 +388,20 @@ fun MessageRequest(displayName: String, username: String, userId: String) {
             }
             Spacer(modifier = Modifier.size(12.dp))
             IconButton(
-                onClick = {},
+                onClick = {
+                    loading = true
+                    fetch(
+                        url = "/api/friends/reject",
+                        callback = { response: JsonElement ->
+                            Log.d("api-res", response.toString())
+                            reload()
+                            loading = false
+                        },
+                        body = body,
+                        headers = headers,
+                        type = RequestType.POST,
+                    )
+                },
                 enabled = !loading,
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(4.dp))
@@ -364,13 +421,24 @@ fun MessageRequest(displayName: String, username: String, userId: String) {
 }
 
 @Composable
-fun PendingRequest(displayName: String, username: String, userId: String) {
+fun PendingRequest(
+    displayName: String,
+    username: String,
+    userId: String,
+    mainViewModel: MainViewModel,
+    reload: () -> Unit,
+) {
     var loading by remember { mutableStateOf(false) }
     val horizontalPadding = 28.dp
     val verticalPadding = 24.dp
     val backgroundColor = AppBackground
     val cancelIcon = R.drawable.forbidden_circle_icon
     val iconSize = 20.dp
+
+    val headers = mainViewModel.getHeaders()
+    val body = buildJsonObject {
+        put("receiver_id", userId)
+    }
 
     Row(
         modifier = Modifier
@@ -393,7 +461,20 @@ fun PendingRequest(displayName: String, username: String, userId: String) {
             Text(text = username, fontSize = 14.sp)
         }
         Button(
-            onClick = {},
+            onClick = {
+                loading = true
+                fetch(
+                    url = "/api/friends/cancel",
+                    callback = { response: JsonElement ->
+                        Log.d("api-res", response.toString())
+                        reload()
+                        loading = false
+                    },
+                    body = body,
+                    headers = headers,
+                    type = RequestType.POST,
+                )
+            },
             enabled = !loading,
             shape = RoundedCornerShape(4.dp),
             colors = ButtonDefaults.buttonColors(
@@ -423,11 +504,18 @@ fun PendingRequest(displayName: String, username: String, userId: String) {
 }
 
 @Composable
-fun Friend(displayName: String, username: String, userId: String) {
+fun Friend(
+    displayName: String,
+    username: String,
+    userId: String,
+    mainViewModel: MainViewModel,
+    reload: () -> Unit,
+) {
     var loading by remember { mutableStateOf(false) }
     val horizontalPadding = 28.dp
     val verticalPadding = 24.dp
     val backgroundColor = AppBackground
+    val messageIcon = R.drawable.map_arrow_square_icon
     val removeIcon = R.drawable.trash_bin_icon
     val iconSize = 20.dp
 
@@ -451,33 +539,65 @@ fun Friend(displayName: String, username: String, userId: String) {
             )
             Text(text = username, fontSize = 14.sp)
         }
-        Button(
-            onClick = {},
-            enabled = !loading,
-            shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = LightRedColor,
-            ),
-            contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+        Column {
+            Button(
+                onClick = {
+                    mainViewModel.navController.navigate(ChatRoute(username))
+                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
+                },
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryColor,
+                ),
+                contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
             ) {
-                Icon(
-                    painter = painterResource(id = removeIcon),
-                    contentDescription = "Cancel",
-                    modifier = Modifier
-                        .size(iconSize),
-                    tint = backgroundColor
-                )
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    "Remove",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = backgroundColor,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(id = messageIcon),
+                        contentDescription = "Message",
+                        modifier = Modifier
+                            .size(iconSize),
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        "Message",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White,
+                    )
+                }
             }
+//            Button(
+//                onClick = {},
+//                enabled = !loading,
+//                shape = RoundedCornerShape(4.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = LightRedColor,
+//                ),
+//                contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
+//            ) {
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = removeIcon),
+//                        contentDescription = "Remove",
+//                        modifier = Modifier
+//                            .size(iconSize),
+//                        tint = backgroundColor
+//                    )
+//                    Spacer(modifier = Modifier.size(4.dp))
+//                    Text(
+//                        "Remove  ",
+//                        fontSize = 15.sp,
+//                        fontWeight = FontWeight.Medium,
+//                        color = backgroundColor,
+//                    )
+//                }
+//            }
         }
     }
 }

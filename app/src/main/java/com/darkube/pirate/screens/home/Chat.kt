@@ -89,17 +89,17 @@ fun Chat(
                     selectedContainerColor = PrimaryColor,
                 )
             )
-            InputChip(
-                modifier = Modifier.padding(end = 12.dp),
-                selected = selectedFilter == ChatList.CREWS,
-                onClick = {
-                    selectedFilter = ChatList.CREWS
-                },
-                label = { Text("Crews") },
-                colors = InputChipDefaults.inputChipColors(
-                    selectedContainerColor = PrimaryColor,
-                )
-            )
+//            InputChip(
+//                modifier = Modifier.padding(end = 12.dp),
+//                selected = selectedFilter == ChatList.CREWS,
+//                onClick = {
+//                    selectedFilter = ChatList.CREWS
+//                },
+//                label = { Text("Crews") },
+//                colors = InputChipDefaults.inputChipColors(
+//                    selectedContainerColor = PrimaryColor,
+//                )
+//            )
         }
         when (selectedFilter) {
             ChatList.PIRATES ->
