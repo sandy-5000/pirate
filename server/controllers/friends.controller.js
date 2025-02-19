@@ -26,6 +26,22 @@ app.route('/request').post(validateToken, async (req, res) => {
   }
 })
 
+app.route('/cancel').post(validateToken, async (req, res) => {
+  try {
+    const { _id = '' } = req.token_data || {}
+    const { receiver_id } = req.body
+    if (_id === receiver_id) {
+      throw new Error(ERRORS.INVALID_REQUEST)
+    }
+    let request = await FriendsService.cancel(_id, receiver_id)
+    return res.json({ result: { ...request } })
+  } catch (e) {
+    return res.status(400).json({
+      error: e.message,
+    })
+  }
+})
+
 app.route('/accept').post(validateToken, async (req, res) => {
   try {
     const { _id = '' } = req.token_data || {}

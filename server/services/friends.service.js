@@ -48,6 +48,19 @@ export default class FriendsService {
 
       return new_request
     } catch (e) {
+      console.log(e)
+      throw new Error(e.message)
+    }
+  }
+
+  static async cancel(sender_id, receiver_id) {
+    try {
+      await _pendingRequests.deleteOne({
+        sender_id,
+        receiver_id,
+      })
+      return { flag: 'DELETED' }
+    } catch (e) {
       throw new Error(e.message)
     }
   }
@@ -112,6 +125,7 @@ export default class FriendsService {
       return receiver
     } catch (e) {
       await session.abortTransaction()
+      console.log(e)
       throw new Error(e.message)
     } finally {
       session.endSession()
@@ -149,6 +163,7 @@ export default class FriendsService {
 
       return { flag: 'REJECTED' }
     } catch (e) {
+      console.log(e)
       throw new Error(e.message)
     }
   }
