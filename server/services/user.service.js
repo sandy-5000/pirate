@@ -146,7 +146,13 @@ export default class UserService {
 
   static async pendingRequests({ _id }) {
     try {
-      const pendingRequests = await _pendingRequests.find({ sender_id: _id })
+      const pendingRequests = await _pendingRequests
+        .find({ sender_id: _id })
+        .populate({
+          path: 'receiver_id',
+          select: 'username _id first_name last_name', // Fetch only required fields
+        })
+        .exec()
       return pendingRequests
     } catch (e) {
       throw new Error(e.message)
@@ -155,7 +161,13 @@ export default class UserService {
 
   static async messageRequests({ _id }) {
     try {
-      const messageRequests = await _pendingRequests.find({ receiver_id: _id })
+      const messageRequests = await _pendingRequests
+        .find({ receiver_id: _id })
+        .populate({
+          path: 'sender_id',
+          select: 'username _id first_name last_name', // Fetch only required fields
+        })
+        .exec()
       return messageRequests
     } catch (e) {
       throw new Error(e.message)

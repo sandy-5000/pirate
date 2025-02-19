@@ -3,10 +3,12 @@ import mongoose from 'mongoose'
 const pendingRequestsSchema = new mongoose.Schema({
   sender_id: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
     required: [true, 'sender_id is a required field'],
   },
   receiver_id: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
     required: [true, 'receiver_id is a required field'],
   },
 })
