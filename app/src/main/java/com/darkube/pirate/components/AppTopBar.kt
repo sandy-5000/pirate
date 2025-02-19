@@ -243,7 +243,6 @@ fun MainScreenTopBarOptions(
                 )
             },
             onClick = {
-                Toast.makeText(context, "Invite friends", Toast.LENGTH_SHORT).show()
                 mainViewModel.navController.navigate(InviteFriendsRoute)
                 mainViewModel.setScreen((getRouteId(mainViewModel.navController.currentDestination)))
                 expanded = false

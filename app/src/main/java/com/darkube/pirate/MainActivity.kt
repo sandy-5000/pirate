@@ -216,7 +216,6 @@ fun MainScreen(mainViewModel: MainViewModel) {
             ) { innerPadding ->
                 InviteFriends(
                     modifier = Modifier.padding(innerPadding),
-                    mainViewModel = mainViewModel,
                 )
             }
         }
