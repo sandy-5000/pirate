@@ -29,6 +29,7 @@ fun Home(
         )
 
         HomeScreen.REQUESTS -> Requests(
+            mainViewModel = mainViewModel,
             modifier = modifier,
         )
 

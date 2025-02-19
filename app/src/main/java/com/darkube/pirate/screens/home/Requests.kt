@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -42,19 +40,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.components.Loading
+import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.services.fetch
+import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
-import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.LightRedColor
 import com.darkube.pirate.ui.theme.PrimaryColor
-import kotlinx.coroutines.delay
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 enum class RequestScreen {
     MESSAGE_REQUESTS, PENDING_REQUESTS, FRIENDS
 }
 
+data class Details(
+    val username: String,
+    val firstName: String,
+    val lastName: String,
+    val id: String
+)
+
 @Composable
 fun Requests(
     modifier: Modifier = Modifier,
+    mainViewModel: MainViewModel,
 ) {
     val messageRequestsScrollState = rememberScrollState()
     val pendingRequestsScrollState = rememberScrollState()
@@ -69,19 +85,96 @@ fun Requests(
 
     var selectedFilter by remember { mutableStateOf(RequestScreen.MESSAGE_REQUESTS) }
 
-    var requests by remember {
+    var requests__ by remember {
         mutableStateOf(arrayOf<Array<String>>())
     }
+    var requests by remember { mutableStateOf(arrayOf<Details>()) }
+    var pendings by remember { mutableStateOf(arrayOf<Details>()) }
+    var friends by remember { mutableStateOf(arrayOf<Details>()) }
+
+    val headers = mainViewModel.getHeaders()
 
     LaunchedEffect(Unit) {
-        delay(1000L)
         loadingMessageRequest = false
-        delay(1000L)
+        fetch(
+            url = "/api/user/message-requests",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    return@fetch
+                }
+                val result: JsonArray = response.jsonObject["result"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<String>() }
+                requests = result.map { details ->
+                    val detailObject = details.jsonObject["sender_id"]?.jsonObject
+                        ?: buildJsonObject { emptyMap<String, String>() }
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                    )
+                }.toTypedArray()
+            },
+            headers = headers,
+            type = RequestType.GET,
+        )
         loadingPendingRequest = false
-        delay(1000L)
+        fetch(
+            url = "/api/user/pending-requests",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    return@fetch
+                }
+                val result: JsonArray = response.jsonObject["result"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<JsonObject>() }
+                pendings = result.map { details ->
+                    val detailObject = details.jsonObject["receiver_id"]?.jsonObject
+                        ?: buildJsonObject { emptyMap<String, String>() }
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                    )
+                }.toTypedArray()
+            },
+            headers = headers,
+            type = RequestType.GET,
+        )
         loadingFriends = false
-        delay(1000L)
-        requests = arrayOf(
+        fetch(
+            url = "/api/user/friends",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    return@fetch
+                }
+                val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                    ?: buildJsonObject { emptyMap<String, JsonObject>() }
+                val friendsList: JsonArray = result["friends"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<JsonObject>() }
+                friends = friendsList.map { details ->
+                    val detailObject = details.jsonObject
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                    )
+                }.toTypedArray()
+            },
+            headers = headers,
+            type = RequestType.GET,
+        )
+        requests__ = arrayOf(
             arrayOf("Sandy Blaze", "sandy-blaze.0", ""),
             arrayOf("Cassi Storm", "cassi-storm", ""),
             arrayOf("Show Bitch", "show-bitch", ""),
@@ -146,11 +239,15 @@ fun Requests(
             ) {
                 if (loadingMessageRequest) {
                     Loading(modifier = modifier.weight(1f))
-                } else if (requests.isEmpty()) {
+                } else if (requests__.isEmpty()) {
                     EmptyList("No Message Requests", modifier = Modifier.weight(1f))
                 }
-                requests.forEach { request ->
-                    MessageRequest(request[0], request[1], request[2])
+                requests.forEach { messageRequest ->
+                    MessageRequest(
+                        messageRequest.firstName + " " + messageRequest.lastName,
+                        messageRequest.username,
+                        messageRequest.id
+                    )
                 }
                 Spacer(modifier = Modifier.height(60.dp))
             }
@@ -162,11 +259,15 @@ fun Requests(
             ) {
                 if (loadingPendingRequest) {
                     Loading(modifier = modifier.weight(1f))
-                } else if (requests.isEmpty()) {
+                } else if (requests__.isEmpty()) {
                     EmptyList("No Pending Requests", modifier = Modifier.weight(1f))
                 }
-                requests.forEach { request ->
-                    PendingRequest(request[0], request[1], request[2])
+                pendings.forEach { pendingRequest ->
+                    PendingRequest(
+                        pendingRequest.firstName + " " + pendingRequest.lastName,
+                        pendingRequest.username,
+                        pendingRequest.id
+                    )
                 }
                 Spacer(modifier = Modifier.height(60.dp))
             }
@@ -178,11 +279,11 @@ fun Requests(
             ) {
                 if (loadingFriends) {
                     Loading(modifier = modifier.weight(1f))
-                } else if (requests.isEmpty()) {
+                } else if (requests__.isEmpty()) {
                     EmptyList("You Have No Friends", modifier = Modifier.weight(1f))
                 }
-                requests.forEach { request ->
-                    Friend(request[0], request[1], request[2])
+                friends.forEach { friend ->
+                    Friend(friend.firstName + " " + friend.lastName, friend.username, friend.id)
                 }
                 Spacer(modifier = Modifier.height(60.dp))
             }

@@ -9,7 +9,6 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.HomeScreen
-import com.darkube.pirate.types.ProfileUpdateType
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.types.UserDetails
 import com.darkube.pirate.utils.DataBase
