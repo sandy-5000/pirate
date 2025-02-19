@@ -36,15 +36,19 @@ export default class FriendsService {
       const new_request = new _pendingRequests({ sender_id, receiver_id })
       await new_request.save()
 
-      const tokenData = await PushTokenService.getToken(receiver_id)
-      const name =
-        `${sender.first_name} ${sender.last_name} (${sender.username})`.trim()
-      await PushTokenService.notify(
-        tokenData?.token || '',
-        sender.username,
-        `${name} has sent you a message request.`,
-        NOTIFICATION_TYPE.MESSAGE_REQUEST,
-      )
+      try {
+        const tokenData = await PushTokenService.getToken(receiver_id)
+        const name =
+          `${sender.first_name} ${sender.last_name} (${sender.username})`.trim()
+        await PushTokenService.notify(
+          tokenData?.token || '',
+          sender.username,
+          `${name} has sent you a message request.`,
+          NOTIFICATION_TYPE.MESSAGE_REQUEST,
+        )
+      } catch (e) {
+        console.log(e)
+      }
 
       return new_request
     } catch (e) {
@@ -112,15 +116,19 @@ export default class FriendsService {
       await new_pair.save({ session })
       await session.commitTransaction()
 
-      const tokenData = await PushTokenService.getToken(sender_id)
-      const name =
-        `${receiver.first_name} ${receiver.last_name} (${receiver.username})`.trim()
-      await PushTokenService.notify(
-        tokenData?.token || '',
-        receiver.username,
-        `${name} has accepted your message request.`,
-        NOTIFICATION_TYPE.MESSAGE_REQUEST,
-      )
+      try {
+        const tokenData = await PushTokenService.getToken(sender_id)
+        const name =
+          `${receiver.first_name} ${receiver.last_name} (${receiver.username})`.trim()
+        await PushTokenService.notify(
+          tokenData?.token || '',
+          receiver.username,
+          `${name} has accepted your message request.`,
+          NOTIFICATION_TYPE.MESSAGE_REQUEST,
+        )
+      } catch (e) {
+        console.log(e)
+      }
 
       return receiver
     } catch (e) {
@@ -151,15 +159,19 @@ export default class FriendsService {
         await _pendingRequests.deleteOne({ sender_id, receiver_id })
       }
 
-      const tokenData = await PushTokenService.getToken(sender_id)
-      const name =
-        `${receiver.first_name} ${receiver.last_name} (${receiver.username})`.trim()
-      await PushTokenService.notify(
-        tokenData?.token || '',
-        receiver.username,
-        `${name} has rejected your message request.`,
-        NOTIFICATION_TYPE.MESSAGE_REQUEST,
-      )
+      try {
+        const tokenData = await PushTokenService.getToken(sender_id)
+        const name =
+          `${receiver.first_name} ${receiver.last_name} (${receiver.username})`.trim()
+        await PushTokenService.notify(
+          tokenData?.token || '',
+          receiver.username,
+          `${name} has rejected your message request.`,
+          NOTIFICATION_TYPE.MESSAGE_REQUEST,
+        )
+      } catch (e) {
+        console.log(e)
+      }
 
       return { flag: 'REJECTED' }
     } catch (e) {
