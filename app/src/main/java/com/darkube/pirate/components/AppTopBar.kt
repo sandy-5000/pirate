@@ -31,6 +31,7 @@ import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.AppBackground
+import com.darkube.pirate.utils.InviteFriendsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.getRouteId
@@ -243,6 +244,8 @@ fun MainScreenTopBarOptions(
             },
             onClick = {
                 Toast.makeText(context, "Invite friends", Toast.LENGTH_SHORT).show()
+                mainViewModel.navController.navigate(InviteFriendsRoute)
+                mainViewModel.setScreen((getRouteId(mainViewModel.navController.currentDestination)))
                 expanded = false
             })
         if (HomeScreen.CHATS == homeScreen) {

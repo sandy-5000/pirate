@@ -12,4 +12,7 @@ object SettingsRoute
 object ProfileRoute
 
 @Serializable
+object InviteFriendsRoute
+
+@Serializable
 data class ChatRoute(val pirateId: String)
