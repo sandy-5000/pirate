@@ -1,5 +1,6 @@
 import _users from '#~/models/user.model'
 import _friends from '#~/models/friends.model'
+import _pendingRequests from '#~/models/pendingRequests.model'
 import { UPDATE_TYPE } from '#~/utils/enums.constants'
 import { ERRORS } from '#~/utils/error.types'
 import { compare, hash } from 'bcrypt'
@@ -138,6 +139,24 @@ export default class UserService {
         throw new Error(ERRORS.INVALID_REQUEST)
       }
       return friendsList
+    } catch (e) {
+      throw new Error(e.message)
+    }
+  }
+
+  static async pendingRequests({ _id }) {
+    try {
+      const pendingRequests = await _pendingRequests.find({ sender_id: _id })
+      return pendingRequests
+    } catch (e) {
+      throw new Error(e.message)
+    }
+  }
+
+  static async messageRequests({ _id }) {
+    try {
+      const messageRequests = await _pendingRequests.find({ receiver_id: _id })
+      return messageRequests
     } catch (e) {
       throw new Error(e.message)
     }

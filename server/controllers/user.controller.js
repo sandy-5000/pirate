@@ -88,6 +88,30 @@ app.route('/friends').get(validateToken, async (req, res) => {
   }
 })
 
+app.route('/pending-requests').get(validateToken, async (req, res) => {
+  try {
+    const { _id = '' } = req.token_data || {}
+    let pendingList = await UserService.pendingRequests({ _id })
+    return res.status(200).json({ result: pendingList })
+  } catch (e) {
+    return res.status(500).json({
+      error: ERRORS.INTERNAL_SERVER_ERROR,
+    })
+  }
+})
+
+app.route('/message-requests').get(validateToken, async (req, res) => {
+  try {
+    const { _id = '' } = req.token_data || {}
+    let requestList = await UserService.messageRequests({ _id })
+    return res.status(200).json({ result: requestList })
+  } catch (e) {
+    return res.status(500).json({
+      error: ERRORS.INTERNAL_SERVER_ERROR,
+    })
+  }
+})
+
 app
   .route('/profile')
   .get(validateToken, async (req, res) => {
