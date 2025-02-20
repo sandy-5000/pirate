@@ -1,5 +1,6 @@
 package com.darkube.pirate.screens.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
@@ -22,15 +25,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.darkube.pirate.components.PixelAvatar
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
+import com.darkube.pirate.utils.getProfileImage
 import com.darkube.pirate.utils.getRouteId
 
 enum class ChatList {
@@ -47,24 +52,24 @@ fun Chat(
 
     var selectedFilter by remember { mutableStateOf(ChatList.PIRATES) }
 
-    val mateys = listOf(
-        listOf("sandy-blaze.0", "Hey, what are you doing?"),
-        listOf("jhema.7", "Nani?"),
-        listOf("kakarot", "Hey, how strong are we talking?"),
-        listOf("luffy", "I will become the Pirate King."),
-        listOf("naruto", "I will become the Hokage."),
-        listOf("captain", "The time has come my CREW, charge..."),
-        listOf("cassi-storm", "doing something?"),
-        listOf("twin-braids", "Hello, what are you doing?"),
-        listOf("abs-zero", "Let's freeze the whole world."),
-        listOf("minipixel", "Hey, what are you doing?"),
+    val pirates = listOf(
+        listOf("sandy-blaze.0", "Hey, what are you doing?", "0"),
+        listOf("jhema.7", "Nani?", "2"),
+        listOf("kakarot", "Hey, how strong are we talking?", "3"),
+        listOf("luffy", "I will become the Pirate King.", "4"),
+        listOf("naruto", "I will become the Hokage.", "5"),
+        listOf("captain", "The time has come my CREW, charge...", "6"),
+        listOf("cassi-storm", "doing something?", "7"),
+        listOf("twin-braids", "Hello, what are you doing?", "8"),
+        listOf("abs-zero", "Let's freeze the whole world.", "11"),
+        listOf("minipixel", "Hey, what are you doing?", "9"),
     )
 
     val crews = listOf(
-        listOf("universe-7", "Hey, how strong are we talking?"),
-        listOf("leaf-village", "I will become the Hokage."),
-        listOf("ua-high", "Have no fear cause I am here."),
-        listOf("hunter-association", "We got a new S-rank hunter."),
+        listOf("universe-7", "Hey, how strong are we talking?", "10"),
+        listOf("leaf-village", "I will become the Hokage.", "1"),
+        listOf("ua-high", "Have no fear cause I am here.", "12"),
+        listOf("hunter-association", "We got a new S-rank hunter.", "10"),
     )
 
     Column(
@@ -103,13 +108,13 @@ fun Chat(
         }
         when (selectedFilter) {
             ChatList.PIRATES ->
-                mateys.forEach { details ->
-                    ChatRow(details[0], details[1], mainViewModel)
+                pirates.forEach { details ->
+                    ChatRow(details[0], details[1], details[2].toInt(), mainViewModel)
                 }
 
             ChatList.CREWS ->
                 crews.forEach { details ->
-                    ChatRow(details[0], details[1], mainViewModel)
+                    ChatRow(details[0], details[1], details[2].toInt(), mainViewModel)
                 }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -120,9 +125,11 @@ fun Chat(
 fun ChatRow(
     username: String,
     lastMessage: String = "",
+    profileImage: Int,
     mainViewModel: MainViewModel,
 ) {
     val horizontalPadding = 24.dp
+    val imageSize = 60.dp
 
     Row(
         modifier = Modifier
@@ -136,7 +143,13 @@ fun ChatRow(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        PixelAvatar(username = username)
+        Image(
+            painter = painterResource(id = getProfileImage(profileImage)),
+            contentDescription = "Profile Image",
+            modifier = Modifier
+                .size(imageSize)
+                .clip(CircleShape)
+        )
         Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(

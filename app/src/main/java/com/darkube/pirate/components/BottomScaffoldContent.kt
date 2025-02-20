@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -34,7 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -74,13 +78,13 @@ fun MainScreenBottomScaffold(
             .background(AppBackground),
     ) {
         if (HomeScreen.CHATS == homeScreen || HomeScreen.REQUESTS == homeScreen) {
-            SearchUser(mainViewModel = mainViewModel)
+            Search(mainViewModel = mainViewModel)
         }
     }
 }
 
 @Composable
-fun SearchUser(
+fun Search(
     mainViewModel: MainViewModel,
 ) {
     val textBoxBackground = NavBarBackground
@@ -91,9 +95,52 @@ fun SearchUser(
     val horizontalPadding = 24.dp
     val scrollState = rememberScrollState()
     val headers = mainViewModel.getHeaders()
+    val focusRequesterSearch = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     var loading by remember { mutableStateOf(false) }
     var users by remember { mutableStateOf(arrayOf<Details>()) }
+
+    val fetchUsers = {
+        loading = true
+        fetch(
+            url = "/api/friends/search/${searchBar.trim()}",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    loading = false
+                    return@fetch
+                }
+                val result: JsonArray = response.jsonObject["result"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<JsonObject>() }
+                users = result.map { details: JsonElement ->
+                    val detailObject = details.jsonObject
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull
+                            ?: "",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull
+                            ?: "",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "3").toInt()
+                    )
+                }.toTypedArray()
+                loading = false
+            },
+            headers = headers,
+            type = RequestType.GET,
+        )
+    }
+
+    val searchUsers = {
+        if (searchBar.trim().isNotEmpty()) {
+            fetchUsers()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -102,6 +149,7 @@ fun SearchUser(
     ) {
         TextField(
             modifier = Modifier
+                .focusRequester(focusRequesterSearch)
                 .fillMaxWidth()
                 .padding(horizontal = horizontalPadding)
                 .padding(top = 4.dp, bottom = 16.dp)
@@ -117,7 +165,13 @@ fun SearchUser(
                 unfocusedBorderColor = textBoxBackground,
             ),
             keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide()
+                    searchUsers()
+                }
             ),
             leadingIcon = {
                 Icon(
@@ -129,41 +183,7 @@ fun SearchUser(
             trailingIcon = {
                 IconButton(
                     enabled = !loading,
-                    onClick = {
-                        if (searchBar.trim().isEmpty()) {
-                            return@IconButton
-                        }
-                        loading = true
-                        fetch(
-                            url = "/api/friends/search/${searchBar.trim()}",
-                            callback = { response: JsonElement ->
-                                val error =
-                                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
-                                if (error.isNotEmpty()) {
-                                    loading = false
-                                    return@fetch
-                                }
-                                val result: JsonArray = response.jsonObject["result"]?.jsonArray
-                                    ?: buildJsonArray { emptyArray<JsonObject>() }
-                                users = result.map { details: JsonElement ->
-                                    val detailObject = details.jsonObject
-                                    Details(
-                                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull
-                                            ?: "",
-                                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
-                                            ?: "",
-                                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull
-                                            ?: "",
-                                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull
-                                            ?: ""
-                                    )
-                                }.toTypedArray()
-                                loading = false
-                            },
-                            headers = headers,
-                            type = RequestType.GET,
-                        )
-                    }
+                    onClick = searchUsers
                 ) {
                     Icon(
                         painter = painterResource(id = plainIcon),

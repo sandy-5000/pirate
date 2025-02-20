@@ -1,7 +1,7 @@
 package com.darkube.pirate.screens.home
 
 import android.util.Log
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,12 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.Text
@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
@@ -50,6 +51,7 @@ import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightRedColor
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
+import com.darkube.pirate.utils.getProfileImage
 import com.darkube.pirate.utils.getRouteId
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -111,7 +113,8 @@ fun Requests(
                         firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
                             ?: "N/A",
                         lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
-                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "2").toInt()
                     )
                 }.toTypedArray()
                 loadingMessageRequest = false
@@ -142,7 +145,8 @@ fun Requests(
                         firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
                             ?: "N/A",
                         lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
-                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "10").toInt()
                     )
                 }.toTypedArray()
                 loadingPendingRequest = false
@@ -174,7 +178,8 @@ fun Requests(
                         firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
                             ?: "N/A",
                         lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
-                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "3").toInt()
                     )
                 }.toTypedArray()
                 loadingFriends = false
@@ -253,6 +258,7 @@ fun Requests(
                         displayName = messageRequest.firstName + " " + messageRequest.lastName,
                         username = messageRequest.username,
                         userId = messageRequest.id,
+                        profileImage = messageRequest.profileImage,
                         mainViewModel = mainViewModel,
                         reload = {
                             fetchMessageRequests()
@@ -278,6 +284,7 @@ fun Requests(
                         displayName = pendingRequest.firstName + " " + pendingRequest.lastName,
                         username = pendingRequest.username,
                         userId = pendingRequest.id,
+                        profileImage = pendingRequest.profileImage,
                         mainViewModel = mainViewModel,
                         reload = {
                             fetchPendingRequests()
@@ -303,6 +310,7 @@ fun Requests(
                         displayName = friend.firstName + " " + friend.lastName,
                         username = friend.username,
                         userId = friend.id,
+                        profileImage = friend.profileImage,
                         mainViewModel = mainViewModel,
                     )
                 }
@@ -317,6 +325,7 @@ fun MessageRequest(
     displayName: String,
     username: String,
     userId: String,
+    profileImage: Int,
     mainViewModel: MainViewModel,
     reload: () -> Unit
 ) {
@@ -334,13 +343,11 @@ fun MessageRequest(
         put("sender_id", userId)
     }
 
-    Row(
+    Column(
         modifier = Modifier
             .clickable(onClick = {})
             .padding(horizontal = horizontalPadding, vertical = verticalPadding)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
             modifier = Modifier
@@ -354,41 +361,22 @@ fun MessageRequest(
             )
             Text(text = username, fontSize = 14.sp)
         }
+        UserProfile(
+            displayName = displayName,
+            username = username,
+            profileImage = profileImage,
+            horizontalPadding = 0.dp,
+            verticalPadding = 0.dp,
+            imageSize = 60.dp
+        )
+        Spacer(modifier = Modifier.height(4.dp))
         Row(
             modifier = Modifier
-                .padding(start = 4.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.End,
         ) {
-            IconButton(
-                onClick = {
-                    loading = true
-                    fetch(
-                        url = "/api/friends/accept",
-                        callback = { response: JsonElement ->
-                            Log.d("api-res", response.toString())
-                            reload()
-                            loading = false
-                        },
-                        body = body,
-                        headers = headers,
-                        type = RequestType.POST,
-                    )
-                },
-                enabled = !loading,
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(4.dp))
-                    .background(color = PrimaryColor)
-                    .size(iconSize + 12.dp),
-            ) {
-                Icon(
-                    painter = painterResource(id = acceptIcon),
-                    contentDescription = "Accept",
-                    modifier = Modifier
-                        .size(iconSize),
-                    tint = Color.White
-                )
-            }
-            Spacer(modifier = Modifier.size(12.dp))
-            IconButton(
+            Button(
                 onClick = {
                     loading = true
                     fetch(
@@ -404,18 +392,70 @@ fun MessageRequest(
                     )
                 },
                 enabled = !loading,
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(4.dp))
-                    .background(color = LightRedColor)
-                    .size(iconSize + 12.dp),
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LightRedColor,
+                ),
+                contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
             ) {
-                Icon(
-                    painter = painterResource(id = rejectIcon),
-                    contentDescription = "Reject",
-                    modifier = Modifier
-                        .size(iconSize),
-                    tint = backgroundColor
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(id = rejectIcon),
+                        contentDescription = "Reject",
+                        modifier = Modifier
+                            .size(iconSize),
+                        tint = backgroundColor
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        "Reject",
+                        fontSize = 15.sp,
+                        color = backgroundColor,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.size(12.dp))
+            Button(
+                onClick = {
+                    loading = true
+                    fetch(
+                        url = "/api/friends/accept",
+                        callback = { response: JsonElement ->
+                            Log.d("api-res", response.toString())
+                            reload()
+                            loading = false
+                        },
+                        body = body,
+                        headers = headers,
+                        type = RequestType.POST,
+                    )
+                },
+                enabled = !loading,
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryColor,
+                ),
+                contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(id = acceptIcon),
+                        contentDescription = "Accept",
+                        modifier = Modifier
+                            .size(iconSize),
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        "Accept",
+                        fontSize = 15.sp,
+                        color = Color.White,
+                    )
+                }
             }
         }
     }
@@ -426,6 +466,7 @@ fun PendingRequest(
     displayName: String,
     username: String,
     userId: String,
+    profileImage: Int,
     mainViewModel: MainViewModel,
     reload: () -> Unit,
 ) {
@@ -441,64 +482,63 @@ fun PendingRequest(
         put("receiver_id", userId)
     }
 
-    Row(
+    Column(
         modifier = Modifier
             .clickable(onClick = {})
             .padding(horizontal = horizontalPadding, vertical = verticalPadding)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier
-                .weight(1f),
+        UserProfile(
+            displayName = displayName,
+            username = username,
+            profileImage = profileImage,
+            horizontalPadding = 0.dp,
+            verticalPadding = 0.dp,
+            imageSize = 60.dp
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
         ) {
-            Text(
-                text = displayName,
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(text = username, fontSize = 14.sp)
-        }
-        Button(
-            onClick = {
-                loading = true
-                fetch(
-                    url = "/api/friends/cancel",
-                    callback = { response: JsonElement ->
-                        Log.d("api-res", response.toString())
-                        reload()
-                        loading = false
-                    },
-                    body = body,
-                    headers = headers,
-                    type = RequestType.POST,
-                )
-            },
-            enabled = !loading,
-            shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = LightRedColor,
-            ),
-            contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Button(
+                onClick = {
+                    loading = true
+                    fetch(
+                        url = "/api/friends/cancel",
+                        callback = { response: JsonElement ->
+                            Log.d("api-res", response.toString())
+                            reload()
+                            loading = false
+                        },
+                        body = body,
+                        headers = headers,
+                        type = RequestType.POST,
+                    )
+                },
+                enabled = !loading,
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LightRedColor,
+                ),
+                contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
             ) {
-                Icon(
-                    painter = painterResource(id = cancelIcon),
-                    contentDescription = "Cancel",
-                    modifier = Modifier
-                        .size(iconSize),
-                    tint = backgroundColor,
-                )
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    "Cancel",
-                    fontSize = 15.sp,
-                    color = backgroundColor,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(id = cancelIcon),
+                        contentDescription = "Cancel",
+                        modifier = Modifier
+                            .size(iconSize),
+                        tint = backgroundColor,
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        "Cancel",
+                        fontSize = 15.sp,
+                        color = backgroundColor,
+                    )
+                }
             }
         }
     }
@@ -509,34 +549,32 @@ fun Friend(
     displayName: String,
     username: String,
     userId: String,
+    profileImage: Int,
     mainViewModel: MainViewModel,
 ) {
     val horizontalPadding = 28.dp
     val verticalPadding = 24.dp
-    val messageIcon = R.drawable.map_arrow_square_icon
+    val messageIcon = R.drawable.chat_round_line_icon
     val iconSize = 20.dp
 
-    Row(
+    Column(
         modifier = Modifier
             .clickable(onClick = {})
             .padding(horizontal = horizontalPadding, vertical = verticalPadding)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier
-                .weight(1f),
+        UserProfile(
+            displayName = displayName,
+            username = username,
+            profileImage = profileImage,
+            horizontalPadding = 0.dp,
+            verticalPadding = 0.dp,
+            imageSize = 60.dp
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text(
-                text = displayName,
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(text = username, fontSize = 14.sp)
-        }
-        Column {
             Button(
                 onClick = {
                     mainViewModel.navController.navigate(ChatRoute(username))
@@ -567,6 +605,57 @@ fun Friend(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun UserProfile(
+    displayName: String,
+    username: String,
+    profileImage: Int,
+    verticalPadding: Dp = 4.dp,
+    horizontalPadding: Dp = 20.dp,
+    imageSize: Dp = 92.dp
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(imageSize + 8.dp)
+            .padding(vertical = verticalPadding, horizontal = horizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Image(
+            painter = painterResource(id = getProfileImage(profileImage)),
+            contentDescription = "Profile Image",
+            modifier = Modifier
+                .size(imageSize)
+                .clip(CircleShape)
+        )
+        Column(
+            modifier = Modifier
+                .padding(start = 12.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = displayName,
+                color = Color.LightGray,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = username,
+                color = Color.LightGray,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

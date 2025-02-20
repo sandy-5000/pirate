@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -71,6 +73,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
+import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -85,6 +88,8 @@ fun Profile(
     val iconSize = 20.dp
     val textBoxColor = LightColor
     val textBoxBackground = NavBarBackground
+    val internalPadding = 16.dp
+    val imageSize = 92.dp
 
     val userState by mainViewModel.userState.collectAsState()
 
@@ -117,6 +122,7 @@ fun Profile(
     var confirmPasswd by remember { mutableStateOf("") }
     var oldPasswd by remember { mutableStateOf("") }
     var showPasswd by remember { mutableStateOf(false) }
+    val profileImage = userState.getOrDefault("profile_image", "8").toInt()
 
     val currentEmail = userState.getOrDefault("email", "")
     var isEmailAvailable by remember { mutableStateOf(Status.AVAILABLE) }
@@ -239,7 +245,7 @@ fun Profile(
             modifier = Modifier
                 .padding(bottom = 20.dp)
                 .fillMaxWidth()
-                .height(72.dp),
+                .height(100.dp),
             horizontalArrangement = Arrangement.Center,
         ) {
             Row(
@@ -247,7 +253,13 @@ fun Profile(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PixelAvatar(username = userName)
+                Image(
+                    painter = painterResource(id = getProfileImage(profileImage)),
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(imageSize)
+                        .clip(CircleShape)
+                )
                 Column(
                     modifier = Modifier
                         .padding(start = 16.dp)
@@ -255,7 +267,7 @@ fun Profile(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(userName)
-                    Text(email)
+                    Text(email, fontSize = 14.sp)
                 }
             }
         }
