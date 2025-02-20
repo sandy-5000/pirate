@@ -14,6 +14,7 @@ export default class UserService {
       last_name: user.last_name,
       username: user.username,
       email: user.email,
+      profile_image: user.profile_image,
     }
     return payload
   }
@@ -85,6 +86,7 @@ export default class UserService {
     email,
     old_passwd,
     new_passwd,
+    profile_image,
   }) {
     const user = await _users.findById(_id, {
       first_name: 1,
@@ -113,6 +115,9 @@ export default class UserService {
         }
         const hashedPasswd = await hash(new_passwd, 12)
         user.passwd = hashedPasswd
+        break
+      case UPDATE_TYPE.PROFILE_IMAGE:
+        user.profile_image = profile_image
         break
     }
     await user.save()
