@@ -46,6 +46,7 @@ import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.Details
+import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightRedColor
@@ -114,7 +115,8 @@ fun Requests(
                             ?: "N/A",
                         lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "2").toInt()
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "2").toInt()
                     )
                 }.toTypedArray()
                 loadingMessageRequest = false
@@ -146,7 +148,8 @@ fun Requests(
                             ?: "N/A",
                         lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "10").toInt()
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "10").toInt()
                     )
                 }.toTypedArray()
                 loadingPendingRequest = false
@@ -179,7 +182,8 @@ fun Requests(
                             ?: "N/A",
                         lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "3").toInt()
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "3").toInt()
                     )
                 }.toTypedArray()
                 loadingFriends = false
@@ -577,7 +581,14 @@ fun Friend(
         ) {
             Button(
                 onClick = {
-                    mainViewModel.navController.navigate(ChatRoute(username))
+                    mainViewModel.setChatScreen(FriendType.INVALID)
+                    mainViewModel.navController.navigate(
+                        ChatRoute(
+                            pirateId = userId,
+                            username = username,
+                            profileImage = profileImage,
+                        )
+                    )
                     mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                 },
                 shape = RoundedCornerShape(4.dp),

@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
@@ -109,12 +110,12 @@ fun Chat(
         when (selectedFilter) {
             ChatList.PIRATES ->
                 pirates.forEach { details ->
-                    ChatRow(details[0], details[1], details[2].toInt(), mainViewModel)
+                    ChatRow(details[0], details[0], details[1], details[2].toInt(), mainViewModel)
                 }
 
             ChatList.CREWS ->
                 crews.forEach { details ->
-                    ChatRow(details[0], details[1], details[2].toInt(), mainViewModel)
+                    ChatRow(details[0], details[0], details[1], details[2].toInt(), mainViewModel)
                 }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -123,6 +124,7 @@ fun Chat(
 
 @Composable
 fun ChatRow(
+    pirateId: String,
     username: String,
     lastMessage: String = "",
     profileImage: Int,
@@ -134,7 +136,14 @@ fun ChatRow(
     Row(
         modifier = Modifier
             .clickable(onClick = {
-                mainViewModel.navController.navigate(ChatRoute(pirateId = username))
+                mainViewModel.setChatScreen(FriendType.INVALID)
+                mainViewModel.navController.navigate(
+                    ChatRoute(
+                        pirateId = pirateId,
+                        username = username,
+                        profileImage = profileImage,
+                    )
+                )
                 mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
             })
             .padding(start = horizontalPadding, end = horizontalPadding)

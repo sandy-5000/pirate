@@ -15,4 +15,4 @@ object ProfileRoute
 object InviteFriendsRoute
 
 @Serializable
-data class ChatRoute(val pirateId: String)
+data class ChatRoute(val pirateId: String, val username: String, val profileImage: Int)

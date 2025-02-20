@@ -39,10 +39,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.darkube.pirate.components.AppChatInput
 import com.darkube.pirate.components.AppFloatingActionButton
 import com.darkube.pirate.components.BasicTopBar
 import com.darkube.pirate.components.BottomNavBar
-import com.darkube.pirate.components.ChatInput
 import com.darkube.pirate.components.ChatScreenTopBar
 import com.darkube.pirate.components.Loading
 import com.darkube.pirate.components.MainScreenBottomScaffold
@@ -62,6 +62,7 @@ import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
+import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import kotlinx.coroutines.launch
@@ -283,22 +284,27 @@ fun MainScreen(mainViewModel: MainViewModel) {
             }
             val args = it.toRoute<ChatRoute>()
             val pirateId = args.pirateId
+            val username = args.username
+            val profileImage = args.profileImage
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
                     ChatScreenTopBar(
+                        pageTitle = username,
+                        profileImage = profileImage,
                         mainViewModel = mainViewModel,
-                        pageTitle = pirateId,
                     )
                 },
                 bottomBar = {
-                    ChatInput(pirateId = pirateId, mainViewModel = mainViewModel)
+                    AppChatInput(pirateId = pirateId, mainViewModel = mainViewModel)
                 }
             ) { innerPadding ->
                 Conversation(
                     modifier = Modifier.padding(innerPadding),
                     mainViewModel = mainViewModel,
                     pirateId = pirateId,
+                    username = username,
+                    profileImage = profileImage,
                 )
             }
         }

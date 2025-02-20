@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
+import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
@@ -54,6 +56,17 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+
+@Composable
+fun AppChatInput(
+    pirateId: String,
+    mainViewModel: MainViewModel,
+) {
+    val chatScreen by mainViewModel.chatScreenState.collectAsState()
+    if (chatScreen == FriendType.FRIENDS) {
+        ChatInput(pirateId = pirateId, mainViewModel = mainViewModel)
+    }
+}
 
 @Composable
 fun ChatInput(

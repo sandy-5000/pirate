@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import com.darkube.pirate.services.fetch
+import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.types.UserDetails
@@ -66,6 +67,8 @@ class MainViewModel(
             val value = userDetails.jsonObject[key]?.jsonPrimitive?.contentOrNull ?: ""
             dataBase.userDetailsDao.update(UserDetails(key = key, value = value))
         }
+        val profileImage = userDetails.jsonObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "5"
+        dataBase.userDetailsDao.update(UserDetails(key = "profile_image", value = profileImage))
         dataBase.userDetailsDao.update(UserDetails(key = "token", value = token))
         dataBase.userDetailsDao.update(UserDetails(key = "logged_in", value = "true"))
         setAllUserDetails()
@@ -89,6 +92,13 @@ class MainViewModel(
 
     fun setHomeScreen(screen: HomeScreen) {
         _homeScreenState.value = screen
+    }
+
+    private val _chatScreenState = MutableStateFlow(FriendType.INVALID)
+    val chatScreenState: StateFlow<FriendType> = _chatScreenState.asStateFlow()
+
+    fun setChatScreen(screen: FriendType) {
+        _chatScreenState.value = screen
     }
 
     fun getHeaders(): Map<String, String> {

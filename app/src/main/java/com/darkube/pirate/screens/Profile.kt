@@ -88,7 +88,6 @@ fun Profile(
     val iconSize = 20.dp
     val textBoxColor = LightColor
     val textBoxBackground = NavBarBackground
-    val internalPadding = 16.dp
     val imageSize = 92.dp
 
     val userState by mainViewModel.userState.collectAsState()

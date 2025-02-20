@@ -1,6 +1,7 @@
 package com.darkube.pirate.components
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,10 +24,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
@@ -34,6 +38,7 @@ import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
+import com.darkube.pirate.utils.getProfileImage
 import com.darkube.pirate.utils.getRouteId
 
 @Composable
@@ -90,13 +95,14 @@ fun MainScreenTopBar(
 
 @Composable
 fun ChatScreenTopBar(
-    mainViewModel: MainViewModel,
     pageTitle: String,
+    profileImage: Int,
+    mainViewModel: MainViewModel,
 ) {
     val topPadding = 36.dp
     val barHeight = 68.dp
     val iconPadding = 16.dp
-    val titlePadding = 4.dp
+    val titlePadding = 12.dp
     val iconSize = 20.dp
     val sidesPadding = 18.dp
     val backGroundColor = AppBackground
@@ -129,10 +135,19 @@ fun ChatScreenTopBar(
                             .size(iconSize),
                     )
                 }
+                Image(
+                    painter = painterResource(id = getProfileImage(profileImage)),
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                )
                 Text(
                     text = pageTitle,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(
                         start = titlePadding,
                     ),

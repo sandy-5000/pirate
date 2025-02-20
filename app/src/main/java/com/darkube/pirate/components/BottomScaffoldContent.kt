@@ -49,6 +49,7 @@ import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.Details
+import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
@@ -228,6 +229,7 @@ fun DisplayAllUsers(users: Array<Details>, mainViewModel: MainViewModel) {
                 lastName = detail.lastName,
                 username = detail.username,
                 userId = detail.id,
+                profileImage = detail.profileImage,
                 mainViewModel = mainViewModel
             )
         }
@@ -240,11 +242,13 @@ fun DisplayUser(
     lastName: String,
     username: String,
     userId: String,
+    profileImage: Int,
     mainViewModel: MainViewModel,
 ) {
     val horizontalPadding = 24.dp
     val requestIcon = R.drawable.arrow_right_icon
     val iconSize = 20.dp
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Row(
         modifier = Modifier
@@ -275,7 +279,15 @@ fun DisplayUser(
         }
         Button(
             onClick = {
-                mainViewModel.navController.navigate(ChatRoute(username))
+                mainViewModel.setChatScreen(FriendType.INVALID)
+                keyboardController?.hide()
+                mainViewModel.navController.navigate(
+                    ChatRoute(
+                        pirateId = userId,
+                        username = username,
+                        profileImage = profileImage,
+                    )
+                )
                 mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
             },
             shape = RoundedCornerShape(4.dp),
