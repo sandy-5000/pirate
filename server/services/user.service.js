@@ -1,8 +1,9 @@
 import _users from '#~/models/user.model'
 import _friends from '#~/models/friends.model'
 import _pendingRequests from '#~/models/pendingRequests.model'
-import { UPDATE_TYPE } from '#~/utils/enums.constants'
+import { UPDATE_TYPE, FRIENDS_TYPE } from '#~/utils/enums.constants'
 import { ERRORS } from '#~/utils/error.types'
+import { sortIds } from '#~/utils/helper.util'
 import { compare, hash } from 'bcrypt'
 
 export default class UserService {
@@ -92,6 +93,7 @@ export default class UserService {
       email: 1,
       passwd: 1,
       bio: 1,
+      profile_image: 1,
     })
     if (!user) {
       throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
@@ -169,6 +171,56 @@ export default class UserService {
         })
         .exec()
       return messageRequests
+    } catch (e) {
+      throw new Error(e.message)
+    }
+  }
+
+  static async friendType(sender_id, receiver_id) {
+    try {
+      const [min_id, max_id] = sortIds(sender_id, receiver_id)
+      const alreadyFriends = await _friends.findOne({ min_id, max_id })
+      if (alreadyFriends) {
+        let block_type = alreadyFriends.block_type
+        if (block_type === 0) {
+          return { type: FRIENDS_TYPE.FRIENDS }
+        }
+        if (min_id === receiver_id) {
+          block_type *= -1
+        }
+        if (block_type === 1) {
+          return { type: FRIENDS_TYPE.SENDER_BLOCKED }
+        }
+        if (block_type === -1) {
+          return { type: FRIENDS_TYPE.RECEIVER_BLOCKED }
+        }
+      }
+      const request = await _pendingRequests.findOne({
+        sender_id,
+        receiver_id,
+      })
+      if (request) {
+        return { type: FRIENDS_TYPE.REQUEST_SENT }
+      }
+      const reverse = await _pendingRequests.findOne({
+        sender_id: receiver_id,
+        receiver_id: sender_id,
+      })
+      if (reverse) {
+        return { type: FRIENDS_TYPE.REQUEST_RECEIVED }
+      }
+      const sender = await _users.findById(sender_id, { _id: 1 })
+      if (!sender) {
+        throw new Error(ERRORS.INVALID_REQUEST)
+      }
+      const receiver = await _users.findById(receiver_id, { _id: 1 })
+      if (!receiver) {
+        throw new Error(ERRORS.INVALID_REQUEST)
+      }
+      if (!alreadyFriends) {
+        return { type: FRIENDS_TYPE.NOT_FRIENDS }
+      }
+      throw new Error(ERRORS.INVALID_REQUEST)
     } catch (e) {
       throw new Error(e.message)
     }

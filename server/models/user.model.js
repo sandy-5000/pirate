@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema({
     default: '',
     maxlength: 255,
   },
+  profile_image: {
+    type: Number,
+    default: 5,
+  },
   created_on: {
     type: Date,
     default: new Date(),

@@ -4,6 +4,7 @@ import _pendingRequests from '#~/models/pendingRequests.model'
 import _users from '#~/models/user.model'
 import PushTokenService from '#~/services/pushToken.service'
 import { ERRORS } from '#~/utils/error.types'
+import { sortIds } from '#~/utils/helper.util'
 import { NOTIFICATION_TYPE } from '#~/utils/enums.constants'
 
 export default class FriendsService {
@@ -101,8 +102,7 @@ export default class FriendsService {
           { session },
         )
       }
-      const min_id = sender_id < receiver_id ? sender_id : receiver_id
-      const max_id = sender_id > receiver_id ? sender_id : receiver_id
+      const [min_id, max_id] = sortIds(sender_id, receiver_id)
       const alreadyFriends = await _friends.findOne({ min_id, max_id })
       if (alreadyFriends) {
         throw new Error(ERRORS.INVALID_REQUEST)
