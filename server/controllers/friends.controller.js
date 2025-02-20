@@ -69,7 +69,19 @@ app.route('/reject').post(validateToken, async (req, res) => {
       throw new Error(ERRORS.INVALID_REQUEST)
     }
     let result = await FriendsService.reject(sender_id, _id)
-    return res.json({ result })
+    return res.status(200).json({ result })
+  } catch (e) {
+    return res.status(400).json({
+      error: e.message,
+    })
+  }
+})
+
+app.route('/search/:handler').get(validateToken, async (req, res) => {
+  try {
+    const { handler } = req.params
+    const people = await FriendsService.find(handler)
+    return res.status(200).json({ result: people })
   } catch (e) {
     return res.status(400).json({
       error: e.message,

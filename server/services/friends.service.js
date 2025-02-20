@@ -179,4 +179,22 @@ export default class FriendsService {
       throw new Error(e.message)
     }
   }
+
+  static async find(username) {
+    try {
+      const people = await _users
+        .find(
+          { username: { $regex: `^${username}`, $options: 'i' } },
+          {
+            username: 1,
+            first_name: 1,
+            last_name: 1,
+          },
+        )
+        .limit(30)
+      return people
+    } catch {
+      throw new Error(e.message)
+    }
+  }
 }
