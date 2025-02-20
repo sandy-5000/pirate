@@ -1,7 +1,11 @@
 package com.darkube.pirate.screens
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +48,7 @@ fun InviteFriends(
 ) {
     val context = LocalContext.current
     val textBoxBackground = NavBarBackground
+    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val shareLink by remember { mutableStateOf("https://www.thepirate.com") }
     val shareIcon = share_icon
     val sendIntent: Intent = Intent().apply {
@@ -89,7 +94,11 @@ fun InviteFriends(
                 Icon(
                     painter = painterResource(id = copyIcon),
                     contentDescription = "edit",
-                    modifier = Modifier.size(iconSize),
+                    modifier = Modifier.size(iconSize).clickable(onClick = {
+                        val clip = android.content.ClipData.newPlainText("Copied Text", shareLink)
+                    clipboardManager.setPrimaryClip(clip)
+                        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                    }),
                 )
             },
             textStyle = TextStyle(fontSize = 14.sp)
