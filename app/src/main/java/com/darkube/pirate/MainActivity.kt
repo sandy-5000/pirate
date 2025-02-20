@@ -47,6 +47,7 @@ import com.darkube.pirate.components.ChatScreenTopBar
 import com.darkube.pirate.components.Loading
 import com.darkube.pirate.components.MainScreenBottomScaffold
 import com.darkube.pirate.components.MainScreenTopBar
+import com.darkube.pirate.components.ProfileScreenBottomScaffold
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.screens.authentication.Authentication
 import com.darkube.pirate.screens.Conversation
@@ -62,7 +63,6 @@ import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
-import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import kotlinx.coroutines.launch
@@ -245,19 +245,53 @@ fun MainScreen(mainViewModel: MainViewModel) {
             BackHandler {
                 handleBack()
             }
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = {
-                    BasicTopBar(
-                        mainViewModel = mainViewModel,
-                        pageTitle = "Profile",
-                    )
+            val sheetState = rememberBottomSheetScaffoldState()
+            val scope = rememberCoroutineScope()
+            val openBottomModel = {
+                scope.launch {
+                    sheetState.bottomSheetState.expand()
+                }
+            }
+
+            BottomSheetScaffold(
+                scaffoldState = sheetState,
+                sheetShape = RectangleShape,
+                sheetContent = {
+                    ProfileScreenBottomScaffold(mainViewModel = mainViewModel)
                 },
-            ) { innerPadding ->
-                Profile(
-                    modifier = Modifier.padding(innerPadding),
-                    mainViewModel = mainViewModel,
-                )
+                sheetContainerColor = NavBarBackground,
+                sheetPeekHeight = 0.dp,
+                sheetDragHandle = {
+                    Row(
+                        modifier = Modifier.height(20.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Spacer(
+                            modifier = Modifier
+                                .width(28.dp)
+                                .height(4.dp)
+                                .clip(shape = RoundedCornerShape(2.dp))
+                                .background(LightColor),
+                        )
+                    }
+                },
+            ) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        BasicTopBar(
+                            mainViewModel = mainViewModel,
+                            pageTitle = "Profile",
+                        )
+                    },
+                ) { innerPadding ->
+                    Profile(
+                        modifier = Modifier.padding(innerPadding),
+                        mainViewModel = mainViewModel,
+                        openBottomModel = openBottomModel,
+                    )
+                }
             }
         }
         composable<InviteFriendsRoute> {

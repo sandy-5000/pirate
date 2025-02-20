@@ -7,7 +7,9 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -74,6 +76,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.getProfileImage
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -83,6 +86,7 @@ import kotlinx.serialization.json.put
 fun Profile(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
+    openBottomModel: () -> Job,
 ) {
     val scrollState = rememberScrollState()
     val iconSize = 20.dp
@@ -252,13 +256,26 @@ fun Profile(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Image(
-                    painter = painterResource(id = getProfileImage(profileImage)),
-                    contentDescription = "Profile Image",
-                    modifier = Modifier
-                        .size(imageSize)
-                        .clip(CircleShape)
-                )
+                Box {
+                    Image(
+                        painter = painterResource(id = getProfileImage(profileImage)),
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .size(imageSize)
+                            .clip(CircleShape)
+                            .clickable(onClick = { openBottomModel() })
+                    )
+                    Icon(
+                        painter = painterResource(id = updateEmailIcon),
+                        contentDescription = "Selected",
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .clip(shape = CircleShape)
+                            .background(AppBackground)
+                            .size(24.dp)
+                            .padding(2.dp),
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .padding(start = 16.dp)

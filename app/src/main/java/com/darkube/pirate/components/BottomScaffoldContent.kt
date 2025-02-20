@@ -1,9 +1,16 @@
 package com.darkube.pirate.components
 
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +22,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +54,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
@@ -56,15 +66,19 @@ import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
+import com.darkube.pirate.utils.getProfileImage
 import com.darkube.pirate.utils.getRouteId
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 @Composable
 fun MainScreenBottomScaffold(
@@ -314,5 +328,105 @@ fun DisplayUser(
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ProfileScreenBottomScaffold(
+    mainViewModel: MainViewModel,
+) {
+    val imageSize = 60.dp
+    val iconSize = 16.dp
+    val checkIcon = R.drawable.check_circle_icon
+    val userState by mainViewModel.userState.collectAsState()
+    val context = LocalContext.current
+    val headers = mainViewModel.getHeaders()
+    val profileImage = userState.getOrDefault("profile_image", "8").toInt()
+
+    val updateProfileImage = { imageIndex: Int ->
+        val body: JsonObject = buildJsonObject {
+            put("profile_image", imageIndex)
+        }
+        fetch(
+            url = "/api/user/profile?type=PROFILE_IMAGE",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(
+                            context,
+                            "error while updating profile picture",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    return@fetch
+                }
+                val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                    ?: buildJsonObject { emptyMap<String, String>() }
+                val token: String = response.jsonObject["token"]?.jsonPrimitive?.contentOrNull ?: ""
+                mainViewModel.viewModelScope.launch {
+                    mainViewModel.login(userDetails = result, token = token)
+                }
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(context, "Profile Picture updated...", Toast.LENGTH_LONG).show()
+                }
+            },
+            headers = headers,
+            body = body,
+            type = RequestType.PATCH
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AppBackground)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .padding(top = 20.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text("Select you profile picture")
+        }
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 40.dp),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            repeat(13) { index ->
+                Box(
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = getProfileImage(index)),
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .clickable(onClick = {
+                                updateProfileImage(index)
+                            })
+                            .size(imageSize)
+                            .clip(shape = CircleShape),
+                    )
+                    if (index == profileImage) {
+                        Icon(
+                            painter = painterResource(id = checkIcon),
+                            contentDescription = "Selected",
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .clip(shape = CircleShape)
+                                .background(AppBackground)
+                                .size(iconSize),
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }

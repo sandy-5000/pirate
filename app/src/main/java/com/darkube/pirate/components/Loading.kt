@@ -152,12 +152,12 @@ fun DataLoading(
     durationMillis: Int = 900
 ) {
     var startAnimation by remember { mutableStateOf(false) }
-    val rotation by animateFloatAsState(
-        targetValue = if (startAnimation) 360f else 0f,
+    val scale by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 1.1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = durationMillis, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ), label = "rotation"
+            animation = tween(durationMillis = durationMillis, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
     )
 
     LaunchedEffect(Unit) {
@@ -172,11 +172,11 @@ fun DataLoading(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.three_circles_icon),
+            painter = painterResource(id = R.drawable.pirate_costume_icon),
             contentDescription = "Loading Image",
             modifier = Modifier
                 .size(100.dp)
-                .rotate(rotation),
+                .scale(scale),
             tint = LightColor,
         )
         Text(

@@ -253,7 +253,7 @@ fun Requests(
                     .weight(1f),
             ) {
                 if (loadingMessageRequest) {
-                    DataLoading(durationMillis = 2000, modifier = modifier.weight(1f))
+                    DataLoading(durationMillis = 1200, modifier = modifier.weight(1f))
                 } else if (requests.isEmpty()) {
                     EmptyList("No Message Requests", modifier = Modifier.weight(1f))
                 }
@@ -279,7 +279,7 @@ fun Requests(
                     .weight(1f),
             ) {
                 if (loadingPendingRequest) {
-                    DataLoading(durationMillis = 2000, modifier = modifier.weight(1f))
+                    DataLoading(durationMillis = 1200, modifier = modifier.weight(1f))
                 } else if (pendings.isEmpty()) {
                     EmptyList("No Pending Requests", modifier = Modifier.weight(1f))
                 }
@@ -305,7 +305,7 @@ fun Requests(
                     .weight(1f),
             ) {
                 if (loadingFriends) {
-                    DataLoading(durationMillis = 2000, modifier = modifier.weight(1f))
+                    DataLoading(durationMillis = 1200, modifier = modifier.weight(1f))
                 } else if (friends.isEmpty()) {
                     EmptyList("You Have No Friends", modifier = Modifier.weight(1f))
                 }
