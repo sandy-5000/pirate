@@ -40,9 +40,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
-import com.darkube.pirate.components.Loading
+import com.darkube.pirate.components.DataLoading
+import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
+import com.darkube.pirate.types.Details
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightRedColor
@@ -63,13 +65,6 @@ import kotlinx.serialization.json.put
 enum class RequestScreen {
     MESSAGE_REQUESTS, PENDING_REQUESTS, FRIENDS
 }
-
-data class Details(
-    val username: String,
-    val firstName: String,
-    val lastName: String,
-    val id: String
-)
 
 @Composable
 fun Requests(
@@ -96,13 +91,14 @@ fun Requests(
     val headers = mainViewModel.getHeaders()
 
     val fetchMessageRequests = {
-        loadingMessageRequest = false
+        loadingMessageRequest = true
         fetch(
             url = "/api/user/message-requests",
             callback = { response: JsonElement ->
                 val error =
                     response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
                 if (error.isNotEmpty()) {
+                    loadingMessageRequest = false
                     return@fetch
                 }
                 val result: JsonArray = response.jsonObject["result"]?.jsonArray
@@ -118,6 +114,7 @@ fun Requests(
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
                     )
                 }.toTypedArray()
+                loadingMessageRequest = false
             },
             headers = headers,
             type = RequestType.GET,
@@ -125,13 +122,14 @@ fun Requests(
     }
 
     val fetchPendingRequests = {
-        loadingPendingRequest = false
+        loadingPendingRequest = true
         fetch(
             url = "/api/user/pending-requests",
             callback = { response: JsonElement ->
                 val error =
                     response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
                 if (error.isNotEmpty()) {
+                    loadingPendingRequest = false
                     return@fetch
                 }
                 val result: JsonArray = response.jsonObject["result"]?.jsonArray
@@ -147,6 +145,7 @@ fun Requests(
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
                     )
                 }.toTypedArray()
+                loadingPendingRequest = false
             },
             headers = headers,
             type = RequestType.GET,
@@ -154,13 +153,14 @@ fun Requests(
     }
 
     val fetchFriends = {
-        loadingFriends = false
+        loadingFriends = true
         fetch(
             url = "/api/user/friends",
             callback = { response: JsonElement ->
                 val error =
                     response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
                 if (error.isNotEmpty()) {
+                    loadingFriends = false
                     return@fetch
                 }
                 val result: JsonObject = response.jsonObject["result"]?.jsonObject
@@ -177,6 +177,7 @@ fun Requests(
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
                     )
                 }.toTypedArray()
+                loadingFriends = false
             },
             headers = headers,
             type = RequestType.GET,
@@ -199,7 +200,7 @@ fun Requests(
                 .padding(start = horizontalPadding, end = horizontalPadding)
                 .horizontalScroll(horizontalScrollState)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.Start,
         ) {
             InputChip(
                 modifier = Modifier.padding(end = 12.dp),
@@ -235,6 +236,7 @@ fun Requests(
                 )
             )
         }
+        DividerLine(horizontalPadding = 32.dp)
         when (selectedFilter) {
             RequestScreen.MESSAGE_REQUESTS -> Column(
                 modifier = Modifier
@@ -242,7 +244,7 @@ fun Requests(
                     .weight(1f),
             ) {
                 if (loadingMessageRequest) {
-                    Loading(modifier = modifier.weight(1f))
+                    DataLoading(durationMillis = 2000, modifier = modifier.weight(1f))
                 } else if (requests.isEmpty()) {
                     EmptyList("No Message Requests", modifier = Modifier.weight(1f))
                 }
@@ -267,7 +269,7 @@ fun Requests(
                     .weight(1f),
             ) {
                 if (loadingPendingRequest) {
-                    Loading(modifier = modifier.weight(1f))
+                    DataLoading(durationMillis = 2000, modifier = modifier.weight(1f))
                 } else if (pendings.isEmpty()) {
                     EmptyList("No Pending Requests", modifier = Modifier.weight(1f))
                 }
@@ -292,7 +294,7 @@ fun Requests(
                     .weight(1f),
             ) {
                 if (loadingFriends) {
-                    Loading(modifier = modifier.weight(1f))
+                    DataLoading(durationMillis = 2000, modifier = modifier.weight(1f))
                 } else if (friends.isEmpty()) {
                     EmptyList("You Have No Friends", modifier = Modifier.weight(1f))
                 }
@@ -302,7 +304,6 @@ fun Requests(
                         username = friend.username,
                         userId = friend.id,
                         mainViewModel = mainViewModel,
-                        reload = { fetchFriends() },
                     )
                 }
                 Spacer(modifier = Modifier.height(60.dp))
@@ -509,14 +510,10 @@ fun Friend(
     username: String,
     userId: String,
     mainViewModel: MainViewModel,
-    reload: () -> Unit,
 ) {
-    var loading by remember { mutableStateOf(false) }
     val horizontalPadding = 28.dp
     val verticalPadding = 24.dp
-    val backgroundColor = AppBackground
     val messageIcon = R.drawable.map_arrow_square_icon
-    val removeIcon = R.drawable.trash_bin_icon
     val iconSize = 20.dp
 
     Row(
@@ -570,34 +567,6 @@ fun Friend(
                     )
                 }
             }
-//            Button(
-//                onClick = {},
-//                enabled = !loading,
-//                shape = RoundedCornerShape(4.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = LightRedColor,
-//                ),
-//                contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
-//            ) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                ) {
-//                    Icon(
-//                        painter = painterResource(id = removeIcon),
-//                        contentDescription = "Remove",
-//                        modifier = Modifier
-//                            .size(iconSize),
-//                        tint = backgroundColor
-//                    )
-//                    Spacer(modifier = Modifier.size(4.dp))
-//                    Text(
-//                        "Remove  ",
-//                        fontSize = 15.sp,
-//                        fontWeight = FontWeight.Medium,
-//                        color = backgroundColor,
-//                    )
-//                }
-//            }
         }
     }
 }

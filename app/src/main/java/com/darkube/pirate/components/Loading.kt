@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
@@ -101,6 +102,88 @@ fun Loading(
                 fontWeight = FontWeight.SemiBold
             )
         }
+    }
+}
+
+@Composable
+fun SearchLoading(
+    modifier: Modifier,
+    durationMillis: Int = 900
+) {
+    var startAnimation by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = durationMillis, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+
+    LaunchedEffect(Unit) {
+        startAnimation = true
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(AppBackground),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.search_icon),
+            contentDescription = "Loading Image",
+            modifier = Modifier
+                .size(48.dp)
+                .scale(scale),
+            tint = LightColor,
+        )
+        Text(
+            "    Searching ...",
+            modifier = Modifier.padding(top = 12.dp),
+            fontSize = 14.sp,
+        )
+    }
+}
+
+@Composable
+fun DataLoading(
+    modifier: Modifier,
+    durationMillis: Int = 900
+) {
+    var startAnimation by remember { mutableStateOf(false) }
+    val rotation by animateFloatAsState(
+        targetValue = if (startAnimation) 360f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = durationMillis, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = "rotation"
+    )
+
+    LaunchedEffect(Unit) {
+        startAnimation = true
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(AppBackground),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.three_circles_icon),
+            contentDescription = "Loading Image",
+            modifier = Modifier
+                .size(100.dp)
+                .rotate(rotation),
+            tint = LightColor,
+        )
+        Text(
+            "    Fetching ...",
+            modifier = Modifier.padding(top = 20.dp),
+            fontSize = 14.sp,
+        )
     }
 }
 

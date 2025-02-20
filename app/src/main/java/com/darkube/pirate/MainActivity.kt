@@ -11,15 +11,30 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -30,6 +45,7 @@ import com.darkube.pirate.components.BottomNavBar
 import com.darkube.pirate.components.ChatInput
 import com.darkube.pirate.components.ChatScreenTopBar
 import com.darkube.pirate.components.Loading
+import com.darkube.pirate.components.MainScreenBottomScaffold
 import com.darkube.pirate.components.MainScreenTopBar
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.screens.authentication.Authentication
@@ -46,6 +62,9 @@ import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
+import com.darkube.pirate.ui.theme.LightColor
+import com.darkube.pirate.ui.theme.NavBarBackground
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,6 +116,7 @@ fun AuthenticatedScreen(mainViewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(mainViewModel: MainViewModel) {
     LaunchedEffect(Unit) {
@@ -151,16 +171,54 @@ fun MainScreen(mainViewModel: MainViewModel) {
             BackHandler {
                 handleBack()
             }
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = { MainScreenTopBar(mainViewModel = mainViewModel) },
-                bottomBar = { BottomNavBar(mainViewModel = mainViewModel) },
-                floatingActionButton = { AppFloatingActionButton(mainViewModel = mainViewModel) }
-            ) { innerPadding ->
-                Home(
-                    modifier = Modifier.padding(innerPadding),
-                    mainViewModel = mainViewModel,
-                )
+            val sheetState = rememberBottomSheetScaffoldState()
+            val scope = rememberCoroutineScope()
+            val openBottomModel = {
+                scope.launch {
+                    sheetState.bottomSheetState.expand()
+                }
+            }
+
+            BottomSheetScaffold(
+                scaffoldState = sheetState,
+                sheetShape = RectangleShape,
+                sheetContent = {
+                    MainScreenBottomScaffold(mainViewModel = mainViewModel)
+                },
+                sheetContainerColor = NavBarBackground,
+                sheetPeekHeight = 0.dp,
+                sheetDragHandle = {
+                    Row(
+                        modifier = Modifier.height(20.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Spacer(
+                            modifier = Modifier
+                                .width(28.dp)
+                                .height(4.dp)
+                                .clip(shape = RoundedCornerShape(2.dp))
+                                .background(LightColor),
+                        )
+                    }
+                },
+            ) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = { MainScreenTopBar(mainViewModel = mainViewModel) },
+                    bottomBar = { BottomNavBar(mainViewModel = mainViewModel) },
+                    floatingActionButton = {
+                        AppFloatingActionButton(
+                            mainViewModel = mainViewModel,
+                            onClick = openBottomModel,
+                        )
+                    }
+                ) { innerPadding ->
+                    Home(
+                        modifier = Modifier.padding(innerPadding),
+                        mainViewModel = mainViewModel,
+                    )
+                }
             }
         }
         composable<SettingsRoute> {

@@ -18,29 +18,31 @@ import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
+import kotlinx.coroutines.Job
 
 @Composable
 fun AppFloatingActionButton(
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    onClick: () -> Job,
 ) {
     val borderRadius = 12.dp
     val backgroundColor = PrimaryColor
     val borderColor = NavBarBackground
     val contentColor = Color.White
-    val buttonSize = 52.dp
-    val iconSize = 20.dp
+    val iconSize = 24.dp
+    val buttonSize = iconSize + 32.dp
     val iconDescription = "New Chat"
 
     val homeScreen by mainViewModel.homeScreenState.collectAsState()
     val icon = when (homeScreen) {
-        HomeScreen.CHATS -> R.drawable.pen_icon
-        HomeScreen.REQUESTS -> R.drawable.add_circle_icon
+        HomeScreen.CHATS -> R.drawable.search_icon
+        HomeScreen.REQUESTS -> R.drawable.search_icon
         HomeScreen.CALLS -> R.drawable.trash_bin_icon
         HomeScreen.STORIES -> R.drawable.album_icon
     }
 
     OutlinedIconButton(
-        onClick = { /* Handle click */ },
+        onClick = { onClick() },
         modifier = Modifier
             .size(buttonSize),
         colors = IconButtonDefaults.iconButtonColors(

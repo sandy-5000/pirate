@@ -60,7 +60,7 @@ fun ChatInput(
     pirateId: String,
     mainViewModel: MainViewModel,
 ) {
-    val sendIcon = R.drawable.send_icon
+    val sendIcon = R.drawable.plain_icon
     val plusIcon = R.drawable.add_icon
     val micIcon = R.drawable.microphone_icon
     val cameraIcon = R.drawable.camera_icon
@@ -255,7 +255,7 @@ fun ChatInput(
                         painter = painterResource(id = sendIcon),
                         contentDescription = "Send Message",
                         modifier = Modifier
-                            .padding(end = 2.dp)
+                            .padding(top = 2.dp, end = 2.dp)
                             .size(iconSize),
                         tint = AppBackground,
                     )
