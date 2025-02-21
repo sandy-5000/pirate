@@ -37,17 +37,21 @@ class PushNotificationService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        val title = message.notification?.title ?: ""
-        val body = message.notification?.body ?: ""
+        val username = message.data["username"] ?: ""
+        val receivedMessage = message.data["message"] ?: ""
         val type = message.data["type"] ?: ""
         val senderId = message.data["sender_id"] ?: ""
 
         if (NotificationType.entries.any { it.value == type }) {
             val typeEnum = NotificationType.valueOf(type)
             if (NotificationType.MESSAGE == typeEnum) {
-                saveMessageToDatabase(senderId, title, body)
+                saveMessageToDatabase(
+                    senderId = senderId,
+                    username = username,
+                    message = receivedMessage
+                )
             }
-            showNotification(title, body, typeEnum)
+            showNotification(username = username, message = receivedMessage, type = typeEnum)
         }
     }
 
@@ -75,7 +79,7 @@ class PushNotificationService : FirebaseMessagingService() {
         }
     }
 
-    private fun showNotification(subText: String, body: String, type: NotificationType) {
+    private fun showNotification(username: String, message: String, type: NotificationType) {
         val channelId = "pirate_channel"
         val notificationId = 100
 
@@ -121,8 +125,8 @@ class PushNotificationService : FirebaseMessagingService() {
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(icon)
             .setContentTitle(title)
-            .setContentText(body)
-            .setSubText(subText)
+            .setContentText(message)
+            .setSubText(username)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .addAction(
