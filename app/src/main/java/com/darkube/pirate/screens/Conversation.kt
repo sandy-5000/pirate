@@ -101,10 +101,10 @@ fun Conversation(
             type = RequestType.GET,
         )
     }
-    mainViewModel.resetChatState()
     mainViewModel.setPirateId(pirateId = pirateId)
 
     LaunchedEffect(Unit) {
+        mainViewModel.resetChatState()
         if (pirateId == userId) {
             screenLoading = false
             mainViewModel.setChatScreen(FriendType.SELF)
@@ -132,7 +132,6 @@ fun Conversation(
 
     Column(
         modifier = modifier
-            .imePadding()
             .fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
