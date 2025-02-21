@@ -99,7 +99,7 @@ fun ChatInput(
         }
         loading = true
         fetch(
-            url = "/api/pushtoken/message/$username",
+            url = "/api/pushtoken/message/$pirateId",
             callback = { response: JsonElement ->
                 val error =
                     response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
