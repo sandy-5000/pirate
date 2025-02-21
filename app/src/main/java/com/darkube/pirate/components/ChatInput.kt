@@ -91,11 +91,13 @@ fun ChatInput(
     val textBoxBackground = NavBarBackground
 
     var isLongPress by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
 
     val sendMessage = {
         val body = buildJsonObject {
             put("message", message)
         }
+        loading = true
         fetch(
             url = "/api/pushtoken/message/$username",
             callback = { response: JsonElement ->
@@ -109,6 +111,7 @@ fun ChatInput(
                             Toast.LENGTH_LONG
                         ).show()
                     }
+                    loading = false
                     return@fetch
                 }
                 mainViewModel.viewModelScope.launch {
@@ -118,15 +121,9 @@ fun ChatInput(
                         type = MessageType.TEXT.value,
                         side = 0,
                     )
+                    loading = false
+                    message = ""
                 }
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(
-                        context,
-                        "Message Sent Successfully",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-                message = ""
             },
             body = body,
             headers = mainViewModel.getHeaders(),
@@ -246,6 +243,7 @@ fun ChatInput(
             verticalArrangement = Arrangement.Center,
         ) {
             IconButton(
+                enabled = !loading,
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(25.dp))
                     .background(color = PrimaryBlue)

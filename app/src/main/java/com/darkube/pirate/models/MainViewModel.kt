@@ -232,7 +232,6 @@ class MainViewModel(
             }
             val newMessages = dataBase.userChatDao.getLatestInsertedMessage(pirateId, id)
             _userChatState.value = newMessages + _userChatState.value
-            Log.d("message-o", _userChatState.value.toString())
             messageOffset += newMessages.size
         }
     }
