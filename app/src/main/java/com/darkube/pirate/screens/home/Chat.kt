@@ -19,6 +19,7 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,20 +52,9 @@ fun Chat(
     val scrollState = rememberScrollState()
     val horizontalPadding = 24.dp
 
+    mainViewModel.fetchChatsList()
     var selectedFilter by remember { mutableStateOf(ChatList.PIRATES) }
-
-    val pirates = listOf(
-        listOf("sandy-blaze.0", "Hey, what are you doing?", "0"),
-        listOf("jhema.7", "Nani?", "2"),
-        listOf("kakarot", "Hey, how strong are we talking?", "3"),
-        listOf("luffy", "I will become the Pirate King.", "4"),
-        listOf("naruto", "I will become the Hokage.", "5"),
-        listOf("captain", "The time has come my CREW, charge...", "6"),
-        listOf("cassi-storm", "doing something?", "7"),
-        listOf("twin-braids", "Hello, what are you doing?", "8"),
-        listOf("abs-zero", "Let's freeze the whole world.", "11"),
-        listOf("minipixel", "Hey, what are you doing?", "9"),
-    )
+    val chatsList by mainViewModel.chatsListState.collectAsState()
 
     val crews = listOf(
         listOf("universe-7", "Hey, how strong are we talking?", "10"),
@@ -109,8 +99,14 @@ fun Chat(
         }
         when (selectedFilter) {
             ChatList.PIRATES ->
-                pirates.forEach { details ->
-                    ChatRow(details[0], details[0], details[1], details[2].toInt(), mainViewModel)
+                chatsList.forEach { chat ->
+                    ChatRow(
+                        pirateId = chat.pirateId,
+                        username = chat.username,
+                        lastMessage = chat.message,
+                        profileImage = chat.image.toInt(),
+                        mainViewModel = mainViewModel,
+                    )
                 }
 
             ChatList.CREWS ->

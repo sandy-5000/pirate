@@ -1,5 +1,6 @@
 package com.darkube.pirate.models
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,13 +9,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import com.darkube.pirate.services.fetch
+import com.darkube.pirate.types.ChatRow
+import com.darkube.pirate.types.EventInfo
+import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.RequestType
-import com.darkube.pirate.types.UserDetails
+import com.darkube.pirate.types.room.UserDetails
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.getRouteId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +38,25 @@ class MainViewModel(
     val navController: NavHostController,
     private val dataBase: DataBase,
 ) : ViewModel() {
+
+    companion object {
+        private var instance: MainViewModel? = null
+
+        fun init(viewModel: MainViewModel) {
+            instance = viewModel
+        }
+
+        fun emit(eventInfo: EventInfo) {
+            if (eventInfo.type == EventType.MESSAGE) {
+                if (
+                    instance?.currentScreen == HomeRoute.javaClass.name &&
+                    instance?.homeScreenState?.value == HomeScreen.CHATS
+                ) {
+                    instance?.fetchChatsList()
+                }
+            }
+        }
+    }
 
     var currentScreen by mutableStateOf(getRouteId(null))
         private set
@@ -67,7 +91,8 @@ class MainViewModel(
             val value = userDetails.jsonObject[key]?.jsonPrimitive?.contentOrNull ?: ""
             dataBase.userDetailsDao.update(UserDetails(key = key, value = value))
         }
-        val profileImage = userDetails.jsonObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "5"
+        val profileImage =
+            userDetails.jsonObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "5"
         dataBase.userDetailsDao.update(UserDetails(key = "profile_image", value = profileImage))
         dataBase.userDetailsDao.update(UserDetails(key = "token", value = token))
         dataBase.userDetailsDao.update(UserDetails(key = "logged_in", value = "true"))
@@ -118,5 +143,37 @@ class MainViewModel(
             body = body,
             headers = getHeaders(),
         )
+    }
+
+    private val _chatsListState = MutableStateFlow(emptyList<ChatRow>())
+    val chatsListState: StateFlow<List<ChatRow>> = _chatsListState.asStateFlow()
+
+    fun fetchChatsList() {
+        viewModelScope.launch {
+            val chatsList = dataBase.lastMessageDao.getAllMessages().first()
+            val friendsList = dataBase.friendsInfoDao.getAll().first()
+            val imageMap = friendsList.associateBy({ it.pirateId }, { it.image })
+            val charRows = chatsList.map { chat ->
+                ChatRow(
+                    pirateId = chat.pirateId,
+                    username = chat.username,
+                    message = chat.message,
+                    receiveTime = chat.receiveTime,
+                    image = imageMap.getOrDefault(chat.pirateId, "12")
+                )
+            }
+            _chatsListState.value = charRows
+        }
+    }
+
+    fun updateProfileImage(pirateId: String, username: String, profileImage: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataBase.friendsInfoDao.updateMainInfo(
+                pirateId = pirateId,
+                username = username,
+                image = profileImage,
+            )
+            fetchChatsList()
+        }
     }
 }

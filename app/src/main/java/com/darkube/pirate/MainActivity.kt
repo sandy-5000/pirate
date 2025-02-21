@@ -89,9 +89,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Screen(context: Context) {
-    val navController = rememberNavController()
-    val database = remember { DatabaseProvider.getInstance(context) }
-    val mainViewModel = MainViewModel(navController = navController, dataBase = database)
+    val mainViewModel = MainViewModel(
+        navController = rememberNavController(),
+        dataBase = DatabaseProvider.getInstance(context)
+    )
+    MainViewModel.init(mainViewModel)
     mainViewModel.setScreen(HomeRoute.javaClass.name)
     mainViewModel.setAllUserDetails()
     AuthenticatedScreen(mainViewModel = mainViewModel)

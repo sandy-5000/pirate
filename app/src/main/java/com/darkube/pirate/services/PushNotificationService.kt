@@ -14,10 +14,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.darkube.pirate.MainActivity
 import com.darkube.pirate.R
+import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.receivers.NotificationActionReceiver
+import com.darkube.pirate.types.EventInfo
+import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.NotificationType
+import com.darkube.pirate.utils.DatabaseProvider
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class PushNotificationService : FirebaseMessagingService() {
 
@@ -32,26 +39,47 @@ class PushNotificationService : FirebaseMessagingService() {
         val title = message.notification?.title ?: ""
         val body = message.notification?.body ?: ""
         val type = message.data["type"] ?: ""
+        val senderId = message.data["sender_id"] ?: ""
 
         if (NotificationType.entries.any { it.value == type }) {
-            showNotification(title, body, type)
+            val typeEnum = NotificationType.valueOf(type)
+            if (NotificationType.MESSAGE == typeEnum) {
+                saveMessageToDatabase(senderId, title, body)
+            }
+            showNotification(title, body, typeEnum)
         }
     }
 
-    private fun showNotification(subText: String, body: String, type: String) {
+    private fun saveMessageToDatabase(senderId: String, username: String, message: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val database = DatabaseProvider.getInstance(applicationContext)
+                database.lastMessageDao.upsertMessage(senderId, username, message)
+                val eventInfo = EventInfo(
+                    type = EventType.MESSAGE,
+                    id = senderId,
+                    username = username,
+                    message = message
+                )
+                MainViewModel.emit(eventInfo = eventInfo)
+            } catch (e: Exception) {
+                Log.e("push-note", "Error saving message: ${e.message}")
+            }
+        }
+    }
+
+    private fun showNotification(subText: String, body: String, type: NotificationType) {
         val channelId = "pirate_channel"
         val notificationId = 100
-        Log.d("msg-type", type)
+
         val icon = when (type) {
-            NotificationType.MESSAGE.value -> R.drawable.chat_round_line_icon
-            NotificationType.MESSAGE_REQUEST.value -> R.drawable.users_group_icon
-            else -> R.drawable.tabs_icon
+            NotificationType.MESSAGE -> R.drawable.chat_round_line_icon
+            NotificationType.MESSAGE_REQUEST -> R.drawable.users_group_icon
         }
         val markAsReadIcon = R.drawable.check_circle_icon
-        val title = when(type) {
-            NotificationType.MESSAGE.value -> "New Message"
-            NotificationType.MESSAGE_REQUEST.value -> "New Request"
-            else -> ""
+        val title = when (type) {
+            NotificationType.MESSAGE -> "New Message"
+            NotificationType.MESSAGE_REQUEST -> "New Request"
         }
 
         val intent = Intent(this, MainActivity::class.java)

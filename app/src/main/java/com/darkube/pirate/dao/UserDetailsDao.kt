@@ -3,7 +3,7 @@ package com.darkube.pirate.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import com.darkube.pirate.types.UserDetails
+import com.darkube.pirate.types.room.UserDetails
 import kotlinx.coroutines.flow.Flow
 
 @Dao

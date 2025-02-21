@@ -36,6 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.components.DataLoading
 import com.darkube.pirate.models.MainViewModel
@@ -49,6 +50,7 @@ import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryBlue
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.getProfileImage
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -102,6 +104,22 @@ fun Conversation(
             mainViewModel.setChatScreen(FriendType.SELF)
         } else {
             fetchFriendType()
+        }
+    }
+
+    LaunchedEffect(chatScreen) {
+        if (
+            FriendType.FRIENDS == chatScreen ||
+            FriendType.SENDER_BLOCKED == chatScreen ||
+            FriendType.RECEIVER_BLOCKED == chatScreen
+        ) {
+            mainViewModel.viewModelScope.launch {
+                mainViewModel.updateProfileImage(
+                    pirateId = pirateId,
+                    username = username,
+                    profileImage = profileImage.toString()
+                )
+            }
         }
     }
 

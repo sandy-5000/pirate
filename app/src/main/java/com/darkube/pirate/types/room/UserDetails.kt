@@ -1,4 +1,4 @@
-package com.darkube.pirate.types
+package com.darkube.pirate.types.room
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
