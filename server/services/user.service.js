@@ -69,8 +69,10 @@ export default class UserService {
     const user = await _users.findById(_id, {
       first_name: 1,
       last_name: 1,
+      username: 1,
       email: 1,
       bio: 1,
+      profile_image: 1,
     })
     if (!user) {
       throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
@@ -139,7 +141,7 @@ export default class UserService {
         .findById(_id, { friends: 1 })
         .populate({
           path: 'friends',
-          select: 'username _id first_name last_name',
+          select: '_id username first_name last_name profile_image',
         })
         .exec()
       if (!friendsList) {
@@ -157,7 +159,7 @@ export default class UserService {
         .find({ sender_id: _id })
         .populate({
           path: 'receiver_id',
-          select: 'username _id first_name last_name', // Fetch only required fields
+          select: '_id username first_name last_name profile_image',
         })
         .exec()
       return pendingRequests
@@ -172,7 +174,7 @@ export default class UserService {
         .find({ receiver_id: _id })
         .populate({
           path: 'sender_id',
-          select: 'username _id first_name last_name', // Fetch only required fields
+          select: '_id username first_name last_name profile_image',
         })
         .exec()
       return messageRequests
