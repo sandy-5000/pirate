@@ -31,7 +31,7 @@ export default class PushTokenService {
     }
   }
 
-  static async notify(token, title, body, sender_id, type = '') {
+  static async notify(token, title, body, sender_id, username, type = '') {
     const message = {
       notification: {
         title,
@@ -39,6 +39,7 @@ export default class PushTokenService {
       },
       data: {
         sender_id,
+        username,
         type,
       },
       token,

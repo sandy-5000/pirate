@@ -35,6 +35,7 @@ app.route('/message/:pirateId').post(validateToken, async (req, res) => {
       username,
       message,
       tokenData?._id || '',
+      tokenData?.username || '',
       NOTIFICATION_TYPE.MESSAGE,
     )
     return res.status(200).json({
