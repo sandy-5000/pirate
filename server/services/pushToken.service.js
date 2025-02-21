@@ -31,13 +31,14 @@ export default class PushTokenService {
     }
   }
 
-  static async notify(token, title, body, type = '') {
+  static async notify(token, title, body, sender_id, type = '') {
     const message = {
       notification: {
         title,
         body,
       },
       data: {
+        sender_id,
         type,
       },
       token,

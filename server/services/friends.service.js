@@ -45,6 +45,7 @@ export default class FriendsService {
           tokenData?.token || '',
           sender.username,
           `${name} has sent you a message request.`,
+          sender_id,
           NOTIFICATION_TYPE.MESSAGE_REQUEST,
         )
       } catch (e) {
@@ -124,6 +125,7 @@ export default class FriendsService {
           tokenData?.token || '',
           receiver.username,
           `${name} has accepted your message request.`,
+          receiver_id,
           NOTIFICATION_TYPE.MESSAGE_REQUEST,
         )
       } catch (e) {
@@ -167,6 +169,7 @@ export default class FriendsService {
           tokenData?.token || '',
           receiver.username,
           `${name} has rejected your message request.`,
+          receiver_id,
           NOTIFICATION_TYPE.MESSAGE_REQUEST,
         )
       } catch (e) {
