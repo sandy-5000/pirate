@@ -42,15 +42,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.AuthenticatePage
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.SecondaryBlue
-import kotlinx.coroutines.launch
-
 
 @Composable
 fun NewPassword(

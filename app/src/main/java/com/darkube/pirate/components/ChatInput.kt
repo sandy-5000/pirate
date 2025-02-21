@@ -2,11 +2,9 @@ package com.darkube.pirate.components
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,14 +25,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -48,11 +44,9 @@ import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.RequestType
-import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryBlue
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
@@ -90,6 +84,9 @@ fun ChatInput(
     var message by remember { mutableStateOf("") }
     val textBoxBackground = NavBarBackground
 
+    val userState by mainViewModel.userState.collectAsState()
+    val userId = userState.getOrDefault("_id", "")
+
     var isLongPress by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 
@@ -98,37 +95,50 @@ fun ChatInput(
             put("message", message)
         }
         loading = true
-        fetch(
-            url = "/api/pushtoken/message/$pirateId",
-            callback = { response: JsonElement ->
-                val error =
-                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
-                if (error.isNotEmpty()) {
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(
-                            context,
-                            "Failed to Sent Message",
-                            Toast.LENGTH_LONG
-                        ).show()
+        if (userId == pirateId) {
+            mainViewModel.viewModelScope.launch {
+                mainViewModel.updateNewMessageForPirate(
+                    pirateId = pirateId,
+                    message = message,
+                    type = MessageType.TEXT.value,
+                    side = 0,
+                )
+                loading = false
+                message = ""
+            }
+        } else {
+            fetch(
+                url = "/api/pushtoken/message/$pirateId",
+                callback = { response: JsonElement ->
+                    val error =
+                        response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                    if (error.isNotEmpty()) {
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(
+                                context,
+                                "Failed to Sent Message",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        loading = false
+                        return@fetch
                     }
-                    loading = false
-                    return@fetch
-                }
-                mainViewModel.viewModelScope.launch {
-                    mainViewModel.updateNewMessageForPirate(
-                        pirateId = pirateId,
-                        message = message,
-                        type = MessageType.TEXT.value,
-                        side = 0,
-                    )
-                    loading = false
-                    message = ""
-                }
-            },
-            body = body,
-            headers = mainViewModel.getHeaders(),
-            type = RequestType.POST,
-        )
+                    mainViewModel.viewModelScope.launch {
+                        mainViewModel.updateNewMessageForPirate(
+                            pirateId = pirateId,
+                            message = message,
+                            type = MessageType.TEXT.value,
+                            side = 0,
+                        )
+                        loading = false
+                        message = ""
+                    }
+                },
+                body = body,
+                headers = mainViewModel.getHeaders(),
+                type = RequestType.POST,
+            )
+        }
     }
 
     Row(

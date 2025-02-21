@@ -51,7 +51,7 @@ fun ChatBubble(message: String, side: Int, timeStamp: String) {
         Row(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
-                .padding(vertical = 4.dp),
+                .padding(vertical = 2.dp),
             horizontalArrangement = if (side == 1) Arrangement.Start else Arrangement.End,
         ) {
             FlowRow(

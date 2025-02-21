@@ -58,7 +58,6 @@ import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.components.ErrorMessage
-import com.darkube.pirate.components.PixelAvatar
 import com.darkube.pirate.components.UnderLoading
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.screens.authentication.AvailableStatus
