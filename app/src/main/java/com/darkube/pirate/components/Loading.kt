@@ -108,7 +108,7 @@ fun Loading(
 @Composable
 fun SearchLoading(
     modifier: Modifier,
-    durationMillis: Int = 900
+    durationMillis: Int = 900,
 ) {
     var startAnimation by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -149,7 +149,8 @@ fun SearchLoading(
 @Composable
 fun DataLoading(
     modifier: Modifier,
-    durationMillis: Int = 900
+    durationMillis: Int = 900,
+    message: String = "    Fetching ...",
 ) {
     var startAnimation by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -180,7 +181,7 @@ fun DataLoading(
             tint = LightColor,
         )
         Text(
-            "    Fetching ...",
+            text = message,
             modifier = Modifier.padding(top = 20.dp),
             fontSize = 14.sp,
         )

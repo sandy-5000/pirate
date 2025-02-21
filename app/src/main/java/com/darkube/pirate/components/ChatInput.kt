@@ -63,7 +63,7 @@ fun AppChatInput(
     mainViewModel: MainViewModel,
 ) {
     val chatScreen by mainViewModel.chatScreenState.collectAsState()
-    if (chatScreen == FriendType.FRIENDS) {
+    if (chatScreen == FriendType.FRIENDS || chatScreen == FriendType.SELF) {
         ChatInput(pirateId = pirateId, mainViewModel = mainViewModel)
     }
 }

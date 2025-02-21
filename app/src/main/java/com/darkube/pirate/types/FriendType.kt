@@ -1,6 +1,7 @@
 package com.darkube.pirate.types
 
 enum class FriendType(val value: String) {
+    SELF("SELF"),
     FRIENDS("FRIENDS"),
     NOT_FRIENDS("NOT_FRIENDS"),
     REQUEST_SENT("REQUEST_SENT"),

@@ -44,7 +44,7 @@ import com.darkube.pirate.components.AppFloatingActionButton
 import com.darkube.pirate.components.BasicTopBar
 import com.darkube.pirate.components.BottomNavBar
 import com.darkube.pirate.components.ChatScreenTopBar
-import com.darkube.pirate.components.Loading
+import com.darkube.pirate.components.DataLoading
 import com.darkube.pirate.components.MainScreenBottomScaffold
 import com.darkube.pirate.components.MainScreenTopBar
 import com.darkube.pirate.components.ProfileScreenBottomScaffold
@@ -105,7 +105,11 @@ fun AuthenticatedScreen(mainViewModel: MainViewModel) {
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
         if (userState.getOrDefault("logged_in", "false") == "loading") {
-            Loading(modifier = Modifier.padding(innerPadding), durationMillis = 1500)
+            DataLoading(
+                modifier = Modifier.padding(innerPadding),
+                durationMillis = 1200,
+                message = "    Loading ...",
+            )
         } else if (userState.getOrDefault("logged_in", "false") == "true") {
             MainScreen(mainViewModel = mainViewModel)
         } else {

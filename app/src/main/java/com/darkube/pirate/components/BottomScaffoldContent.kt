@@ -31,6 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -261,7 +262,8 @@ fun DisplayUser(
 ) {
     val horizontalPadding = 24.dp
     val requestIcon = R.drawable.arrow_right_icon
-    val iconSize = 20.dp
+    val iconSize = 24.dp
+    val imageSize = 48.dp
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Row(
@@ -270,28 +272,41 @@ fun DisplayUser(
             .fillMaxWidth()
             .padding(horizontal = horizontalPadding, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = "$firstName $lastName",
-                color = Color.LightGray,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        Row {
+            Image(
+                painter = painterResource(id = getProfileImage(profileImage)),
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .size(imageSize)
+                    .clip(shape = CircleShape),
             )
-            Text(
-                text = username,
-                color = Color.LightGray,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .padding(start = 16.dp),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "$firstName $lastName",
+                    color = Color.LightGray,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = username,
+                    color = Color.LightGray,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
-        Button(
+        IconButton(
             onClick = {
                 mainViewModel.setChatScreen(FriendType.INVALID)
                 keyboardController?.hide()
@@ -304,14 +319,17 @@ fun DisplayUser(
                 )
                 mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
             },
-            shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = PrimaryColor,
-            ),
-            contentPadding = PaddingValues(start = 8.dp, end = 12.dp),
+            modifier = Modifier
+                .padding(8.dp)
+                .clip(shape = CircleShape)
+                .background(NavBarBackground)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(PrimaryColor)
+                    .padding(start = 2.dp),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(id = requestIcon),
@@ -319,12 +337,6 @@ fun DisplayUser(
                     modifier = Modifier
                         .size(iconSize),
                     tint = Color.White
-                )
-                Text(
-                    "View",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
                 )
             }
         }

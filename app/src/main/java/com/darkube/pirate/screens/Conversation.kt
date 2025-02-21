@@ -69,6 +69,8 @@ fun Conversation(
     val headers = mainViewModel.getHeaders()
     val chatScreen by mainViewModel.chatScreenState.collectAsState()
     var screenLoading by remember { mutableStateOf(true) }
+    val userState by mainViewModel.userState.collectAsState()
+    val userId = userState.getOrDefault("_id", "")
 
     val fetchFriendType = {
         screenLoading = true
@@ -95,7 +97,12 @@ fun Conversation(
     }
 
     LaunchedEffect(Unit) {
-        fetchFriendType()
+        if (pirateId == userId) {
+            screenLoading = false
+            mainViewModel.setChatScreen(FriendType.SELF)
+        } else {
+            fetchFriendType()
+        }
     }
 
     Column(
@@ -107,20 +114,19 @@ fun Conversation(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (screenLoading) {
-            DataLoading(modifier = Modifier, durationMillis = 2000)
+            DataLoading(modifier = Modifier, durationMillis = 1200)
         } else {
-            when (chatScreen) {
-                FriendType.FRIENDS -> Friends(
+            Friends(
+                pirateId = pirateId,
+                username = username,
+                profileImage = profileImage,
+                chatScreen = chatScreen,
+                mainViewModel = mainViewModel,
+            )
+            if (FriendType.SELF != chatScreen && FriendType.FRIENDS != chatScreen) {
+                Remaining(
                     pirateId = pirateId,
                     username = username,
-                    profileImage = profileImage,
-                    mainViewModel = mainViewModel,
-                )
-
-                else -> Remaining(
-                    pirateId = pirateId,
-                    username = username,
-                    profileImage = profileImage,
                     chatScreen = chatScreen,
                     mainViewModel = mainViewModel,
                     reload = { fetchFriendType() },
@@ -135,6 +141,7 @@ fun Friends(
     pirateId: String,
     username: String,
     profileImage: Int,
+    chatScreen: FriendType,
     mainViewModel: MainViewModel,
 ) {
     val imageSize = 80.dp
@@ -155,14 +162,12 @@ fun Friends(
         Spacer(modifier = Modifier.height(8.dp))
         Text(username, color = LightColor, fontSize = 18.sp)
     }
-    Text("Chat with pirate: $username")
 }
 
 @Composable
 fun Remaining(
     pirateId: String,
     username: String,
-    profileImage: Int,
     chatScreen: FriendType,
     mainViewModel: MainViewModel,
     reload: () -> Unit,
@@ -179,28 +184,11 @@ fun Remaining(
     val iconSize = 20.dp
     val mainTextSize = 15.sp
     val subTextSize = 13.sp
-    val imageSize = 80.dp
 
     val requestIcon = R.drawable.users_group_icon
     val cancelIcon = R.drawable.forbidden_circle_icon
     val acceptIcon = R.drawable.check_circle_icon
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(0.6f)
-            .padding(bottom = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(
-            painter = painterResource(id = getProfileImage(profileImage)),
-            contentDescription = "Profile Image",
-            modifier = Modifier
-                .size(imageSize)
-                .clip(CircleShape)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(username, color = LightColor, fontSize = 18.sp)
-    }
     when (chatScreen) {
         FriendType.NOT_FRIENDS -> Column(
             modifier = Modifier
