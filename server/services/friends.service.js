@@ -46,7 +46,6 @@ export default class FriendsService {
           sender.username,
           `${name} has sent you a message request.`,
           sender_id,
-          sender.username,
           NOTIFICATION_TYPE.MESSAGE_REQUEST,
         )
       } catch (e) {
@@ -127,7 +126,6 @@ export default class FriendsService {
           receiver.username,
           `${name} has accepted your message request.`,
           receiver_id,
-          receiver.username,
           NOTIFICATION_TYPE.MESSAGE_REQUEST,
         )
       } catch (e) {
@@ -172,7 +170,6 @@ export default class FriendsService {
           receiver.username,
           `${name} has rejected your message request.`,
           receiver_id,
-          receiver.username,
           NOTIFICATION_TYPE.MESSAGE_REQUEST,
         )
       } catch (e) {

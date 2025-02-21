@@ -125,6 +125,19 @@ app.route('/friend-type/:receiver_id').get(validateToken, async (req, res) => {
   }
 })
 
+app.route('/friend/:receiver_id').get(validateToken, async (req, res) => {
+  const { receiver_id } = req.params || {}
+  try {
+    let user = await UserService.details({ _id: receiver_id })
+    user = JSON.parse(JSON.stringify(user))
+    return res.status(200).json({ result: { ...user } })
+  } catch (e) {
+    return res.status(500).json({
+      error: e.message,
+    })
+  }
+})
+
 app
   .route('/profile')
   .get(validateToken, async (req, res) => {

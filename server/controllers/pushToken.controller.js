@@ -4,6 +4,7 @@ import PushTokenService from '#~/services/pushToken.service'
 import UserService from '#~/services/user.service'
 import { validateToken } from '#~/middlewares/jwt.middleware'
 import { NOTIFICATION_TYPE } from '#~/utils/enums.constants'
+import { ERRORS } from '#~/utils/error.types'
 
 const app = express.Router()
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -26,7 +27,7 @@ app.route('/update').put(validateToken, async (req, res) => {
 app.route('/message/:pirateId').post(validateToken, async (req, res) => {
   const { pirateId } = req.params
   const { message } = req.body
-  const { username = '' } = req.token_data || {}
+  const { _id = '', username = '' } = req.token_data || {}
   try {
     const user_id = await UserService.userId({ username: pirateId })
     const tokenData = await PushTokenService.getToken(user_id)
@@ -34,8 +35,7 @@ app.route('/message/:pirateId').post(validateToken, async (req, res) => {
       tokenData?.token || '',
       username,
       message,
-      tokenData?._id || '',
-      tokenData?.username || '',
+      _id.toString(),
       NOTIFICATION_TYPE.MESSAGE,
     )
     return res.status(200).json({
@@ -43,7 +43,7 @@ app.route('/message/:pirateId').post(validateToken, async (req, res) => {
     })
   } catch (e) {
     return res.status(500).json({
-      error: ERRORS.INTERNAL_SERVER_ERROR,
+      error: e.message,
     })
   }
 })
