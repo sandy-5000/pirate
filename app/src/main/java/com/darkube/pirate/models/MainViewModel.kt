@@ -217,8 +217,14 @@ class MainViewModel(
         if (pirateId != currentPirateId) {
             return
         }
+        val username = userState.value.getOrDefault("username", "")
         viewModelScope.launch(Dispatchers.IO) {
             if (side == 0) {
+                dataBase.lastMessageDao.upsertMessage(
+                    pirateId = pirateId,
+                    username = username,
+                    message = message
+                )
                 dataBase.userChatDao.insertMessage(
                     pirateId = pirateId,
                     message = message,
