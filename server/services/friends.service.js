@@ -189,6 +189,7 @@ export default class FriendsService {
             username: 1,
             first_name: 1,
             last_name: 1,
+            profile_image: 1,
           },
         )
         .limit(30)
