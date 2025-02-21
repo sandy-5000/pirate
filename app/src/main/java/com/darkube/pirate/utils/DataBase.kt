@@ -6,13 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.darkube.pirate.dao.FriendsInfoDao
 import com.darkube.pirate.dao.LastMessageDao
+import com.darkube.pirate.dao.UserChatDao
 import com.darkube.pirate.dao.UserDetailsDao
 import com.darkube.pirate.types.room.FriendsInfo
 import com.darkube.pirate.types.room.LastMessage
+import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
 
 @Database(
-    entities = [UserDetails::class, LastMessage::class, FriendsInfo::class],
+    entities = [UserDetails::class, LastMessage::class, FriendsInfo::class, UserChat::class],
     version = 1,
     exportSchema = false,
 )
@@ -21,6 +23,7 @@ abstract class DataBase : RoomDatabase() {
     abstract val userDetailsDao: UserDetailsDao
     abstract val lastMessageDao: LastMessageDao
     abstract val friendsInfoDao: FriendsInfoDao
+    abstract val userChatDao: UserChatDao
 
 }
 

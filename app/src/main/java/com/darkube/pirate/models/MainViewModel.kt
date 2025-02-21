@@ -2,6 +2,7 @@ package com.darkube.pirate.models
 
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -14,8 +15,11 @@ import com.darkube.pirate.types.EventInfo
 import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.HomeScreen
+import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.RequestType
+import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
+import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.getRouteId
@@ -53,6 +57,18 @@ class MainViewModel(
                     instance?.homeScreenState?.value == HomeScreen.CHATS
                 ) {
                     instance?.fetchChatsList()
+                }
+                val currentScreen = (instance?.currentScreen ?: "").split("/")[0]
+                val chatRoute = ChatRoute.Companion::class.java.name.split("$")[0]
+                Log.d("main-o", currentScreen)
+                Log.d("main-o", chatRoute)
+                if (currentScreen == chatRoute) {
+                    instance?.updateNewMessageForPirate(
+                        pirateId = eventInfo.id,
+                        message = eventInfo.message,
+                        type = MessageType.TEXT.value,
+                        side = 1
+                    )
                 }
             }
         }
@@ -174,6 +190,62 @@ class MainViewModel(
                 image = profileImage,
             )
             fetchChatsList()
+        }
+    }
+
+    private var currentPirateId by mutableStateOf("")
+
+    fun setPirateId(pirateId: String) {
+        currentPirateId = pirateId
+    }
+
+    private val _userChatState = MutableStateFlow(emptyList<UserChat>())
+    val userChatState: StateFlow<List<UserChat>> = _userChatState.asStateFlow()
+    private var messageOffset by mutableIntStateOf(0)
+
+    fun resetChatState() {
+        _userChatState.value = emptyList()
+        messageOffset = 0
+    }
+
+    fun updateNewMessageForPirate(
+        pirateId: String,
+        message: String,
+        type: String,
+        side: Int
+    ) {
+        if (pirateId != currentPirateId) {
+            return
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            if (side == 0) {
+                dataBase.userChatDao.insertMessage(
+                    pirateId = pirateId,
+                    message = message,
+                    type = type,
+                    side = side
+                )
+            }
+            var id = -1
+            if (_userChatState.value.isNotEmpty()) {
+                id = _userChatState.value[0].id
+            }
+            val newMessages = dataBase.userChatDao.getLatestInsertedMessage(pirateId, id)
+            _userChatState.value = newMessages + _userChatState.value
+            Log.d("message-o", _userChatState.value.toString())
+            messageOffset += newMessages.size
+        }
+    }
+
+    fun getMessagesForPirate(pirateId: String, limit: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val oldMessages = dataBase.userChatDao.getMessagesForPirate(
+                pirateId = pirateId,
+                limit = limit,
+                offset = messageOffset
+            )
+            _userChatState.value += oldMessages
+            messageOffset += limit
         }
     }
 }

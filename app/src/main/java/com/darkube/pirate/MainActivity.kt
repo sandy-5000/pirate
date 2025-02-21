@@ -336,7 +336,11 @@ fun MainScreen(mainViewModel: MainViewModel) {
                     )
                 },
                 bottomBar = {
-                    AppChatInput(pirateId = pirateId, mainViewModel = mainViewModel)
+                    AppChatInput(
+                        pirateId = pirateId,
+                        username = username,
+                        mainViewModel = mainViewModel
+                    )
                 }
             ) { innerPadding ->
                 Conversation(

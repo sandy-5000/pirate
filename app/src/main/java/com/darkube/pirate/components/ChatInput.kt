@@ -2,6 +2,7 @@ package com.darkube.pirate.components
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -40,16 +41,19 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.FriendType
+import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryBlue
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -60,17 +64,19 @@ import kotlinx.serialization.json.put
 @Composable
 fun AppChatInput(
     pirateId: String,
+    username: String,
     mainViewModel: MainViewModel,
 ) {
     val chatScreen by mainViewModel.chatScreenState.collectAsState()
     if (chatScreen == FriendType.FRIENDS || chatScreen == FriendType.SELF) {
-        ChatInput(pirateId = pirateId, mainViewModel = mainViewModel)
+        ChatInput(pirateId = pirateId, username = username, mainViewModel = mainViewModel)
     }
 }
 
 @Composable
 fun ChatInput(
     pirateId: String,
+    username: String,
     mainViewModel: MainViewModel,
 ) {
     val sendIcon = R.drawable.plain_icon
@@ -91,7 +97,7 @@ fun ChatInput(
             put("message", message)
         }
         fetch(
-            url = "/api/pushtoken/message/$pirateId",
+            url = "/api/pushtoken/message/$username",
             callback = { response: JsonElement ->
                 val error =
                     response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
@@ -104,6 +110,14 @@ fun ChatInput(
                         ).show()
                     }
                     return@fetch
+                }
+                mainViewModel.viewModelScope.launch {
+                    mainViewModel.updateNewMessageForPirate(
+                        pirateId = pirateId,
+                        message = message,
+                        type = MessageType.TEXT.value,
+                        side = 0,
+                    )
                 }
                 Handler(Looper.getMainLooper()).post {
                     Toast.makeText(
@@ -260,7 +274,7 @@ fun ChatInput(
                         contentDescription = "Plus",
                         modifier = Modifier
                             .size(iconSize),
-                        tint = AppBackground,
+                        tint = Color.White,
                     )
                 }
                 AnimatedVisibility(message.isNotEmpty()) {
@@ -270,7 +284,7 @@ fun ChatInput(
                         modifier = Modifier
                             .padding(top = 2.dp, end = 2.dp)
                             .size(iconSize),
-                        tint = AppBackground,
+                        tint = Color.White,
                     )
                 }
             }

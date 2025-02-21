@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,15 +31,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
+import com.darkube.pirate.components.ChatBubble
 import com.darkube.pirate.components.DataLoading
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
@@ -67,7 +72,6 @@ fun Conversation(
     username: String,
     profileImage: Int,
 ) {
-    val scrollState = rememberScrollState()
     val headers = mainViewModel.getHeaders()
     val chatScreen by mainViewModel.chatScreenState.collectAsState()
     var screenLoading by remember { mutableStateOf(true) }
@@ -97,6 +101,8 @@ fun Conversation(
             type = RequestType.GET,
         )
     }
+    mainViewModel.resetChatState()
+    mainViewModel.setPirateId(pirateId = pirateId)
 
     LaunchedEffect(Unit) {
         if (pirateId == userId) {
@@ -109,6 +115,7 @@ fun Conversation(
 
     LaunchedEffect(chatScreen) {
         if (
+            FriendType.SELF == chatScreen ||
             FriendType.FRIENDS == chatScreen ||
             FriendType.SENDER_BLOCKED == chatScreen ||
             FriendType.RECEIVER_BLOCKED == chatScreen
@@ -126,8 +133,7 @@ fun Conversation(
     Column(
         modifier = modifier
             .imePadding()
-            .fillMaxSize()
-            .verticalScroll(scrollState),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -140,16 +146,8 @@ fun Conversation(
                 profileImage = profileImage,
                 chatScreen = chatScreen,
                 mainViewModel = mainViewModel,
+                reload = { fetchFriendType() },
             )
-            if (FriendType.SELF != chatScreen && FriendType.FRIENDS != chatScreen) {
-                Remaining(
-                    pirateId = pirateId,
-                    username = username,
-                    chatScreen = chatScreen,
-                    mainViewModel = mainViewModel,
-                    reload = { fetchFriendType() },
-                )
-            }
         }
     }
 }
@@ -161,24 +159,78 @@ fun Friends(
     profileImage: Int,
     chatScreen: FriendType,
     mainViewModel: MainViewModel,
+    reload: () -> Unit,
 ) {
     val imageSize = 80.dp
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(0.6f)
-            .padding(bottom = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val messages by mainViewModel.userChatState.collectAsState()
+    val listState = rememberLazyListState()
+    var isLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { index ->
+                if (index == 0 && !isLoading) {
+                    isLoading = true
+                    mainViewModel.viewModelScope.launch {
+                        mainViewModel.getMessagesForPirate(pirateId = pirateId, limit = 20)
+                    }
+                    isLoading = false
+                }
+            }
+    }
+
+    LazyColumn(
+        state = listState,
+        reverseLayout = true,
+        modifier = Modifier.fillMaxSize()
     ) {
-        Image(
-            painter = painterResource(id = getProfileImage(profileImage)),
-            contentDescription = "Profile Image",
-            modifier = Modifier
-                .size(imageSize)
-                .clip(CircleShape)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(username, color = LightColor, fontSize = 18.sp)
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Remaining(
+                    pirateId = pirateId,
+                    username = username,
+                    chatScreen = chatScreen,
+                    mainViewModel = mainViewModel,
+                    reload = reload,
+                )
+            }
+        }
+        items(messages.size) { index ->
+            ChatBubble(
+                message = messages[index].message,
+                side = messages[index].side,
+                timeStamp = messages[index].receivedAt,
+            )
+        }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .padding(bottom = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Image(
+                        painter = painterResource(id = getProfileImage(profileImage)),
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .size(imageSize)
+                            .clip(CircleShape)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(username, color = LightColor, fontSize = 18.sp)
+                }
+            }
+        }
     }
 }
 
@@ -259,13 +311,13 @@ fun Remaining(
                         contentDescription = "Request",
                         modifier = Modifier
                             .size(iconSize),
-                        tint = backgroundColor,
+                        tint = Color.White,
                     )
                     Spacer(modifier = Modifier.size(4.dp))
                     Text(
                         "Request",
                         fontSize = 15.sp,
-                        color = backgroundColor,
+                        color = Color.White,
                     )
                 }
             }
@@ -385,13 +437,13 @@ fun Remaining(
                         contentDescription = "Accept",
                         modifier = Modifier
                             .size(iconSize),
-                        tint = backgroundColor,
+                        tint = Color.White,
                     )
                     Spacer(modifier = Modifier.size(4.dp))
                     Text(
                         "Accept",
                         fontSize = 15.sp,
-                        color = backgroundColor,
+                        color = Color.White,
                     )
                 }
             }
@@ -464,5 +516,7 @@ fun Remaining(
 
         else -> {}
     }
-    Spacer(modifier = Modifier.height(76.dp))
+    if (chatScreen != FriendType.FRIENDS && chatScreen != FriendType.SELF) {
+        Spacer(modifier = Modifier.height(400.dp))
+    }
 }

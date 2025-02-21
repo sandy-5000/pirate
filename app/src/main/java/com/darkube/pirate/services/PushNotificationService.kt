@@ -18,6 +18,7 @@ import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.receivers.NotificationActionReceiver
 import com.darkube.pirate.types.EventInfo
 import com.darkube.pirate.types.EventType
+import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.NotificationType
 import com.darkube.pirate.utils.DatabaseProvider
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -55,6 +56,12 @@ class PushNotificationService : FirebaseMessagingService() {
             try {
                 val database = DatabaseProvider.getInstance(applicationContext)
                 database.lastMessageDao.upsertMessage(senderId, username, message)
+                database.userChatDao.insertMessage(
+                    pirateId = senderId,
+                    message = message,
+                    type = MessageType.TEXT.value,
+                    side = 1
+                )
                 val eventInfo = EventInfo(
                     type = EventType.MESSAGE,
                     id = senderId,
