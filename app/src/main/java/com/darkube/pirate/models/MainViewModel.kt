@@ -212,12 +212,12 @@ class MainViewModel(
         pirateId: String,
         message: String,
         type: String,
-        side: Int
+        side: Int,
+        username: String = "",
     ) {
         if (pirateId != currentPirateId) {
             return
         }
-        val username = userState.value.getOrDefault("username", "")
         viewModelScope.launch(Dispatchers.IO) {
             if (side == 0) {
                 dataBase.lastMessageDao.upsertMessage(

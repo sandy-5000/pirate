@@ -102,6 +102,7 @@ fun ChatInput(
                     message = message,
                     type = MessageType.TEXT.value,
                     side = 0,
+                    username = username,
                 )
                 loading = false
                 message = ""
@@ -129,6 +130,7 @@ fun ChatInput(
                             message = message,
                             type = MessageType.TEXT.value,
                             side = 0,
+                            username = username,
                         )
                         loading = false
                         message = ""
