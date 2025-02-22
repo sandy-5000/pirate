@@ -145,13 +145,13 @@ fun ChatInput(
         modifier = Modifier
             .imePadding()
             .fillMaxWidth()
-            .padding(start = 8.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+            .padding(start = 8.dp, top = 0.dp, end = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             modifier = Modifier
                 .weight(1f)
-                .padding(8.dp)
+                .padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
                 .padding(end = 4.dp)
                 .clip(shape = RoundedCornerShape(16.dp))
                 .background(textBoxBackground)
