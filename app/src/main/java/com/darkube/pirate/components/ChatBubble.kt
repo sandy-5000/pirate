@@ -132,6 +132,7 @@ fun ChatBubble(
     if (dayStart) {
         Row(
             modifier = Modifier
+                .padding(vertical = 4.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {

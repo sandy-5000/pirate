@@ -8,7 +8,7 @@ fun utcToLocal(utcTime: String, format: String = "yyyy-MM-dd HH:mm:ss"): Pair<St
     val utcFormat = SimpleDateFormat(format, Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
-    val localFormatDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+    val localFormatDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).apply {
         timeZone = TimeZone.getDefault()
     }
     val localFormatTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).apply {
