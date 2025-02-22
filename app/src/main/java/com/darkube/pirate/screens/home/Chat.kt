@@ -1,6 +1,7 @@
 package com.darkube.pirate.screens.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.Text
@@ -30,11 +33,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.FriendType
+import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
@@ -51,6 +57,7 @@ fun Chat(
 ) {
     val scrollState = rememberScrollState()
     val horizontalPadding = 24.dp
+    val ghostIcon = R.drawable.ghost_smile_icon
 
     mainViewModel.fetchChatsList()
     var selectedFilter by remember { mutableStateOf(ChatList.PIRATES) }
@@ -98,7 +105,37 @@ fun Chat(
 //            )
         }
         when (selectedFilter) {
-            ChatList.PIRATES ->
+            ChatList.PIRATES -> {
+                if (chatsList.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .padding(top = 160.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(0.6f)
+                                .clip(shape = RoundedCornerShape(12.dp))
+                                .background(NavBarBackground)
+                                .padding(horizontal = 12.dp, vertical = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Icon(
+                                painter = painterResource(id = ghostIcon),
+                                contentDescription = "Ghost",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp),
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Your chats are empty. Try messaging your friends or searching for new ones.",
+                                textAlign = TextAlign.Center,
+                                fontSize = 14.sp,
+                            )
+                        }
+                    }
+                }
                 chatsList.forEach { chat ->
                     ChatRow(
                         pirateId = chat.pirateId,
@@ -108,6 +145,7 @@ fun Chat(
                         mainViewModel = mainViewModel,
                     )
                 }
+            }
 
             ChatList.CREWS ->
                 crews.forEach { details ->
