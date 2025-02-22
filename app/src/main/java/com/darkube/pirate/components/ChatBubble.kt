@@ -1,17 +1,15 @@
 package com.darkube.pirate.components
 
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -26,21 +24,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.darkube.pirate.R
-import com.darkube.pirate.ui.theme.AppBackground
-import com.darkube.pirate.ui.theme.BubbleBlue
 import com.darkube.pirate.ui.theme.PrimaryBlue
 import com.darkube.pirate.ui.theme.PrimaryColor
-import com.darkube.pirate.ui.theme.SecondaryBlue
+import com.darkube.pirate.utils.utcToLocal
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ChatBubble(message: String, side: Int, timeStamp: String) {
+fun ChatBubble(
+    message: String,
+    side: Int,
+    timeStamp: String,
+    start: Boolean = false,
+    end: Boolean = false,
+    dayStart: Boolean = false,
+) {
     val horizontalPadding = 20.dp
     val backGroundColor = if (side == 1) PrimaryColor else PrimaryBlue
     val contentColor = Color.White
-    val trimmedTimeStamp = timeStamp.substring(11, 16)
     val checkSolidIcon = R.drawable.check_filled_icon
     val iconSize = 13.dp
+    val dateTime = utcToLocal(timeStamp)
+
+    val topPadding = if (start) 4.dp else 0.dp
+    val bottomPadding = if (end) 4.dp else 0.dp
+
+    val topStartRound = if (side == 0 || start) 16.dp else 4.dp
+    val bottomStartRound = if (side == 0 || end) 16.dp else 4.dp
+    val topEndRound = if (side == 1 || start) 16.dp else 4.dp
+    val bottomEndRound = if (side == 1 || end) 16.dp else 4.dp
+
+    Log.d("bool-o", topPadding.toString() + " " + bottomPadding.toString() + " " + message)
 
     Row(
         modifier = Modifier
@@ -51,13 +64,20 @@ fun ChatBubble(message: String, side: Int, timeStamp: String) {
         Row(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
-                .padding(vertical = 2.dp),
+                .padding(top = topPadding, bottom = bottomPadding),
             horizontalArrangement = if (side == 1) Arrangement.Start else Arrangement.End,
         ) {
             FlowRow(
                 modifier = Modifier
-                    .padding(bottom = 4.dp)
-                    .clip(shape = RoundedCornerShape(16.dp))
+                    .padding(bottom = 2.dp)
+                    .clip(
+                        shape = RoundedCornerShape(
+                            topStart = topStartRound,
+                            bottomStart = bottomStartRound,
+                            topEnd = topEndRound,
+                            bottomEnd = bottomEndRound
+                        )
+                    )
                     .background(backGroundColor)
                     .padding(
                         top = 4.dp,
@@ -80,7 +100,7 @@ fun ChatBubble(message: String, side: Int, timeStamp: String) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = trimmedTimeStamp,
+                        text = dateTime.second.substring(0, 5),
                         fontSize = 11.sp,
                         color = contentColor,
                         fontWeight = FontWeight.Medium,
@@ -107,6 +127,15 @@ fun ChatBubble(message: String, side: Int, timeStamp: String) {
                     }
                 }
             }
+        }
+    }
+    if (dayStart) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(dateTime.first, fontSize = 12.sp)
         }
     }
 }

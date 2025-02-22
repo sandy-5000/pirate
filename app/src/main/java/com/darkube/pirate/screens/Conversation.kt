@@ -198,10 +198,24 @@ fun Friends(
             }
         }
         items(messages.size) { index ->
+            val start =
+                index == messages.lastIndex || messages[index + 1].side != messages[index].side
+            val end = index == 0 || messages[index - 1].side != messages[index].side
+            val dayStart = index == messages.lastIndex || messages[index].receivedAt.substring(
+                0,
+                10
+            ) != messages[index + 1].receivedAt.substring(0, 10)
+            val dayEnd = index == 0 || messages[index].receivedAt.substring(
+                0,
+                10
+            ) != messages[index - 1].receivedAt.substring(0, 10)
             ChatBubble(
                 message = messages[index].message,
                 side = messages[index].side,
                 timeStamp = messages[index].receivedAt,
+                start = start || dayStart,
+                end = end || dayEnd,
+                dayStart = dayStart,
             )
         }
         item {
