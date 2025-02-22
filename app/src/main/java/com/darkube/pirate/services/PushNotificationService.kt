@@ -51,7 +51,12 @@ class PushNotificationService : FirebaseMessagingService() {
                     message = receivedMessage
                 )
             }
-            showNotification(username = username, message = receivedMessage, type = typeEnum)
+            NotificationHelper.showNotification(
+                this,
+                username = username,
+                message = receivedMessage,
+                type = typeEnum
+            )
         }
     }
 
@@ -78,8 +83,15 @@ class PushNotificationService : FirebaseMessagingService() {
             }
         }
     }
+}
 
-    private fun showNotification(username: String, message: String, type: NotificationType) {
+object NotificationHelper {
+    fun showNotification(
+        context: Context,
+        username: String,
+        message: String,
+        type: NotificationType
+    ) {
         val channelId = "pirate_channel"
         val notificationId = 100
 
@@ -93,9 +105,9 @@ class PushNotificationService : FirebaseMessagingService() {
             NotificationType.MESSAGE_REQUEST -> "New Request"
         }
 
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
-            this,
+            context,
             0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -107,22 +119,23 @@ class PushNotificationService : FirebaseMessagingService() {
                 "Pirate",
                 NotificationManager.IMPORTANCE_HIGH
             )
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val manager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
 
-        val markAsReadIntent = Intent(this, NotificationActionReceiver::class.java).apply {
+        val markAsReadIntent = Intent(context, NotificationActionReceiver::class.java).apply {
             action = "MARK_AS_READ"
             putExtra("notificationId", notificationId)
         }
         val markAsReadPendingIntent = PendingIntent.getBroadcast(
-            this,
+            context,
             0,
             markAsReadIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, channelId)
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(icon)
             .setContentTitle(title)
             .setContentText(message)
@@ -136,9 +149,9 @@ class PushNotificationService : FirebaseMessagingService() {
             )
             .build()
 
-        with(NotificationManagerCompat.from(this)) {
+        with(NotificationManagerCompat.from(context)) {
             if (ActivityCompat.checkSelfPermission(
-                    this@PushNotificationService,
+                    context,
                     Manifest.permission.POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
