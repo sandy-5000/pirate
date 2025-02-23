@@ -75,6 +75,8 @@ fun Conversation(
     val userState by mainViewModel.userState.collectAsState()
     val userId = userState.getOrDefault("_id", "")
 
+    mainViewModel.getCurrentRoute()
+
     val fetchFriendType = {
         screenLoading = true
         fetch(
@@ -169,7 +171,7 @@ fun Friends(
                 if (index == 0 && !isLoading) {
                     isLoading = true
                     mainViewModel.viewModelScope.launch {
-                        mainViewModel.getMessagesForPirate(pirateId = pirateId, limit = 20)
+                        mainViewModel.getMessagesForPirate(pirateId = pirateId, limit = 100)
                     }
                     isLoading = false
                 }

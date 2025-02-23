@@ -44,7 +44,6 @@ import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
-import com.darkube.pirate.utils.getRouteId
 
 enum class ChatList {
     PIRATES, CREWS
@@ -178,7 +177,6 @@ fun ChatRow(
                         profileImage = profileImage,
                     )
                 )
-                mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
             })
             .padding(start = horizontalPadding, end = horizontalPadding)
             .fillMaxWidth()

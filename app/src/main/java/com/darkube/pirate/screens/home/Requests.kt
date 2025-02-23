@@ -53,7 +53,6 @@ import com.darkube.pirate.ui.theme.LightRedColor
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
-import com.darkube.pirate.utils.getRouteId
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -589,7 +588,6 @@ fun Friend(
                             profileImage = profileImage,
                         )
                     )
-                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                 },
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(

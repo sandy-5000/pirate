@@ -304,7 +304,6 @@ fun DisplayUser(
         }
         IconButton(
             onClick = {
-                mainViewModel.setChatScreen(FriendType.INVALID)
                 keyboardController?.hide()
                 mainViewModel.navController.navigate(
                     ChatRoute(
@@ -313,7 +312,6 @@ fun DisplayUser(
                         profileImage = profileImage,
                     )
                 )
-                mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
             },
             modifier = Modifier
                 .padding(8.dp)

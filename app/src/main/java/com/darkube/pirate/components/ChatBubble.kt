@@ -1,6 +1,5 @@
 package com.darkube.pirate.components
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,8 +51,6 @@ fun ChatBubble(
     val bottomStartRound = if (side == 0 || end) 16.dp else 4.dp
     val topEndRound = if (side == 1 || start) 16.dp else 4.dp
     val bottomEndRound = if (side == 1 || end) 16.dp else 4.dp
-
-    Log.d("bool-o", topPadding.toString() + " " + bottomPadding.toString() + " " + message)
 
     Row(
         modifier = Modifier

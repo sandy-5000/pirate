@@ -35,7 +35,6 @@ import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.getProfileImage
-import com.darkube.pirate.utils.getRouteId
 import kotlinx.coroutines.launch
 
 @Composable
@@ -140,7 +139,6 @@ fun Settings(
                 .fillMaxWidth()
                 .clickable(onClick = {
                     mainViewModel.navController.navigate(ProfileRoute)
-                    mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                 })
                 .padding(internalPadding),
         ) {
@@ -217,7 +215,7 @@ fun Settings(
                 })
                 .padding(internalPadding),
 
-        ) {
+            ) {
             Icon(
                 painter = painterResource(id = storiesIcon),
                 contentDescription = "Stories",
@@ -304,16 +302,12 @@ fun Settings(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = {
-
-                })
                 .clickable(
-                    onClick= {
+                    onClick = {
                         mainViewModel.navController.navigate(InviteFriendsRoute)
-                        mainViewModel.setScreen((getRouteId(mainViewModel.navController.currentDestination)))
-                    } )
+                    }
+                )
                 .padding(internalPadding),
-
         ) {
             Icon(
                 painter = painterResource(id = inviteFriendsIcon),

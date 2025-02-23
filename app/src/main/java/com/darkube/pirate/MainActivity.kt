@@ -93,7 +93,6 @@ fun Screen(context: Context) {
         dataBase = DatabaseProvider.getInstance(context)
     )
     MainViewModel.init(mainViewModel)
-    mainViewModel.setScreen(HomeRoute.javaClass.name)
     mainViewModel.setAllUserDetails()
     AuthenticatedScreen(mainViewModel = mainViewModel)
 }
@@ -138,11 +137,6 @@ fun MainScreen(mainViewModel: MainViewModel) {
 
     fun handleBack() {
         mainViewModel.navController.popBackStack()
-        if (HomeRoute.javaClass.name != mainViewModel.currentScreen) {
-            mainViewModel.navController.currentDestination?.let {
-                mainViewModel.navigate(it)
-            }
-        }
     }
 
     NavHost(

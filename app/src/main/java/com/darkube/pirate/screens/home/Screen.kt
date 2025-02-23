@@ -15,6 +15,8 @@ fun Home(
 ) {
     val homeScreen by mainViewModel.homeScreenState.collectAsState()
 
+    mainViewModel.getCurrentRoute()
+
     when (homeScreen) {
         HomeScreen.CHATS -> Chat(
             mainViewModel = mainViewModel,

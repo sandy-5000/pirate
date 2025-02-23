@@ -39,7 +39,6 @@ import com.darkube.pirate.utils.InviteFriendsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.getProfileImage
-import com.darkube.pirate.utils.getRouteId
 
 @Composable
 fun MainScreenTopBar(
@@ -125,7 +124,6 @@ fun ChatScreenTopBar(
                     modifier = Modifier.padding(start = iconPadding),
                     onClick = {
                         mainViewModel.navController.popBackStack()
-                        mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                     }
                 ) {
                     Icon(
@@ -193,7 +191,6 @@ fun BasicTopBar(
                     modifier = Modifier.padding(start = titlePadding),
                     onClick = {
                         mainViewModel.navController.popBackStack()
-                        mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                     }
                 ) {
                     Icon(
@@ -259,7 +256,6 @@ fun MainScreenTopBarOptions(
             },
             onClick = {
                 mainViewModel.navController.navigate(InviteFriendsRoute)
-                mainViewModel.setScreen((getRouteId(mainViewModel.navController.currentDestination)))
                 expanded = false
             })
         if (HomeScreen.CHATS == homeScreen) {
@@ -284,7 +280,6 @@ fun MainScreenTopBarOptions(
             },
             onClick = {
                 mainViewModel.navController.navigate(ProfileRoute)
-                mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                 expanded = false
             })
         DropdownMenuItem(
@@ -296,7 +291,6 @@ fun MainScreenTopBarOptions(
             },
             onClick = {
                 mainViewModel.navController.navigate(SettingsRoute)
-                mainViewModel.setScreen(getRouteId(mainViewModel.navController.currentDestination))
                 expanded = false
             })
     }

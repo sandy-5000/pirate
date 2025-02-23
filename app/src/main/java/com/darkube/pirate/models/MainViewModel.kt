@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.ChatRow
@@ -17,12 +16,11 @@ import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.RequestType
+import com.darkube.pirate.types.Routes
 import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
-import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.HomeRoute
-import com.darkube.pirate.utils.getRouteId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -50,19 +48,22 @@ class MainViewModel(
             instance = viewModel
         }
 
+        fun isApplicationOn(): Boolean {
+            return instance != null
+        }
+
         fun emit(eventInfo: EventInfo) {
             if (eventInfo.type == EventType.MESSAGE) {
                 if (
-                    instance?.currentScreen == HomeRoute.javaClass.name &&
+                    instance?.getCurrentRoute() == Routes.HOME.value &&
                     instance?.homeScreenState?.value == HomeScreen.CHATS
                 ) {
                     instance?.fetchChatsList()
                 }
-                val currentScreen = (instance?.currentScreen ?: "").split("/")[0]
-                val chatRoute = ChatRoute.Companion::class.java.name.split("$")[0]
-                Log.d("main-o", currentScreen)
-                Log.d("main-o", chatRoute)
-                if (currentScreen == chatRoute) {
+                if (
+                    instance?.getCurrentRoute() == Routes.CHAT.value &&
+                    instance?.currentPirateId == eventInfo.id
+                ) {
                     instance?.updateNewMessageForPirate(
                         pirateId = eventInfo.id,
                         message = eventInfo.message,
@@ -74,22 +75,14 @@ class MainViewModel(
         }
     }
 
-    var currentScreen by mutableStateOf(getRouteId(null))
-        private set
+    fun getCurrentRoute(): String {
+        return (navController.currentBackStackEntry?.destination?.route ?: Routes.HOME.value).split(
+            "/"
+        ).first()
+    }
 
     private val _userState = MutableStateFlow(mapOf("logged_in" to "loading"))
     val userState: StateFlow<Map<String, String>> = _userState.asStateFlow()
-
-    fun navigate(route: NavDestination, flag: Boolean = false) {
-        if (flag) {
-            navController.navigate(route)
-        }
-        currentScreen = getRouteId(route)
-    }
-
-    fun setScreen(routeName: String) {
-        currentScreen = routeName
-    }
 
     fun setAllUserDetails() {
         viewModelScope.launch {
@@ -125,7 +118,6 @@ class MainViewModel(
             navController.popBackStack()
         }
         navController.navigate(HomeRoute)
-        setScreen(getRouteId(navController.currentDestination))
     }
 
     private val _homeScreenState = MutableStateFlow(HomeScreen.CHATS)
@@ -204,6 +196,7 @@ class MainViewModel(
     private var messageOffset by mutableIntStateOf(0)
 
     fun resetChatState() {
+        setChatScreen(FriendType.INVALID)
         _userChatState.value = emptyList()
         messageOffset = 0
     }
