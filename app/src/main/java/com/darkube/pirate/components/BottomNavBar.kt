@@ -90,14 +90,14 @@ fun MainBottomNavBar(
 //                },
 //                active = HomeScreen.CALLS == homeScreen,
 //            )
-            TabIcon(
-                iconDescription = "Stories",
-                icon = iconsMap.getOrDefault("stories", R.drawable.tabs_icon),
-                onClick = {
-                    mainViewModel.setHomeScreen(HomeScreen.STORIES)
-                },
-                active = HomeScreen.STORIES == homeScreen,
-            )
+//            TabIcon(
+//                iconDescription = "Stories",
+//                icon = iconsMap.getOrDefault("stories", R.drawable.tabs_icon),
+//                onClick = {
+//                    mainViewModel.setHomeScreen(HomeScreen.STORIES)
+//                },
+//                active = HomeScreen.STORIES == homeScreen,
+//            )
         }
     }
 }

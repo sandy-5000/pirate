@@ -258,19 +258,19 @@ fun MainScreenTopBarOptions(
                 mainViewModel.navController.navigate(InviteFriendsRoute)
                 expanded = false
             })
-        if (HomeScreen.CHATS == homeScreen) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        "Mark all read",
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                },
-                onClick = {
-                    Toast.makeText(context, "Mark all read", Toast.LENGTH_SHORT).show()
-                    expanded = false
-                })
-        }
+//        if (HomeScreen.CHATS == homeScreen) {
+//            DropdownMenuItem(
+//                text = {
+//                    Text(
+//                        "Mark all read",
+//                        modifier = Modifier.padding(start = 8.dp),
+//                    )
+//                },
+//                onClick = {
+//                    Toast.makeText(context, "Mark all read", Toast.LENGTH_SHORT).show()
+//                    expanded = false
+//                })
+//        }
         DropdownMenuItem(
             text = {
                 Text(
@@ -316,28 +316,28 @@ fun ChatScreenTopBarOptions(
             .width(screenWidth * 0.5f)
             .background(NavBarBackground),
     ) {
-        DropdownMenuItem(
-            text = {
-                Text(
-                    "Chat Settings",
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            },
-            onClick = {
-                Toast.makeText(context, "Chat Settings", Toast.LENGTH_SHORT).show()
-                expanded = false
-            })
-        DropdownMenuItem(
-            text = {
-                Text(
-                    "Search in Chat",
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            },
-            onClick = {
-                Toast.makeText(context, "Search in Chat", Toast.LENGTH_SHORT).show()
-                expanded = false
-            })
+//        DropdownMenuItem(
+//            text = {
+//                Text(
+//                    "Chat Settings",
+//                    modifier = Modifier.padding(start = 8.dp),
+//                )
+//            },
+//            onClick = {
+//                Toast.makeText(context, "Chat Settings", Toast.LENGTH_SHORT).show()
+//                expanded = false
+//            })
+//        DropdownMenuItem(
+//            text = {
+//                Text(
+//                    "Search in Chat",
+//                    modifier = Modifier.padding(start = 8.dp),
+//                )
+//            },
+//            onClick = {
+//                Toast.makeText(context, "Search in Chat", Toast.LENGTH_SHORT).show()
+//                expanded = false
+//            })
         DropdownMenuItem(
             text = {
                 Text(

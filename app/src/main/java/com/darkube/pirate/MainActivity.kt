@@ -64,6 +64,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
+import com.darkube.pirate.ui.theme.PrimaryColor
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -258,7 +259,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
                 sheetContent = {
                     ProfileScreenBottomScaffold(mainViewModel = mainViewModel)
                 },
-                sheetContainerColor = NavBarBackground,
+                sheetContainerColor = PrimaryColor,
                 sheetPeekHeight = 0.dp,
                 sheetDragHandle = {
                     Row(

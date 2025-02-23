@@ -56,7 +56,6 @@ import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.Details
-import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
@@ -64,7 +63,6 @@ import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
-import com.darkube.pirate.utils.getRouteId
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -348,7 +346,7 @@ fun ProfileScreenBottomScaffold(
     val userState by mainViewModel.userState.collectAsState()
     val context = LocalContext.current
     val headers = mainViewModel.getHeaders()
-    val profileImage = userState.getOrDefault("profile_image", "8").toInt()
+    val profileImage = userState.getOrDefault("profile_image", "5").toInt()
 
     val updateProfileImage = { imageIndex: Int ->
         val body: JsonObject = buildJsonObject {
@@ -388,16 +386,16 @@ fun ProfileScreenBottomScaffold(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppBackground)
+            .background(NavBarBackground)
     ) {
         Row(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
-                .padding(top = 20.dp)
+                .padding(top = 60.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {
-            Text("Select you profile picture")
+            Text("Select you profile picture", color = Color.White)
         }
         FlowRow(
             modifier = Modifier
