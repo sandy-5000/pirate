@@ -97,7 +97,7 @@ object NotificationHelper {
         if (MainViewModel.isApplicationOn() && MainViewModel.getCurrentPirateId() == pirateId) {
             return
         }
-        
+
         val channelId = "pirate_channel"
         val notificationId = 100
 

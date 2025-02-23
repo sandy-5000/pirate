@@ -13,6 +13,20 @@ interface FriendsInfoDao {
     @Query("UPDATE friends_info SET first_name = :firstName, last_name = :lastName WHERE pirate_id = :pirateId")
     fun updateNameInfo(pirateId: String, firstName: String, lastName: String)
 
+    @Query(
+        value = """
+            INSERT OR REPLACE INTO friends_info (pirate_id, first_name, last_name, username, image)
+            VALUES (:pirateId, :firstName, :lastName, :username, :image)
+        """
+    )
+    fun updateAllInfo(
+        pirateId: String,
+        firstName: String,
+        lastName: String,
+        username: String,
+        image: String
+    )
+
     @Query("SELECT * FROM friends_info")
     fun getAll(): Flow<List<FriendsInfo>>
 }

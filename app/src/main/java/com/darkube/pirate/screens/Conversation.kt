@@ -102,6 +102,37 @@ fun Conversation(
     }
     mainViewModel.setPirateId(pirateId = pirateId)
 
+    val fetchFriendInfo = {
+        fetch(
+            url = "/api/user/friend/$pirateId",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    return@fetch
+                }
+                val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                    ?: buildJsonObject { emptyMap<String, JsonObject>() }
+                val firstName: String = result["first_name"]?.jsonPrimitive?.contentOrNull ?: ""
+                val lastName: String = result["last_name"]?.jsonPrimitive?.contentOrNull ?: ""
+                val userName: String = result["username"]?.jsonPrimitive?.contentOrNull ?: ""
+                val currentProfileImage: String =
+                    result["profile_image"]?.jsonPrimitive?.contentOrNull ?: ""
+                mainViewModel.viewModelScope.launch {
+                    mainViewModel.updateProfileInfo(
+                        pirateId = pirateId,
+                        firstName = firstName,
+                        lastName = lastName,
+                        username = userName,
+                        profileImage = currentProfileImage
+                    )
+                }
+            },
+            headers = headers,
+            type = RequestType.GET,
+        )
+    }
+
     LaunchedEffect(Unit) {
         mainViewModel.resetChatState()
         if (pirateId == userId) {
@@ -109,6 +140,7 @@ fun Conversation(
             mainViewModel.setChatScreen(FriendType.SELF)
         } else {
             fetchFriendType()
+            fetchFriendInfo()
         }
     }
 

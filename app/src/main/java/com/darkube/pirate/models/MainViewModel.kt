@@ -192,6 +192,25 @@ class MainViewModel(
         }
     }
 
+    fun updateProfileInfo(
+        pirateId: String,
+        firstName: String,
+        lastName: String,
+        username: String,
+        profileImage: String
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataBase.friendsInfoDao.updateAllInfo(
+                pirateId = pirateId,
+                firstName = firstName,
+                lastName = lastName,
+                username = username,
+                image = profileImage,
+            )
+            fetchChatsList()
+        }
+    }
+
     private var currentPirateId by mutableStateOf("")
 
     fun setPirateId(pirateId: String) {
