@@ -52,10 +52,11 @@ class PushNotificationService : FirebaseMessagingService() {
                 )
             }
             NotificationHelper.showNotification(
-                this,
+                context =this,
+                pirateId = senderId,
                 username = username,
                 message = receivedMessage,
-                type = typeEnum
+                type = typeEnum,
             )
         }
     }
@@ -88,10 +89,15 @@ class PushNotificationService : FirebaseMessagingService() {
 object NotificationHelper {
     fun showNotification(
         context: Context,
+        pirateId: String,
         username: String,
         message: String,
         type: NotificationType
     ) {
+        if (MainViewModel.isApplicationOn() && MainViewModel.getCurrentPirateId() == pirateId) {
+            return
+        }
+        
         val channelId = "pirate_channel"
         val notificationId = 100
 

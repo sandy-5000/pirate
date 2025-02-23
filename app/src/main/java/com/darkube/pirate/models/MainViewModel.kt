@@ -52,6 +52,13 @@ class MainViewModel(
             return instance != null
         }
 
+        fun getCurrentPirateId(): String {
+            if (instance == null || instance?.getCurrentRoute() != Routes.CHAT.value) {
+                return ""
+            }
+            return instance?.currentPirateId ?: ""
+        }
+
         fun emit(eventInfo: EventInfo) {
             if (eventInfo.type == EventType.MESSAGE) {
                 if (
