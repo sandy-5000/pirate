@@ -14,6 +14,7 @@ import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.MessageType
+import com.darkube.pirate.types.RequestScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.types.Routes
 import com.darkube.pirate.types.room.UserChat
@@ -131,6 +132,13 @@ class MainViewModel(
 
     fun setHomeScreen(screen: HomeScreen) {
         _homeScreenState.value = screen
+    }
+
+    private val _requestScreenFilter = MutableStateFlow(RequestScreen.MESSAGE_REQUESTS)
+    val requestScreenFilter: StateFlow<RequestScreen> = _requestScreenFilter.asStateFlow()
+
+    fun setRequestScreenFilter(filter: RequestScreen) {
+        _requestScreenFilter.value = filter
     }
 
     private val _chatScreenState = MutableStateFlow(FriendType.INVALID)

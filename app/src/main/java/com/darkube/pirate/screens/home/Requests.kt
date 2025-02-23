@@ -26,6 +26,7 @@ import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,7 @@ import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.Details
 import com.darkube.pirate.types.FriendType
+import com.darkube.pirate.types.RequestScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightRedColor
@@ -64,10 +66,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
-enum class RequestScreen {
-    MESSAGE_REQUESTS, PENDING_REQUESTS, FRIENDS
-}
-
 @Composable
 fun Requests(
     modifier: Modifier = Modifier,
@@ -84,7 +82,7 @@ fun Requests(
     val horizontalScrollState = rememberScrollState()
     val horizontalPadding = 24.dp
 
-    var selectedFilter by remember { mutableStateOf(RequestScreen.MESSAGE_REQUESTS) }
+    val selectedFilter by mainViewModel.requestScreenFilter.collectAsState()
 
     var requests by remember { mutableStateOf(arrayOf<Details>()) }
     var pendings by remember { mutableStateOf(arrayOf<Details>()) }
@@ -214,7 +212,7 @@ fun Requests(
                 modifier = Modifier.padding(end = 12.dp),
                 selected = RequestScreen.MESSAGE_REQUESTS == selectedFilter,
                 onClick = {
-                    selectedFilter = RequestScreen.MESSAGE_REQUESTS
+                    mainViewModel.setRequestScreenFilter(RequestScreen.MESSAGE_REQUESTS)
                 },
                 label = { Text("Requests") },
                 colors = InputChipDefaults.inputChipColors(
@@ -225,7 +223,7 @@ fun Requests(
                 modifier = Modifier.padding(end = 12.dp),
                 selected = RequestScreen.PENDING_REQUESTS == selectedFilter,
                 onClick = {
-                    selectedFilter = RequestScreen.PENDING_REQUESTS
+                    mainViewModel.setRequestScreenFilter(RequestScreen.PENDING_REQUESTS)
                 },
                 label = { Text("Pending Requests") },
                 colors = InputChipDefaults.inputChipColors(
@@ -236,7 +234,7 @@ fun Requests(
                 modifier = Modifier.padding(end = 12.dp),
                 selected = RequestScreen.FRIENDS == selectedFilter,
                 onClick = {
-                    selectedFilter = RequestScreen.FRIENDS
+                    mainViewModel.setRequestScreenFilter(RequestScreen.FRIENDS)
                 },
                 label = { Text("Friends") },
                 colors = InputChipDefaults.inputChipColors(
