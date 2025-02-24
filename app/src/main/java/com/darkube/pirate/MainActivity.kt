@@ -1,5 +1,6 @@
 package com.darkube.pirate
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -63,6 +64,7 @@ import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
+import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
@@ -96,11 +98,11 @@ fun Screen(context: Context) {
     )
     MainViewModel.init(mainViewModel)
     mainViewModel.setAllUserDetails()
-    AuthenticatedScreen(mainViewModel = mainViewModel)
+    AuthenticatedScreen(mainViewModel = mainViewModel, context = context)
 }
 
 @Composable
-fun AuthenticatedScreen(mainViewModel: MainViewModel) {
+fun AuthenticatedScreen(mainViewModel: MainViewModel, context: Context) {
     val userState by mainViewModel.userState.collectAsState()
 
     Scaffold(
@@ -113,7 +115,7 @@ fun AuthenticatedScreen(mainViewModel: MainViewModel) {
                 message = "    Loading ...",
             )
         } else if (userState.getOrDefault("logged_in", "false") == "true") {
-            MainScreen(mainViewModel = mainViewModel)
+            MainScreen(mainViewModel = mainViewModel, context = context)
         } else {
             Authentication(
                 mainViewModel = mainViewModel,
@@ -125,7 +127,7 @@ fun AuthenticatedScreen(mainViewModel: MainViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(mainViewModel: MainViewModel) {
+fun MainScreen(mainViewModel: MainViewModel, context: Context) {
     LaunchedEffect(Unit) {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
@@ -177,16 +179,21 @@ fun MainScreen(mainViewModel: MainViewModel) {
                     sheetState.bottomSheetState.expand()
                 }
             }
+            val homeScreenState by mainViewModel.homeScreenState.collectAsState()
 
             BackHandler {
                 if (sheetState.bottomSheetState.currentValue != SheetValue.Expanded) {
-                    mainViewModel.navController.popBackStack()
+                    if (homeScreenState != HomeScreen.CHATS) {
+                        mainViewModel.setHomeScreen(HomeScreen.CHATS)
+                    } else {
+                        (context as Activity).moveTaskToBack(true)
+                    }
                 }
             }
 
             BottomSheetScaffold(
                 scaffoldState = sheetState,
-                sheetShape = RectangleShape,
+                sheetShape = RoundedCornerShape(12.dp),
                 sheetContent = {
                     MainScreenBottomScaffold(mainViewModel = mainViewModel)
                 },

@@ -101,6 +101,25 @@ class MainViewModel(
         }
     }
 
+    fun getHeaders(): Map<String, String> {
+        val headers = mutableMapOf<String, String>()
+        headers["token"] = userState.value.getOrDefault("token", "")
+        return headers
+    }
+
+    fun updatePushToken(token: String) {
+        val body: JsonObject = buildJsonObject {
+            put("token", token)
+        }
+        fetch(
+            url = "/api/pushtoken/update",
+            callback = {},
+            type = RequestType.PUT,
+            body = body,
+            headers = getHeaders(),
+        )
+    }
+
     suspend fun login(userDetails: JsonObject, token: String) {
         val keys = listOf("_id", "first_name", "last_name", "username", "email", "bio")
         keys.forEach { key ->
@@ -125,67 +144,6 @@ class MainViewModel(
             navController.popBackStack()
         }
         navController.navigate(HomeRoute)
-    }
-
-    private val _homeScreenState = MutableStateFlow(HomeScreen.CHATS)
-    val homeScreenState: StateFlow<HomeScreen> = _homeScreenState.asStateFlow()
-
-    fun setHomeScreen(screen: HomeScreen) {
-        _homeScreenState.value = screen
-    }
-
-    private val _requestScreenFilter = MutableStateFlow(RequestScreen.MESSAGE_REQUESTS)
-    val requestScreenFilter: StateFlow<RequestScreen> = _requestScreenFilter.asStateFlow()
-
-    fun setRequestScreenFilter(filter: RequestScreen) {
-        _requestScreenFilter.value = filter
-    }
-
-    private val _chatScreenState = MutableStateFlow(FriendType.INVALID)
-    val chatScreenState: StateFlow<FriendType> = _chatScreenState.asStateFlow()
-
-    fun setChatScreen(screen: FriendType) {
-        _chatScreenState.value = screen
-    }
-
-    fun getHeaders(): Map<String, String> {
-        val headers = mutableMapOf<String, String>()
-        headers["token"] = userState.value.getOrDefault("token", "")
-        return headers
-    }
-
-    fun updatePushToken(token: String) {
-        val body: JsonObject = buildJsonObject {
-            put("token", token)
-        }
-        fetch(
-            url = "/api/pushtoken/update",
-            callback = {},
-            type = RequestType.PUT,
-            body = body,
-            headers = getHeaders(),
-        )
-    }
-
-    private val _chatsListState = MutableStateFlow(emptyList<ChatRow>())
-    val chatsListState: StateFlow<List<ChatRow>> = _chatsListState.asStateFlow()
-
-    fun fetchChatsList() {
-        viewModelScope.launch {
-            val chatsList = dataBase.lastMessageDao.getAllMessages().first()
-            val friendsList = dataBase.friendsInfoDao.getAll().first()
-            val imageMap = friendsList.associateBy({ it.pirateId }, { it.image })
-            val charRows = chatsList.map { chat ->
-                ChatRow(
-                    pirateId = chat.pirateId,
-                    username = chat.username,
-                    message = chat.message,
-                    receiveTime = chat.receiveTime,
-                    image = imageMap.getOrDefault(chat.pirateId, "12")
-                )
-            }
-            _chatsListState.value = charRows
-        }
     }
 
     fun updateProfileImage(pirateId: String, username: String, profileImage: String) {
@@ -218,8 +176,55 @@ class MainViewModel(
         }
     }
 
-    private var currentPirateId by mutableStateOf("")
+    // HomeScreen - States
+    // == CHAT - States
+    private val _homeScreenState = MutableStateFlow(HomeScreen.CHATS)
+    val homeScreenState: StateFlow<HomeScreen> = _homeScreenState.asStateFlow()
 
+    fun setHomeScreen(screen: HomeScreen) {
+        _homeScreenState.value = screen
+    }
+
+    private val _chatsListState = MutableStateFlow(emptyList<ChatRow>())
+    val chatsListState: StateFlow<List<ChatRow>> = _chatsListState.asStateFlow()
+
+    fun fetchChatsList() {
+        viewModelScope.launch {
+            val chatsList = dataBase.lastMessageDao.getAllMessages().first()
+            val friendsList = dataBase.friendsInfoDao.getAll().first()
+            val imageMap = friendsList.associateBy({ it.pirateId }, { it.image })
+            val charRows = chatsList.map { chat ->
+                ChatRow(
+                    pirateId = chat.pirateId,
+                    username = chat.username,
+                    message = chat.message,
+                    receiveTime = chat.receiveTime,
+                    image = imageMap.getOrDefault(chat.pirateId, "12")
+                )
+            }
+            _chatsListState.value = charRows
+        }
+    }
+
+    // == REQUESTS - States
+    private val _requestScreenFilter = MutableStateFlow(RequestScreen.REQUESTS)
+    val requestScreenFilter: StateFlow<RequestScreen> = _requestScreenFilter.asStateFlow()
+
+    fun setRequestScreenFilter(filter: RequestScreen) {
+        _requestScreenFilter.value = filter
+    }
+    // ________ HomeScreen
+
+
+    // ChatScreen - States
+    private val _chatScreenState = MutableStateFlow(FriendType.INVALID)
+    val chatScreenState: StateFlow<FriendType> = _chatScreenState.asStateFlow()
+
+    fun setChatScreen(screen: FriendType) {
+        _chatScreenState.value = screen
+    }
+
+    private var currentPirateId by mutableStateOf("")
     fun setPirateId(pirateId: String) {
         currentPirateId = pirateId
     }
@@ -279,4 +284,5 @@ class MainViewModel(
             messageOffset += limit
         }
     }
+    // ________ ChatScreen
 }

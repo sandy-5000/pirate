@@ -84,7 +84,7 @@ fun MainScreenBottomScaffold(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.8f)
+            .fillMaxHeight(0.75f)
             .background(AppBackground),
     ) {
         if (HomeScreen.CHATS == homeScreen || HomeScreen.REQUESTS == homeScreen) {
