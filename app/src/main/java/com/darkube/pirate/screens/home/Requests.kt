@@ -1,9 +1,13 @@
 package com.darkube.pirate.screens.home
 
 import android.util.Log
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,13 +36,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +58,6 @@ import com.darkube.pirate.components.DataLoading
 import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
-import com.darkube.pirate.types.Details
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.RequestScreen
 import com.darkube.pirate.types.RequestType
@@ -62,15 +68,9 @@ import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
-import kotlinx.serialization.json.JsonArray
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 @Composable
@@ -81,264 +81,218 @@ fun Requests(
     val requestsScrollState = rememberScrollState()
     val friendsScrollState = rememberScrollState()
 
-    var loadingMessageRequest by remember { mutableStateOf(true) }
-    var loadingPendingRequest by remember { mutableStateOf(true) }
-    var loadingFriends by remember { mutableStateOf(true) }
-
     val horizontalPadding = 24.dp
     val minTabHeight = 220.dp
 
     val selectedFilter by mainViewModel.requestScreenFilter.collectAsState()
 
-    var requests by remember { mutableStateOf(arrayOf<Details>()) }
-    var pendings by remember { mutableStateOf(arrayOf<Details>()) }
-    var friends by remember { mutableStateOf(arrayOf<Details>()) }
+    val loadingMessageRequest by mainViewModel.requestScreenLoadingRequests.collectAsState()
+    val loadingPendingRequest by mainViewModel.requestScreenLoadingPendings.collectAsState()
+    val loadingFriends by mainViewModel.requestScreenLoadingFriends.collectAsState()
+    val requests by mainViewModel.requestScreenDateRequests.collectAsState()
+    val pendings by mainViewModel.requestScreenDatePendings.collectAsState()
+    val friends by mainViewModel.requestScreenDateFriends.collectAsState()
 
-    val headers = mainViewModel.getHeaders()
-
-    val fetchMessageRequests = {
-        loadingMessageRequest = true
-        fetch(
-            url = "/api/user/message-requests",
-            callback = { response: JsonElement ->
-                val error =
-                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
-                if (error.isNotEmpty()) {
-                    loadingMessageRequest = false
-                    return@fetch
-                }
-                val result: JsonArray = response.jsonObject["result"]?.jsonArray
-                    ?: buildJsonArray { emptyArray<String>() }
-                requests = result.map { details ->
-                    val detailObject = details.jsonObject["sender_id"]?.jsonObject
-                        ?: buildJsonObject { emptyMap<String, String>() }
-                    Details(
-                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
-                            ?: "N/A",
-                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
-                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
-                            ?: "2").toInt()
-                    )
-                }.toTypedArray()
-                loadingMessageRequest = false
-            },
-            headers = headers,
-            type = RequestType.GET,
-        )
-    }
-
-    val fetchPendingRequests = {
-        loadingPendingRequest = true
-        fetch(
-            url = "/api/user/pending-requests",
-            callback = { response: JsonElement ->
-                val error =
-                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
-                if (error.isNotEmpty()) {
-                    loadingPendingRequest = false
-                    return@fetch
-                }
-                val result: JsonArray = response.jsonObject["result"]?.jsonArray
-                    ?: buildJsonArray { emptyArray<JsonObject>() }
-                pendings = result.map { details ->
-                    val detailObject = details.jsonObject["receiver_id"]?.jsonObject
-                        ?: buildJsonObject { emptyMap<String, String>() }
-                    Details(
-                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
-                            ?: "N/A",
-                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
-                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
-                            ?: "10").toInt()
-                    )
-                }.toTypedArray()
-                loadingPendingRequest = false
-            },
-            headers = headers,
-            type = RequestType.GET,
-        )
-    }
-
-    val fetchFriends = {
-        loadingFriends = true
-        fetch(
-            url = "/api/user/friends",
-            callback = { response: JsonElement ->
-                val error =
-                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
-                if (error.isNotEmpty()) {
-                    loadingFriends = false
-                    return@fetch
-                }
-                val result: JsonObject = response.jsonObject["result"]?.jsonObject
-                    ?: buildJsonObject { emptyMap<String, JsonObject>() }
-                val friendsList: JsonArray = result["friends"]?.jsonArray
-                    ?: buildJsonArray { emptyArray<JsonObject>() }
-                friends = friendsList.map { details ->
-                    val detailObject = details.jsonObject
-                    Details(
-                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
-                            ?: "N/A",
-                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
-                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
-                            ?: "3").toInt()
-                    )
-                }.toTypedArray()
-                loadingFriends = false
-            },
-            headers = headers,
-            type = RequestType.GET,
-        )
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
+    var shouldRefresh by remember { mutableStateOf(false) }
+    val animatedOffset by animateFloatAsState(
+        targetValue = if (isDragging) dragOffset.coerceAtMost(300f) else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing), label = ""
+    )
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            if (selectedFilter == RequestScreen.REQUESTS) {
+                mainViewModel.fetchMessageRequests()
+                mainViewModel.fetchPendingRequests()
+            } else if (selectedFilter == RequestScreen.FRIENDS) {
+                mainViewModel.fetchFriends()
+            }
+            delay(2000)
+            shouldRefresh = false
+        }
     }
 
     LaunchedEffect(Unit) {
-        fetchMessageRequests()
-        fetchPendingRequests()
-        fetchFriends()
+        mainViewModel.requestScreenLoaded()
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxHeight(),
-        verticalArrangement = Arrangement.Center,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { _, dragAmount ->
+                        dragOffset += dragAmount * 0.4f
+                        isDragging = true
+                    },
+                    onDragEnd = {
+                        isDragging = false
+                        if (dragOffset > 250) {
+                            shouldRefresh = true
+                        }
+                        dragOffset = 0f
+                    }
+                )
+            },
     ) {
-        Row(
-            modifier = Modifier
-                .padding(start = horizontalPadding, end = horizontalPadding)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
+        Column(
+            modifier = modifier
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
         ) {
-            InputChip(
-                selected = RequestScreen.REQUESTS == selectedFilter,
-                onClick = {
-                    mainViewModel.setRequestScreenFilter(RequestScreen.REQUESTS)
-                },
-                label = { Text("Requests") },
-                colors = InputChipDefaults.inputChipColors(
-                    selectedContainerColor = PrimaryColor,
+            Row(
+                modifier = Modifier
+                    .padding(start = horizontalPadding, end = horizontalPadding)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                InputChip(
+                    selected = RequestScreen.REQUESTS == selectedFilter,
+                    onClick = {
+                        mainViewModel.setRequestScreenFilter(RequestScreen.REQUESTS)
+                    },
+                    label = { Text("Requests") },
+                    colors = InputChipDefaults.inputChipColors(
+                        selectedContainerColor = PrimaryColor,
+                    )
                 )
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            InputChip(
-                selected = RequestScreen.FRIENDS == selectedFilter,
-                onClick = {
-                    mainViewModel.setRequestScreenFilter(RequestScreen.FRIENDS)
-                },
-                label = { Text("Friends") },
-                colors = InputChipDefaults.inputChipColors(
-                    selectedContainerColor = PrimaryColor,
+                Spacer(modifier = Modifier.width(12.dp))
+                InputChip(
+                    selected = RequestScreen.FRIENDS == selectedFilter,
+                    onClick = {
+                        mainViewModel.setRequestScreenFilter(RequestScreen.FRIENDS)
+                    },
+                    label = { Text("Friends") },
+                    colors = InputChipDefaults.inputChipColors(
+                        selectedContainerColor = PrimaryColor,
+                    )
                 )
-            )
-        }
-        DividerLine(horizontalPadding = 100.dp)
-        when (selectedFilter) {
-            RequestScreen.REQUESTS -> {
-                Column(
+            }
+            DividerLine(horizontalPadding = 100.dp)
+            when (selectedFilter) {
+                RequestScreen.REQUESTS -> {
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(requestsScrollState)
+                            .weight(1f),
+                    ) {
+                        Text(
+                            text = "Message Requests",
+                            modifier = Modifier
+                                .padding(horizontal = horizontalPadding),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        if (loadingMessageRequest) {
+                            DataLoading(
+                                durationMillis = 1200, modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(minTabHeight)
+                            )
+                        } else if (requests.isEmpty()) {
+                            EmptyList(
+                                "No Message Requests",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(minTabHeight)
+                            )
+                        } else {
+                            requests.forEach { messageRequest ->
+                                MessageRequest(
+                                    displayName = messageRequest.firstName + " " + messageRequest.lastName,
+                                    username = messageRequest.username,
+                                    userId = messageRequest.id,
+                                    profileImage = messageRequest.profileImage,
+                                    mainViewModel = mainViewModel,
+                                    reload = {
+                                        mainViewModel.fetchMessageRequests()
+                                        mainViewModel.fetchFriends()
+                                    },
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(60.dp))
+                        }
+                        Text(
+                            text = "Pending Requests",
+                            modifier = Modifier
+                                .padding(horizontal = horizontalPadding),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        if (loadingPendingRequest) {
+                            DataLoading(
+                                durationMillis = 1200, modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(minTabHeight)
+                            )
+                        } else if (pendings.isEmpty()) {
+                            EmptyList(
+                                "No Pending Requests",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(minTabHeight)
+                            )
+                        } else {
+                            pendings.forEach { pendingRequest ->
+                                PendingRequest(
+                                    displayName = pendingRequest.firstName + " " + pendingRequest.lastName,
+                                    username = pendingRequest.username,
+                                    userId = pendingRequest.id,
+                                    profileImage = pendingRequest.profileImage,
+                                    mainViewModel = mainViewModel,
+                                    reload = {
+                                        mainViewModel.fetchPendingRequests()
+                                        mainViewModel.fetchFriends()
+                                    },
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(60.dp))
+                        }
+                    }
+                }
+
+                RequestScreen.FRIENDS -> Column(
                     modifier = Modifier
-                        .verticalScroll(requestsScrollState)
+                        .verticalScroll(friendsScrollState)
                         .weight(1f),
                 ) {
-                    Text(
-                        text = "Message Requests",
-                        modifier = Modifier
-                            .padding(horizontal = horizontalPadding),
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    if (loadingMessageRequest) {
-                        DataLoading(
-                            durationMillis = 1200, modifier = Modifier
-                                .fillMaxWidth()
-                                .height(minTabHeight)
-                        )
-                    } else if (requests.isEmpty()) {
-                        EmptyList(
-                            "No Message Requests",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(minTabHeight)
-                        )
+                    if (loadingFriends) {
+                        DataLoading(durationMillis = 1200, modifier = modifier.weight(1f))
+                    } else if (friends.isEmpty()) {
+                        EmptyList("You Have No Friends", modifier = Modifier.weight(1f))
                     } else {
-                        requests.forEach { messageRequest ->
-                            MessageRequest(
-                                displayName = messageRequest.firstName + " " + messageRequest.lastName,
-                                username = messageRequest.username,
-                                userId = messageRequest.id,
-                                profileImage = messageRequest.profileImage,
+                        friends.forEach { friend ->
+                            Friend(
+                                displayName = friend.firstName + " " + friend.lastName,
+                                username = friend.username,
+                                userId = friend.id,
+                                profileImage = friend.profileImage,
                                 mainViewModel = mainViewModel,
-                                reload = {
-                                    fetchMessageRequests()
-                                    fetchFriends()
-                                },
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(60.dp))
-                    }
-                    Text(
-                        text = "Pending Requests",
-                        modifier = Modifier
-                            .padding(horizontal = horizontalPadding),
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    if (loadingPendingRequest) {
-                        DataLoading(
-                            durationMillis = 1200, modifier = Modifier
-                                .fillMaxWidth()
-                                .height(minTabHeight)
-                        )
-                    } else if (pendings.isEmpty()) {
-                        EmptyList(
-                            "No Pending Requests",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(minTabHeight)
-                        )
-                    } else {
-                        pendings.forEach { pendingRequest ->
-                            PendingRequest(
-                                displayName = pendingRequest.firstName + " " + pendingRequest.lastName,
-                                username = pendingRequest.username,
-                                userId = pendingRequest.id,
-                                profileImage = pendingRequest.profileImage,
-                                mainViewModel = mainViewModel,
-                                reload = {
-                                    fetchPendingRequests()
-                                    fetchFriends()
-                                },
                             )
                         }
                         Spacer(modifier = Modifier.height(60.dp))
                     }
                 }
             }
-
-            RequestScreen.FRIENDS -> Column(
+            DividerLine(horizontalPadding = 100.dp)
+        }
+        if (animatedOffset > 0) {
+            Box(
                 modifier = Modifier
-                    .verticalScroll(friendsScrollState)
-                    .weight(1f),
+                    .padding(top = 40.dp + animatedOffset.dp)
+                    .align(Alignment.TopCenter)
+                    .clip(shape = CircleShape)
+                    .background(PrimaryColor)
+                    .padding(4.dp),
             ) {
-                if (loadingFriends) {
-                    DataLoading(durationMillis = 1200, modifier = modifier.weight(1f))
-                } else if (friends.isEmpty()) {
-                    EmptyList("You Have No Friends", modifier = Modifier.weight(1f))
-                }
-                friends.forEach { friend ->
-                    Friend(
-                        displayName = friend.firstName + " " + friend.lastName,
-                        username = friend.username,
-                        userId = friend.id,
-                        profileImage = friend.profileImage,
-                        mainViewModel = mainViewModel,
-                    )
-                }
-                Spacer(modifier = Modifier.height(60.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.spinner_icon),
+                    modifier = Modifier
+                        .rotate(degrees = animatedOffset * 4f)
+                        .size(28.dp),
+                    contentDescription = "loading",
+                )
             }
         }
-        DividerLine(horizontalPadding = 100.dp)
     }
 }
 

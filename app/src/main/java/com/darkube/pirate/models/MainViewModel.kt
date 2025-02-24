@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.ChatRow
+import com.darkube.pirate.types.Details
 import com.darkube.pirate.types.EventInfo
 import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.FriendType
@@ -29,9 +30,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -77,6 +82,14 @@ class MainViewModel(
                         type = MessageType.TEXT.value,
                         side = 1
                     )
+                }
+            } else if (eventInfo.type == EventType.REQUEST_ACCEPTED || eventInfo.type == EventType.REQUEST_REJECTED) {
+                if (instance?.getCurrentRoute() == Routes.HOME.value && instance?.homeScreenState?.value == HomeScreen.REQUESTS) {
+                    instance?.fetchMessageRequests()
+                    instance?.fetchPendingRequests()
+                    instance?.fetchFriends()
+                } else {
+                    instance?.requestDetailsFetched = false
                 }
             }
         }
@@ -146,17 +159,6 @@ class MainViewModel(
         navController.navigate(HomeRoute)
     }
 
-    fun updateProfileImage(pirateId: String, username: String, profileImage: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dataBase.friendsInfoDao.updateMainInfo(
-                pirateId = pirateId,
-                username = username,
-                image = profileImage,
-            )
-            fetchChatsList()
-        }
-    }
-
     fun updateProfileInfo(
         pirateId: String,
         firstName: String,
@@ -212,6 +214,135 @@ class MainViewModel(
 
     fun setRequestScreenFilter(filter: RequestScreen) {
         _requestScreenFilter.value = filter
+    }
+
+    private var requestDetailsFetched = false
+    fun requestScreenLoaded() {
+        if (requestDetailsFetched) {
+            return
+        }
+        fetchMessageRequests()
+        fetchPendingRequests()
+        fetchFriends()
+        requestDetailsFetched = true
+    }
+
+    private val _requestScreenLoadingRequests = MutableStateFlow(true)
+    val requestScreenLoadingRequests: StateFlow<Boolean> =
+        _requestScreenLoadingRequests.asStateFlow()
+    private val _requestScreenLoadingPendings = MutableStateFlow(true)
+    val requestScreenLoadingPendings: StateFlow<Boolean> =
+        _requestScreenLoadingPendings.asStateFlow()
+    private val _requestScreenLoadingFriends = MutableStateFlow(true)
+    val requestScreenLoadingFriends: StateFlow<Boolean> = _requestScreenLoadingFriends.asStateFlow()
+
+    private val _requestScreenDateRequests = MutableStateFlow(emptyList<Details>())
+    val requestScreenDateRequests: StateFlow<List<Details>> =
+        _requestScreenDateRequests.asStateFlow()
+    private val _requestScreenDatePendings = MutableStateFlow(emptyList<Details>())
+    val requestScreenDatePendings: StateFlow<List<Details>> =
+        _requestScreenDatePendings.asStateFlow()
+    private val _requestScreenDateFriends = MutableStateFlow(emptyList<Details>())
+    val requestScreenDateFriends: StateFlow<List<Details>> = _requestScreenDateFriends.asStateFlow()
+
+    fun fetchMessageRequests() {
+        _requestScreenLoadingRequests.value = true
+        fetch(
+            url = "/api/user/message-requests",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    _requestScreenLoadingRequests.value = false
+                    return@fetch
+                }
+                val result: JsonArray = response.jsonObject["result"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<String>() }
+                _requestScreenDateRequests.value = result.map { details ->
+                    val detailObject = details.jsonObject["sender_id"]?.jsonObject
+                        ?: buildJsonObject { emptyMap<String, String>() }
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "2").toInt()
+                    )
+                }
+                _requestScreenLoadingRequests.value = false
+            },
+            headers = getHeaders(),
+            type = RequestType.GET,
+        )
+    }
+
+    fun fetchPendingRequests() {
+        _requestScreenLoadingPendings.value = true
+        fetch(
+            url = "/api/user/pending-requests",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    _requestScreenLoadingPendings.value = false
+                    return@fetch
+                }
+                val result: JsonArray = response.jsonObject["result"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<JsonObject>() }
+                _requestScreenDatePendings.value = result.map { details ->
+                    val detailObject = details.jsonObject["receiver_id"]?.jsonObject
+                        ?: buildJsonObject { emptyMap<String, String>() }
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "10").toInt()
+                    )
+                }
+                _requestScreenLoadingPendings.value = false
+            },
+            headers = getHeaders(),
+            type = RequestType.GET,
+        )
+    }
+
+    fun fetchFriends() {
+        _requestScreenLoadingFriends.value = true
+        fetch(
+            url = "/api/user/friends",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    _requestScreenLoadingFriends.value = false
+                    return@fetch
+                }
+                val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                    ?: buildJsonObject { emptyMap<String, JsonObject>() }
+                val friendsList: JsonArray = result["friends"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<JsonObject>() }
+                _requestScreenDateFriends.value = friendsList.map { details ->
+                    val detailObject = details.jsonObject
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "3").toInt()
+                    )
+                }
+                _requestScreenLoadingFriends.value = false
+            },
+            headers = getHeaders(),
+            type = RequestType.GET,
+        )
     }
     // ________ HomeScreen
 

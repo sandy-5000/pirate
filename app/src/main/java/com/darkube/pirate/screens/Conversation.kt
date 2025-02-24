@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -74,6 +75,9 @@ fun Conversation(
     var screenLoading by remember { mutableStateOf(true) }
     val userState by mainViewModel.userState.collectAsState()
     val userId = userState.getOrDefault("_id", "")
+
+    var updatedUsername by remember { mutableStateOf(username) }
+    var updatedProfileImage by remember { mutableIntStateOf(profileImage) }
 
     mainViewModel.getCurrentRoute()
 
@@ -126,6 +130,8 @@ fun Conversation(
                         username = userName,
                         profileImage = currentProfileImage
                     )
+                    updatedUsername = userName
+                    updatedProfileImage = currentProfileImage.toInt()
                 }
             },
             headers = headers,
@@ -144,23 +150,6 @@ fun Conversation(
         }
     }
 
-    LaunchedEffect(chatScreen) {
-        if (
-            FriendType.SELF == chatScreen ||
-            FriendType.FRIENDS == chatScreen ||
-            FriendType.SENDER_BLOCKED == chatScreen ||
-            FriendType.RECEIVER_BLOCKED == chatScreen
-        ) {
-            mainViewModel.viewModelScope.launch {
-                mainViewModel.updateProfileImage(
-                    pirateId = pirateId,
-                    username = username,
-                    profileImage = profileImage.toString()
-                )
-            }
-        }
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize(),
@@ -172,8 +161,8 @@ fun Conversation(
         } else {
             Friends(
                 pirateId = pirateId,
-                username = username,
-                profileImage = profileImage,
+                username = updatedUsername,
+                profileImage = updatedProfileImage,
                 chatScreen = chatScreen,
                 mainViewModel = mainViewModel,
                 reload = { fetchFriendType() },
