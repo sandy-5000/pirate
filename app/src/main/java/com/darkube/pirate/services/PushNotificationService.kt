@@ -52,7 +52,7 @@ class PushNotificationService : FirebaseMessagingService() {
                 )
             }
             NotificationHelper.showNotification(
-                context =this,
+                context = this,
                 pirateId = senderId,
                 username = username,
                 message = receivedMessage,
@@ -94,8 +94,12 @@ object NotificationHelper {
         message: String,
         type: NotificationType
     ) {
-        if (MainViewModel.isApplicationOn() && MainViewModel.getCurrentPirateId() == pirateId) {
+        if (MainViewModel.isApplicationOn() && MainViewModel.getCurrentPirateId() == pirateId && type == NotificationType.MESSAGE) {
             return
+        }
+
+        if (type == NotificationType.MESSAGE_REQUEST) {
+            MainViewModel.reloadRequestsData()
         }
 
         val channelId = "pirate_channel"

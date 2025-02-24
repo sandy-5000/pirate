@@ -83,14 +83,16 @@ class MainViewModel(
                         side = 1
                     )
                 }
-            } else if (eventInfo.type == EventType.REQUEST_ACCEPTED || eventInfo.type == EventType.REQUEST_REJECTED) {
-                if (instance?.getCurrentRoute() == Routes.HOME.value && instance?.homeScreenState?.value == HomeScreen.REQUESTS) {
-                    instance?.fetchMessageRequests()
-                    instance?.fetchPendingRequests()
-                    instance?.fetchFriends()
-                } else {
-                    instance?.requestDetailsFetched = false
-                }
+            }
+        }
+
+        fun reloadRequestsData() {
+            if (instance?.getCurrentRoute() == Routes.HOME.value && instance?.homeScreenState?.value == HomeScreen.REQUESTS) {
+                instance?.fetchMessageRequests()
+                instance?.fetchPendingRequests()
+                instance?.fetchFriends()
+            } else {
+                instance?.requestDetailsFetched = false
             }
         }
     }
