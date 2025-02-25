@@ -59,6 +59,7 @@ import com.darkube.pirate.types.Details
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.ui.theme.AppBackground
+import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
@@ -386,16 +387,16 @@ fun ProfileScreenBottomScaffold(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(NavBarBackground)
+            .background(AppBackground)
     ) {
         Row(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
-                .padding(top = 60.dp)
+                .padding(top = 64.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {
-            Text("Select you profile picture", color = Color.White)
+            Text("Select your profile picture", color = LightColor, fontSize = 14.sp)
         }
         FlowRow(
             modifier = Modifier
@@ -431,6 +432,6 @@ fun ProfileScreenBottomScaffold(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(64.dp))
     }
 }

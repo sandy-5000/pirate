@@ -52,6 +52,7 @@ import com.darkube.pirate.ui.theme.LightRedColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryBlue
 import com.darkube.pirate.ui.theme.RedColor
+import com.darkube.pirate.utils.getMinutesDifference
 import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
@@ -222,8 +223,17 @@ fun Friends(
         }
         items(messages.size) { index ->
             val start =
-                index == messages.lastIndex || messages[index + 1].side != messages[index].side
-            val end = index == 0 || messages[index - 1].side != messages[index].side
+                index == messages.lastIndex || messages[index + 1].side != messages[index].side ||
+                        getMinutesDifference(
+                            messages[index].receivedAt,
+                            messages[index + 1].receivedAt
+                        ) > 5
+            val end =
+                index == 0 || messages[index - 1].side != messages[index].side ||
+                        getMinutesDifference(
+                            messages[index - 1].receivedAt,
+                            messages[index].receivedAt
+                        ) > 5
             val dayStart = index == messages.lastIndex || messages[index].receivedAt.substring(
                 0,
                 10

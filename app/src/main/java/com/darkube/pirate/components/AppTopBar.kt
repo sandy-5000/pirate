@@ -274,17 +274,6 @@ fun MainScreenTopBarOptions(
         DropdownMenuItem(
             text = {
                 Text(
-                    "Profile",
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            },
-            onClick = {
-                mainViewModel.navController.navigate(ProfileRoute)
-                expanded = false
-            })
-        DropdownMenuItem(
-            text = {
-                Text(
                     "Settings",
                     modifier = Modifier.padding(start = 8.dp),
                 )

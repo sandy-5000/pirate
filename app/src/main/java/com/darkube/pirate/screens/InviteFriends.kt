@@ -67,7 +67,7 @@ fun InviteFriends(
             .fillMaxWidth()
             .fillMaxHeight()
             .padding(horizontal = 40.dp)
-            .padding(top = 40.dp),
+            .padding(top = 60.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         TextField(
@@ -103,7 +103,7 @@ fun InviteFriends(
             },
             textStyle = TextStyle(fontSize = 14.sp)
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(20.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,

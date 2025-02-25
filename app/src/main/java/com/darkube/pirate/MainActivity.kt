@@ -269,11 +269,11 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
 
             BottomSheetScaffold(
                 scaffoldState = sheetState,
-                sheetShape = RectangleShape,
+                sheetShape = RoundedCornerShape(16.dp),
                 sheetContent = {
                     ProfileScreenBottomScaffold(mainViewModel = mainViewModel)
                 },
-                sheetContainerColor = PrimaryColor,
+                sheetContainerColor = NavBarBackground,
                 sheetPeekHeight = 0.dp,
                 sheetDragHandle = {
                     Row(

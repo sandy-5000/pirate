@@ -19,3 +19,7 @@ fun utcToLocal(utcTime: String, format: String = "yyyy-MM-dd HH:mm:ss"): Pair<St
     val localTime = localFormatTime.format(date)
     return Pair(localDate, localTime)
 }
+
+fun getMinutesDifference(prevTime: String, nextTime: String): Int {
+    return prevTime.substring(14, 16).toInt() - nextTime.substring(14, 16).toInt()
+}
