@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.ChatRow
 import com.darkube.pirate.types.Details
+import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.EventInfo
 import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.FriendType
@@ -425,10 +426,52 @@ class MainViewModel(
 
     // SettingsScreen - States
     private val _settingsScreenBottomComponent = MutableStateFlow(SettingsBottomComponent.NONE)
-    val settingsScreenBottomComponent: StateFlow<SettingsBottomComponent> = _settingsScreenBottomComponent.asStateFlow()
+    val settingsScreenBottomComponent: StateFlow<SettingsBottomComponent> =
+        _settingsScreenBottomComponent.asStateFlow()
 
     fun setSettingsScreenBottomComponent(component: SettingsBottomComponent) {
         _settingsScreenBottomComponent.value = component
+    }
+
+    suspend fun setMuteNotifications() {
+        dataBase.userDetailsDao.update(
+            UserDetails(
+                key = DetailsKey.APP_NOTIFICATION.value,
+                value = "true"
+            )
+        )
+        setAllUserDetails()
+    }
+
+    suspend fun removeMuteNotifications() {
+        dataBase.userDetailsDao.delete(key = DetailsKey.APP_NOTIFICATION.value)
+        setAllUserDetails()
+    }
+
+    private val _chatNotifications = MutableStateFlow(mapOf<String, String>())
+    val chatNotifications: StateFlow<Map<String, String>> = _chatNotifications.asStateFlow()
+
+    private fun setAllChatNotifications() {
+        viewModelScope.launch {
+            val chatNotificationsList = dataBase.userDetailsDao.getKeysLike().first()
+            val chatNotificationsMap = chatNotificationsList.associate { it.key to it.value }.toMutableMap()
+            _chatNotifications.value = chatNotificationsMap
+        }
+    }
+
+    suspend fun setChatNotifications(pirateId: String) {
+        dataBase.userDetailsDao.update(
+            UserDetails(
+                key = DetailsKey.CHAT_NOTIFICATION.value + ":" + pirateId,
+                value = "true"
+            )
+        )
+        setAllChatNotifications()
+    }
+
+    suspend fun removeChatNotifications(pirateId: String) {
+        dataBase.userDetailsDao.delete(key = DetailsKey.CHAT_NOTIFICATION.value + ":" + pirateId)
+        setAllChatNotifications()
     }
     // ________ SettingsScreen
 }

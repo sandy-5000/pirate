@@ -3,6 +3,7 @@ package com.darkube.pirate.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
+import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.room.UserDetails
 import kotlinx.coroutines.flow.Flow
 
@@ -17,9 +18,15 @@ interface UserDetailsDao {
     @Query("DELETE from user_details where `key` = :key")
     suspend fun delete(key: String)
 
-    @Query("SELECT * from user_details ORDER BY `key`")
-    fun getAll(): Flow<List<UserDetails>>
+    @Query("SELECT * from user_details ORDER BY `key` NOT LIKE :startsWith || ':%'")
+    fun getAll(startsWith: String = DetailsKey.CHAT_NOTIFICATION.value): Flow<List<UserDetails>>
 
     @Query("SELECT * from user_details where `key` = :key")
     fun get(key: String): Flow<UserDetails?>
+
+    @Query("SELECT * from user_details where `key` = :key")
+    fun key(key: String): UserDetails?
+
+    @Query("SELECT * FROM user_details WHERE `key` LIKE :startsWith || ':%'")
+    fun getKeysLike(startsWith: String = DetailsKey.CHAT_NOTIFICATION.value): Flow<List<UserDetails>>
 }

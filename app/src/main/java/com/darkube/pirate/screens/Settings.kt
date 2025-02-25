@@ -196,7 +196,7 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-
+                    openBottomModel(SettingsBottomComponent.CHATS)
                 })
                 .padding(internalPadding),
         ) {
@@ -233,7 +233,7 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-
+                    openBottomModel(SettingsBottomComponent.NOTIFICATIONS)
                 })
                 .padding(internalPadding),
         ) {

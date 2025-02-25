@@ -2,6 +2,7 @@ package com.darkube.pirate.components
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,7 +37,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +55,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,6 +64,7 @@ import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.Details
+import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.types.SettingsBottomComponent
@@ -449,8 +454,9 @@ fun SettingScreenBottomScaffold(
     val bottomComponent by mainViewModel.settingsScreenBottomComponent.collectAsState()
     val horizontalPadding = 20.dp
     val logoutIcon = R.drawable.exit_icon
+    val refreshIcon = R.drawable.refresh_icon
     val iconSize = 20.dp
-    val scrollState = rememberScrollState()
+    val userState by mainViewModel.userState.collectAsState()
 
     val logoutUser = {
         mainViewModel.viewModelScope.launch {
@@ -460,7 +466,6 @@ fun SettingScreenBottomScaffold(
 
     Column(
         modifier = Modifier
-            .verticalScroll(scrollState)
             .fillMaxWidth()
             .background(AppBackground)
             .padding(vertical = 20.dp),
@@ -509,8 +514,166 @@ fun SettingScreenBottomScaffold(
                 Spacer(modifier = Modifier.height(120.dp))
             }
 
+            SettingsBottomComponent.CHATS -> {
+                val scrollState = rememberScrollState()
+
+                LaunchedEffect(Unit) {
+                    mainViewModel.fetchFriends()
+                }
+
+                val loadingFriends by mainViewModel.requestScreenLoadingFriends.collectAsState()
+                val friends by mainViewModel.requestScreenDateFriends.collectAsState()
+                val mutedFriends by mainViewModel.chatNotifications.collectAsState()
+
+                val mutedFriendsIds = remember(mutedFriends) {
+                    mutedFriends.filter { it.value == "true" }.keys.toSet()
+                }
+                Log.d("mute-o", mutedFriendsIds.toString())
+
+                val filteredFriends by remember(friends, mutedFriends) {
+                    derivedStateOf {
+                        friends.filter { (DetailsKey.CHAT_NOTIFICATION.value + ":" + it.id) in mutedFriendsIds }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = horizontalPadding)
+                        .padding(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Muted Chat Notifications",
+                        modifier = Modifier.padding(start = 12.dp),
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    IconButton(
+                        enabled = !loadingFriends,
+                        onClick = {
+                            mainViewModel.fetchFriends()
+                        },
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clip(shape = CircleShape)
+                            .background(NavBarBackground)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = refreshIcon),
+                            contentDescription = "reload",
+                            modifier = Modifier
+                                .size(iconSize),
+                            tint = Color.White
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(scrollState)
+                            .fillMaxWidth(),
+                    ) {
+                        filteredFriends.map { details ->
+                            DisplayFriend(
+                                firstName = details.firstName,
+                                lastName = details.lastName,
+                                pirateId = details.id,
+                                username = details.username,
+                                profileImage = details.profileImage,
+                                mainViewModel = mainViewModel,
+                            )
+                        }
+                        if (filteredFriends.isEmpty()) {
+                            Column(
+                                modifier = Modifier
+                                    .height(220.dp)
+                                    .fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                Text(
+                                    "No user's chat is muted",
+                                    color = LightColor,
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
+                }
+            }
+
+            SettingsBottomComponent.NOTIFICATIONS -> {
+                var loading by remember { mutableStateOf(false) }
+                val notificationsOn by remember {
+                    derivedStateOf {
+                        userState.getOrDefault(DetailsKey.APP_NOTIFICATION.value, "false") != "true"
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Show Notifications",
+                        fontSize = 16.sp,
+                        color = LightColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Switch(
+                        checked = notificationsOn,
+                        enabled = !loading,
+                        onCheckedChange = {
+                            loading = true
+                            mainViewModel.viewModelScope.launch {
+                                if (it) {
+                                    mainViewModel.removeMuteNotifications()
+                                } else {
+                                    mainViewModel.setMuteNotifications()
+                                }
+                                loading = false
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = NavBarBackground,
+                            checkedBorderColor = NavBarBackground,
+                            uncheckedThumbColor = NavBarBackground,
+                            uncheckedTrackColor = PrimaryColor,
+                            uncheckedBorderColor = NavBarBackground,
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = "You can set your the notifications preferences.",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "Customize your notification settings to enable or disable notifications based on your preference.",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(120.dp))
+            }
+
             SettingsBottomComponent.PRIVACY -> {
-                Spacer(modifier = Modifier.height(24.dp))
+                val scrollState = rememberScrollState()
+
                 val policyMessages = listOf(
                     listOf(
                         "Privacy Policy for Pirate",
@@ -537,27 +700,40 @@ fun SettingScreenBottomScaffold(
                         "We reserve the right to update this Privacy Policy at any time. If we make any changes, we will update the \"Effective Date\" at the top of this page. We encourage you to periodically review this policy for any updates.",
                     ),
                 )
-                policyMessages.forEachIndexed { index, messages ->
-                    Text(
-                        text = messages[0],
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp),
+                ) {
+                    Column(
                         modifier = Modifier
-                            .padding(horizontal = horizontalPadding),
-                        fontSize = 16.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = messages[1],
-                        modifier = Modifier.padding(horizontal = horizontalPadding),
-                        fontSize = 14.sp, color = LightColor,
-                    )
-                    Spacer(modifier = Modifier.height(28.dp))
-                    if (index == 0) {
-                        Spacer(modifier = Modifier.height(12.dp))
+                            .verticalScroll(scrollState)
+                            .fillMaxWidth(),
+                    ) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        policyMessages.forEachIndexed { index, messages ->
+                            Text(
+                                text = messages[0],
+                                modifier = Modifier
+                                    .padding(horizontal = horizontalPadding),
+                                fontSize = 16.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = messages[1],
+                                modifier = Modifier.padding(horizontal = horizontalPadding),
+                                fontSize = 14.sp, color = LightColor,
+                            )
+                            Spacer(modifier = Modifier.height(28.dp))
+                            if (index == 0) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
             }
 
             SettingsBottomComponent.LOGOUT -> {
@@ -619,6 +795,90 @@ fun SettingScreenBottomScaffold(
             }
 
             else -> {}
+        }
+    }
+}
+
+@Composable
+fun DisplayFriend(
+    firstName: String,
+    lastName: String,
+    username: String,
+    pirateId: String,
+    profileImage: Int,
+    mainViewModel: MainViewModel,
+) {
+    val horizontalPadding = 24.dp
+    val unMuteIcon = R.drawable.volume_loud_icon
+    val iconSize = 24.dp
+    val imageSize = 48.dp
+
+    Row(
+        modifier = Modifier
+            .clickable(onClick = {})
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row {
+            Image(
+                painter = painterResource(id = getProfileImage(profileImage)),
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .size(imageSize)
+                    .clip(shape = CircleShape),
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .padding(start = 16.dp),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "$firstName $lastName",
+                    color = Color.LightGray,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = username,
+                    color = Color.LightGray,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        IconButton(
+            onClick = {
+                mainViewModel.viewModelScope.launch {
+                    mainViewModel.removeChatNotifications(pirateId = pirateId)
+                }
+            },
+            modifier = Modifier
+                .padding(8.dp)
+                .clip(shape = CircleShape)
+                .background(NavBarBackground)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(PrimaryColor)
+                    .padding(start = 2.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(id = unMuteIcon),
+                    contentDescription = "View",
+                    modifier = Modifier
+                        .size(iconSize),
+                    tint = Color.White
+                )
+            }
         }
     }
 }

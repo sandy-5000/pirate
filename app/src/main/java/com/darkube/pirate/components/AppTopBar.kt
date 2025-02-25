@@ -31,14 +31,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.getProfileImage
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreenTopBar(
@@ -96,6 +99,7 @@ fun MainScreenTopBar(
 fun ChatScreenTopBar(
     pageTitle: String,
     profileImage: Int,
+    pirateId: String,
     mainViewModel: MainViewModel,
 ) {
     val topPadding = 36.dp
@@ -157,7 +161,7 @@ fun ChatScreenTopBar(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(end = sidesPadding),
         ) {
-            ChatScreenTopBarOptions(mainViewModel = mainViewModel)
+            ChatScreenTopBarOptions(mainViewModel = mainViewModel, pirateId = pirateId)
         }
     }
 }
@@ -287,11 +291,16 @@ fun MainScreenTopBarOptions(
 
 @Composable
 fun ChatScreenTopBarOptions(
+    pirateId: String,
     mainViewModel: MainViewModel,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+
+    val mutedFriends by mainViewModel.chatNotifications.collectAsState()
+    val mutedFriendsIds = remember(mutedFriends) {
+        mutedFriends.filter { it.value == "true" }.keys.toSet()
+    }
 
     IconButton(onClick = { expanded = !expanded }) {
         Icon(
@@ -330,12 +339,22 @@ fun ChatScreenTopBarOptions(
         DropdownMenuItem(
             text = {
                 Text(
-                    "Mute Notifications",
+                    text = if ((DetailsKey.CHAT_NOTIFICATION.value + ":" + pirateId) in mutedFriendsIds) {
+                        "UnMute Notifications"
+                    } else {
+                        "Mute Notifications"
+                    },
                     modifier = Modifier.padding(start = 8.dp),
                 )
             },
             onClick = {
-                Toast.makeText(context, "Mute Notifications", Toast.LENGTH_SHORT).show()
+                mainViewModel.viewModelScope.launch {
+                    if ((DetailsKey.CHAT_NOTIFICATION.value + ":" + pirateId) in mutedFriendsIds) {
+                        mainViewModel.removeChatNotifications(pirateId = pirateId)
+                    } else {
+                        mainViewModel.setChatNotifications(pirateId = pirateId)
+                    }
+                }
                 expanded = false
             })
     }

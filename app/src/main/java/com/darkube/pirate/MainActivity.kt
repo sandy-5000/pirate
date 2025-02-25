@@ -378,6 +378,7 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
                     ChatScreenTopBar(
                         pageTitle = username,
                         profileImage = profileImage,
+                        pirateId = pirateId,
                         mainViewModel = mainViewModel,
                     )
                 },

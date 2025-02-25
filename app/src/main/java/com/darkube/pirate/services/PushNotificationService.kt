@@ -16,6 +16,7 @@ import com.darkube.pirate.MainActivity
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.receivers.NotificationActionReceiver
+import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.EventInfo
 import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.MessageType
@@ -51,7 +52,7 @@ class PushNotificationService : FirebaseMessagingService() {
                     message = receivedMessage
                 )
             }
-            NotificationHelper.showNotification(
+            fetchConditionsFromDatabase(
                 context = this,
                 pirateId = senderId,
                 username = username,
@@ -64,9 +65,9 @@ class PushNotificationService : FirebaseMessagingService() {
     private fun saveMessageToDatabase(senderId: String, username: String, message: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val database = DatabaseProvider.getInstance(applicationContext)
-                database.lastMessageDao.upsertMessage(senderId, username, message)
-                database.userChatDao.insertMessage(
+                val dataBase = DatabaseProvider.getInstance(applicationContext)
+                dataBase.lastMessageDao.upsertMessage(senderId, username, message)
+                dataBase.userChatDao.insertMessage(
                     pirateId = senderId,
                     message = message,
                     type = MessageType.TEXT.value,
@@ -84,6 +85,40 @@ class PushNotificationService : FirebaseMessagingService() {
             }
         }
     }
+
+    private fun fetchConditionsFromDatabase(
+        context: Context,
+        pirateId: String,
+        username: String,
+        message: String,
+        type: NotificationType,
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val dataBase = DatabaseProvider.getInstance(applicationContext)
+                val appNotificationFlag =
+                    dataBase.userDetailsDao.key(DetailsKey.APP_NOTIFICATION.value)?.value ?: "false"
+                if (appNotificationFlag == "true") {
+                    return@launch
+                }
+                val userChatNotificationFlag =
+                    dataBase.userDetailsDao.key(DetailsKey.CHAT_NOTIFICATION.value + ":" + pirateId)?.value
+                        ?: "false"
+                if (userChatNotificationFlag == "true") {
+                    return@launch
+                }
+                NotificationHelper.showNotification(
+                    context = context,
+                    pirateId = pirateId,
+                    username = username,
+                    message = message,
+                    type = type,
+                )
+            } catch (e: Exception) {
+                Log.e("push-note", "Error while fetching details: ${e.message}")
+            }
+        }
+    }
 }
 
 object NotificationHelper {
@@ -92,7 +127,7 @@ object NotificationHelper {
         pirateId: String,
         username: String,
         message: String,
-        type: NotificationType
+        type: NotificationType,
     ) {
         if (MainViewModel.isApplicationOn() && MainViewModel.getCurrentPirateId() == pirateId && type == NotificationType.MESSAGE) {
             return
@@ -103,7 +138,7 @@ object NotificationHelper {
         }
 
         val channelId = "pirate_channel"
-        val notificationId = 100
+        val notificationId = pirateId.hashCode()
 
         val icon = when (type) {
             NotificationType.MESSAGE -> R.drawable.chat_round_line_icon
