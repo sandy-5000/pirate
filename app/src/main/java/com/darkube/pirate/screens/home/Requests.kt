@@ -128,7 +128,7 @@ fun Requests(
                     },
                     onDragEnd = {
                         isDragging = false
-                        if (dragOffset > 250) {
+                        if (dragOffset > 75) {
                             shouldRefresh = true
                         }
                         dragOffset = 0f
@@ -180,7 +180,8 @@ fun Requests(
                         Text(
                             text = "Message Requests",
                             modifier = Modifier
-                                .padding(horizontal = horizontalPadding),
+                                .padding(horizontal = horizontalPadding)
+                                .padding(bottom = 8.dp),
                             fontWeight = FontWeight.SemiBold,
                         )
                         if (loadingMessageRequest) {
@@ -215,7 +216,8 @@ fun Requests(
                         Text(
                             text = "Pending Requests",
                             modifier = Modifier
-                                .padding(horizontal = horizontalPadding),
+                                .padding(horizontal = horizontalPadding)
+                                .padding(bottom = 8.dp),
                             fontWeight = FontWeight.SemiBold,
                         )
                         if (loadingPendingRequest) {
