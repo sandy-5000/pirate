@@ -518,27 +518,27 @@ fun SettingScreenBottomScaffold(
                         "At Pirate, your privacy is our top priority. This Privacy Policy outlines how we handle your information, ensuring that your personal data is safe and secure. By using Pirate, you agree to the practices described in this policy.",
                     ),
                     listOf(
-                        "No Data Storage",
+                        "1. No Data Storage",
                         "We want to assure you that Pirate does not store any messages, content, or communications you send through the app on our servers or backend systems. All messages and data are processed only temporarily during the communication session and are not retained in any form once the session ends."
                     ),
                     listOf(
-                        "No Use of Data for Other Purposes",
+                        "2. No Use of Data for Other Purposes",
                         "We do not collect, process, or store any personal information from your messages or interactions with Pirate for any other purpose. Your data is not used to create personal profiles, for analysis, or for any type of marketing, advertising, or business purposes."
                     ),
                     listOf(
-                        "No Sharing with Third Parties",
+                        "3. No Sharing with Third Parties",
                         "We do not share, sell, or disclose any user data or message content to third-party applications, advertisers, or any external organizations. Your information remains private and is not used in any form by any third-party services.",
                     ),
                     listOf(
-                        "Security",
+                        "4. Security",
                         "We implement reasonable security measures to protect the data you send through Pirate. However, please note that no system can be completely secure, and we cannot guarantee absolute protection against unauthorized access.",
                     ),
                     listOf(
-                        "Changes to This Policy",
+                        "5. Changes to This Policy",
                         "We reserve the right to update this Privacy Policy at any time. If we make any changes, we will update the \"Effective Date\" at the top of this page. We encourage you to periodically review this policy for any updates.",
                     ),
                 )
-                policyMessages.forEach { messages ->
+                policyMessages.forEachIndexed { index, messages ->
                     Text(
                         text = messages[0],
                         modifier = Modifier
@@ -554,6 +554,9 @@ fun SettingScreenBottomScaffold(
                         fontSize = 14.sp, color = LightColor,
                     )
                     Spacer(modifier = Modifier.height(28.dp))
+                    if (index == 0) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
             }
