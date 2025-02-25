@@ -31,16 +31,19 @@ import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.getProfileImage
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @Composable
 fun Settings(
     mainViewModel: MainViewModel,
     modifier: Modifier = Modifier,
+    openBottomModel: (SettingsBottomComponent) -> Job,
 ) {
     val userState by mainViewModel.userState.collectAsState()
     val scrollState = rememberScrollState()
@@ -175,7 +178,7 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-
+                    openBottomModel(SettingsBottomComponent.APPEARANCE)
                 })
                 .padding(internalPadding),
         ) {
@@ -207,25 +210,25 @@ fun Settings(
                 color = Color.White,
             )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = {
-
-                })
-                .padding(internalPadding),
-
-            ) {
-            Icon(
-                painter = painterResource(id = storiesIcon),
-                contentDescription = "Stories",
-                modifier = Modifier.padding(start = internalPadding, end = internalPadding)
-            )
-            Text(
-                text = "Stories",
-                color = Color.White,
-            )
-        }
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .clickable(onClick = {
+//
+//                })
+//                .padding(internalPadding),
+//
+//            ) {
+//            Icon(
+//                painter = painterResource(id = storiesIcon),
+//                contentDescription = "Stories",
+//                modifier = Modifier.padding(start = internalPadding, end = internalPadding)
+//            )
+//            Text(
+//                text = "Stories",
+//                color = Color.White,
+//            )
+//        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -248,7 +251,7 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-
+                    openBottomModel(SettingsBottomComponent.PRIVACY)
                 })
                 .padding(internalPadding),
         ) {
@@ -324,9 +327,7 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-                    mainViewModel.viewModelScope.launch {
-                        mainViewModel.logout()
-                    }
+                    openBottomModel(SettingsBottomComponent.LOGOUT)
                 })
                 .padding(internalPadding),
         ) {

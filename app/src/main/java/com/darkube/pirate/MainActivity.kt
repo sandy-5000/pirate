@@ -34,7 +34,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -49,6 +48,7 @@ import com.darkube.pirate.components.DataLoading
 import com.darkube.pirate.components.MainScreenBottomScaffold
 import com.darkube.pirate.components.MainScreenTopBar
 import com.darkube.pirate.components.ProfileScreenBottomScaffold
+import com.darkube.pirate.components.SettingScreenBottomScaffold
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.screens.authentication.Authentication
 import com.darkube.pirate.screens.Conversation
@@ -65,9 +65,9 @@ import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
 import com.darkube.pirate.types.HomeScreen
+import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
-import com.darkube.pirate.ui.theme.PrimaryColor
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -234,22 +234,60 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
             }
         }
         composable<SettingsRoute> {
-            BackHandler {
-                handleBack()
+            val sheetState = rememberBottomSheetScaffoldState()
+            val scope = rememberCoroutineScope()
+            val openBottomModel = { component: SettingsBottomComponent ->
+                mainViewModel.setSettingsScreenBottomComponent(component)
+                scope.launch {
+                    sheetState.bottomSheetState.expand()
+                }
             }
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = {
-                    BasicTopBar(
-                        mainViewModel = mainViewModel,
-                        pageTitle = "Settings",
-                    )
+
+            BackHandler {
+                if (sheetState.bottomSheetState.currentValue != SheetValue.Expanded) {
+                    mainViewModel.navController.popBackStack()
+                }
+            }
+
+            BottomSheetScaffold(
+                scaffoldState = sheetState,
+                sheetShape = RoundedCornerShape(12.dp),
+                sheetContent = {
+                    SettingScreenBottomScaffold(mainViewModel = mainViewModel)
                 },
-            ) { innerPadding ->
-                Settings(
-                    mainViewModel = mainViewModel,
-                    modifier = Modifier.padding(innerPadding)
-                )
+                sheetContainerColor = NavBarBackground,
+                sheetPeekHeight = 0.dp,
+                sheetDragHandle = {
+                    Row(
+                        modifier = Modifier.height(20.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Spacer(
+                            modifier = Modifier
+                                .width(28.dp)
+                                .height(4.dp)
+                                .clip(shape = RoundedCornerShape(2.dp))
+                                .background(LightColor),
+                        )
+                    }
+                },
+            ) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        BasicTopBar(
+                            mainViewModel = mainViewModel,
+                            pageTitle = "Settings",
+                        )
+                    },
+                ) { innerPadding ->
+                    Settings(
+                        mainViewModel = mainViewModel,
+                        modifier = Modifier.padding(innerPadding),
+                        openBottomModel = openBottomModel,
+                    )
+                }
             }
         }
         composable<ProfileRoute> {

@@ -18,6 +18,7 @@ import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.RequestScreen
 import com.darkube.pirate.types.RequestType
 import com.darkube.pirate.types.Routes
+import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
 import com.darkube.pirate.utils.DataBase
@@ -151,6 +152,9 @@ class MainViewModel(
 
     suspend fun logout() {
         dataBase.userDetailsDao.deleteAll()
+        dataBase.userChatDao.deleteAll()
+        dataBase.lastMessageDao.deleteAll()
+        dataBase.friendsInfoDao.deleteAll()
         coroutineScope {
             val job = async { setAllUserDetails() }
             job.await()
@@ -418,4 +422,13 @@ class MainViewModel(
         }
     }
     // ________ ChatScreen
+
+    // SettingsScreen - States
+    private val _settingsScreenBottomComponent = MutableStateFlow(SettingsBottomComponent.NONE)
+    val settingsScreenBottomComponent: StateFlow<SettingsBottomComponent> = _settingsScreenBottomComponent.asStateFlow()
+
+    fun setSettingsScreenBottomComponent(component: SettingsBottomComponent) {
+        _settingsScreenBottomComponent.value = component
+    }
+    // ________ SettingsScreen
 }

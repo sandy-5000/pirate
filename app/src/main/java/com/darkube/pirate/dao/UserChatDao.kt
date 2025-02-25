@@ -32,4 +32,7 @@ interface UserChatDao {
         """
     )
     suspend fun getLatestInsertedMessage(pirateId: String, id: Int): List<UserChat>
+
+    @Query("DELETE FROM user_chats")
+    suspend fun deleteAll()
 }

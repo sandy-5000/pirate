@@ -26,9 +26,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -43,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -58,10 +63,12 @@ import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.Details
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.RequestType
+import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
+import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.launch
@@ -433,5 +440,183 @@ fun ProfileScreenBottomScaffold(
             }
         }
         Spacer(modifier = Modifier.height(64.dp))
+    }
+}
+
+@Composable
+fun SettingScreenBottomScaffold(
+    mainViewModel: MainViewModel,
+) {
+    val bottomComponent by mainViewModel.settingsScreenBottomComponent.collectAsState()
+    val horizontalPadding = 20.dp
+    val logoutIcon = R.drawable.exit_icon
+    val iconSize = 20.dp
+    val scrollState = rememberScrollState()
+
+    val logoutUser = {
+        mainViewModel.viewModelScope.launch {
+            mainViewModel.logout()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .verticalScroll(scrollState)
+            .fillMaxWidth()
+            .background(AppBackground)
+            .padding(vertical = 20.dp),
+    ) {
+        when (bottomComponent) {
+            SettingsBottomComponent.APPEARANCE -> {
+                var isOn by remember { mutableStateOf(true) }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Dark Theme",
+                        fontSize = 16.sp,
+                        color = LightColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Switch(
+                        checked = isOn,
+                        enabled = false,
+                        onCheckedChange = { isOn = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = NavBarBackground,
+                            checkedBorderColor = NavBarBackground,
+                            uncheckedThumbColor = NavBarBackground,
+                            uncheckedTrackColor = PrimaryColor,
+                            uncheckedBorderColor = NavBarBackground,
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = "Currently, the application is only available in dark theme. Appearance options will be added soon!",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "Stay tuned for future updates and customization options!",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(120.dp))
+            }
+
+            SettingsBottomComponent.PRIVACY -> {
+                Spacer(modifier = Modifier.height(24.dp))
+                val policyMessages = listOf(
+                    listOf(
+                        "Privacy Policy for Pirate",
+                        "At Pirate, your privacy is our top priority. This Privacy Policy outlines how we handle your information, ensuring that your personal data is safe and secure. By using Pirate, you agree to the practices described in this policy.",
+                    ),
+                    listOf(
+                        "No Data Storage",
+                        "We want to assure you that Pirate does not store any messages, content, or communications you send through the app on our servers or backend systems. All messages and data are processed only temporarily during the communication session and are not retained in any form once the session ends."
+                    ),
+                    listOf(
+                        "No Use of Data for Other Purposes",
+                        "We do not collect, process, or store any personal information from your messages or interactions with Pirate for any other purpose. Your data is not used to create personal profiles, for analysis, or for any type of marketing, advertising, or business purposes."
+                    ),
+                    listOf(
+                        "No Sharing with Third Parties",
+                        "We do not share, sell, or disclose any user data or message content to third-party applications, advertisers, or any external organizations. Your information remains private and is not used in any form by any third-party services.",
+                    ),
+                    listOf(
+                        "Security",
+                        "We implement reasonable security measures to protect the data you send through Pirate. However, please note that no system can be completely secure, and we cannot guarantee absolute protection against unauthorized access.",
+                    ),
+                    listOf(
+                        "Changes to This Policy",
+                        "We reserve the right to update this Privacy Policy at any time. If we make any changes, we will update the \"Effective Date\" at the top of this page. We encourage you to periodically review this policy for any updates.",
+                    ),
+                )
+                policyMessages.forEach { messages ->
+                    Text(
+                        text = messages[0],
+                        modifier = Modifier
+                            .padding(horizontal = horizontalPadding),
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = messages[1],
+                        modifier = Modifier.padding(horizontal = horizontalPadding),
+                        fontSize = 14.sp, color = LightColor,
+                    )
+                    Spacer(modifier = Modifier.height(28.dp))
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            SettingsBottomComponent.LOGOUT -> {
+                Text(
+                    text = "Logout From this Device",
+                    modifier = Modifier
+                        .padding(horizontal = horizontalPadding)
+                        .padding(top = horizontalPadding),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = "Logging out of the application will delete all chat data from your device, and it cannot be recovered.",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "If you still want to Log out, click on the below button.",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(40.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Button(
+                        onClick = {
+                            logoutUser()
+                        },
+                        shape = RoundedCornerShape(4.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = RedColor,
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(id = logoutIcon),
+                            contentDescription = "Logout",
+                            modifier = Modifier
+                                .size(iconSize),
+                            tint = NavBarBackground
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = "Logout",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = NavBarBackground,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(100.dp))
+            }
+
+            else -> {}
+        }
     }
 }

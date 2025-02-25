@@ -17,4 +17,7 @@ interface LastMessageDao {
 
     @Query(value = "SELECT * FROM last_message ORDER BY receive_time DESC")
     fun getAllMessages(): Flow<List<LastMessage>>
+
+    @Query("DELETE FROM last_message")
+    suspend fun deleteAll()
 }

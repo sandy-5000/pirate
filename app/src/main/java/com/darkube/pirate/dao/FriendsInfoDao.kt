@@ -29,4 +29,7 @@ interface FriendsInfoDao {
 
     @Query("SELECT * FROM friends_info")
     fun getAll(): Flow<List<FriendsInfo>>
+
+    @Query("DELETE FROM friends_info")
+    suspend fun deleteAll()
 }
