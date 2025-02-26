@@ -135,6 +135,7 @@ fun ChatScreenTopBar(
                     modifier = Modifier.padding(start = iconPadding),
                     onClick = {
                         mainViewModel.navController.popBackStack()
+                        mainViewModel.setAllLastOpened()
                     }
                 ) {
                     Icon(

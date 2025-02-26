@@ -366,7 +366,8 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
         }
         composable<ChatRoute> {
             BackHandler {
-                handleBack()
+                mainViewModel.navController.popBackStack()
+                mainViewModel.setAllLastOpened()
             }
             val args = it.toRoute<ChatRoute>()
             val pirateId = args.pirateId

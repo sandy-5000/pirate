@@ -31,8 +31,8 @@ class NotificationActionReceiver: BroadcastReceiver() {
     private fun markMessageAsRead(context: Context, pirateId: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val database = DatabaseProvider.getInstance(context)
-                database.userDetailsDao.update(
+                val dataBase = DatabaseProvider.getInstance(context)
+                dataBase.userDetailsDao.update(
                     UserDetails(
                         key = DetailsKey.LAST_OPENED.value + ":" + pirateId,
                         value = getCurrentUtcTimestamp()

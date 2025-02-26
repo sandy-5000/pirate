@@ -21,7 +21,9 @@ import com.darkube.pirate.types.EventInfo
 import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.NotificationType
+import com.darkube.pirate.types.room.UserDetails
 import com.darkube.pirate.utils.DatabaseProvider
+import com.darkube.pirate.utils.getCurrentUtcTimestamp
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
@@ -79,6 +81,14 @@ class PushNotificationService : FirebaseMessagingService() {
                     username = username,
                     message = message
                 )
+                if (MainViewModel.isApplicationOn() && MainViewModel.getCurrentPirateId() == senderId) {
+                    dataBase.userDetailsDao.update(
+                        UserDetails(
+                            key = DetailsKey.LAST_OPENED.value + ":" + senderId,
+                            value = getCurrentUtcTimestamp()
+                        )
+                    )
+                }
                 MainViewModel.emit(eventInfo = eventInfo)
             } catch (e: Exception) {
                 Log.e("push-note", "Error saving message: ${e.message}")
