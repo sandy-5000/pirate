@@ -79,4 +79,13 @@ dependencies {
     // firebase dependencies
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+
+    // socket.io dependencies
+    implementation("io.socket:socket.io-client:2.1.0") {
+        exclude(
+            group = "org.json",
+            module = "json"
+        )
+    }
+    implementation(libs.okhttp.v493)
 }
