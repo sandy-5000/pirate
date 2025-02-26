@@ -26,4 +26,6 @@ package-lock.json
 *.njsproj
 *.sln
 *.sw?
+
 pirate.firebase.json
+package-lock.json
