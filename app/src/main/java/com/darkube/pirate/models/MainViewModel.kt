@@ -426,6 +426,12 @@ class MainViewModel(
                     type = type,
                     side = side
                 )
+                dataBase.userDetailsDao.update(
+                    UserDetails(
+                        key = DetailsKey.LAST_OPENED.value + ":" + pirateId,
+                        value = getCurrentUtcTimestamp()
+                    )
+                )
             }
             var id = -1
             if (_userChatState.value.isNotEmpty()) {
