@@ -67,6 +67,10 @@ class MainViewModel(
             return instance?.currentPirateId ?: ""
         }
 
+        fun refreshLastOpened() {
+            instance?.setAllLastOpened()
+        }
+
         fun emit(eventInfo: EventInfo) {
             if (eventInfo.type == EventType.MESSAGE) {
                 if (
