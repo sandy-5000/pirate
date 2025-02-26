@@ -15,7 +15,6 @@ dotenv.config()
 
 const app = express()
 const server = http.createServer(app)
-const io = new SocketServer(server)
 
 app.use(express.json())
 app.use(cors())
@@ -39,11 +38,16 @@ app.use('/api/user', userController)
 app.use('/api/pushtoken', pushTokenController)
 app.use('/api/friends', friendsController)
 
-app.use('*', (_, res) =>
+app.use('*', (_, res) => {
+  console.log('wild-route-hit')
   res.status(403).json({
     error: ERRORS.METHOD_NOT_ALLOWED,
-  }),
-)
+  })
+})
+
+const io = new SocketServer(server, {
+  cors: { origin: '*' },
+})
 
 const pirateIds = new Map()
 const userSockets = new Map()
