@@ -148,8 +148,8 @@ fun Conversation(
             mainViewModel.setChatScreen(FriendType.SELF)
         } else {
             fetchFriendType()
-            fetchFriendInfo()
         }
+        fetchFriendInfo()
     }
 
     Column(
