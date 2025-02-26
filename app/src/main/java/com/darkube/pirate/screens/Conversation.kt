@@ -142,6 +142,7 @@ fun Conversation(
 
     LaunchedEffect(Unit) {
         mainViewModel.resetChatState()
+        mainViewModel.setLastOpened(pirateId = pirateId)
         if (pirateId == userId) {
             screenLoading = false
             mainViewModel.setChatScreen(FriendType.SELF)

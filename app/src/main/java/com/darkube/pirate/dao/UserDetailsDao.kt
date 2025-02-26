@@ -18,8 +18,8 @@ interface UserDetailsDao {
     @Query("DELETE from user_details where `key` = :key")
     suspend fun delete(key: String)
 
-    @Query("SELECT * from user_details ORDER BY `key` NOT LIKE :startsWith || ':%'")
-    fun getAll(startsWith: String = DetailsKey.CHAT_NOTIFICATION.value): Flow<List<UserDetails>>
+    @Query("SELECT * from user_details ORDER BY `key` NOT LIKE 'KEY:%'")
+    fun getAll(): Flow<List<UserDetails>>
 
     @Query("SELECT * from user_details where `key` = :key")
     fun get(key: String): Flow<UserDetails?>
@@ -28,5 +28,8 @@ interface UserDetailsDao {
     fun key(key: String): UserDetails?
 
     @Query("SELECT * FROM user_details WHERE `key` LIKE :startsWith || ':%'")
-    fun getKeysLike(startsWith: String = DetailsKey.CHAT_NOTIFICATION.value): Flow<List<UserDetails>>
+    fun getMutedChats(startsWith: String = DetailsKey.CHAT_NOTIFICATION.value): Flow<List<UserDetails>>
+
+    @Query("SELECT * FROM user_details WHERE `key` LIKE :startsWith || ':%'")
+    fun getLastOpenedTime(startsWith: String = DetailsKey.LAST_OPENED.value): Flow<List<UserDetails>>
 }

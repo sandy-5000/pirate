@@ -5,13 +5,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +28,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -37,8 +41,11 @@ import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.AppBackground
+import com.darkube.pirate.ui.theme.LightColor
+import com.darkube.pirate.ui.theme.LightRedColor
+import com.darkube.pirate.ui.theme.PrimaryColor
+import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.InviteFriendsRoute
-import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.launch
@@ -296,11 +303,16 @@ fun ChatScreenTopBarOptions(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val context = LocalContext.current
 
     val mutedFriends by mainViewModel.chatNotifications.collectAsState()
     val mutedFriendsIds = remember(mutedFriends) {
         mutedFriends.filter { it.value == "true" }.keys.toSet()
     }
+    var showClearChatDialog by remember { mutableStateOf(false) }
+
+    val clearChatIcon = R.drawable.broom_icon
+    val iconSize = 20.dp
 
     IconButton(onClick = { expanded = !expanded }) {
         Icon(
@@ -314,35 +326,35 @@ fun ChatScreenTopBarOptions(
             .width(screenWidth * 0.5f)
             .background(NavBarBackground),
     ) {
+        DropdownMenuItem(
+            text = {
+                Text(
+                    text = "Clear chat",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
+            onClick = {
+                showClearChatDialog = true
+                expanded = false
+            })
 //        DropdownMenuItem(
 //            text = {
 //                Text(
-//                    "Chat Settings",
+//                    "Search",
 //                    modifier = Modifier.padding(start = 8.dp),
 //                )
 //            },
 //            onClick = {
-//                Toast.makeText(context, "Chat Settings", Toast.LENGTH_SHORT).show()
-//                expanded = false
-//            })
-//        DropdownMenuItem(
-//            text = {
-//                Text(
-//                    "Search in Chat",
-//                    modifier = Modifier.padding(start = 8.dp),
-//                )
-//            },
-//            onClick = {
-//                Toast.makeText(context, "Search in Chat", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(context, "Search", Toast.LENGTH_SHORT).show()
 //                expanded = false
 //            })
         DropdownMenuItem(
             text = {
                 Text(
                     text = if ((DetailsKey.CHAT_NOTIFICATION.value + ":" + pirateId) in mutedFriendsIds) {
-                        "UnMute Notifications"
+                        "Unmute notifications"
                     } else {
-                        "Mute Notifications"
+                        "Mute notifications"
                     },
                     modifier = Modifier.padding(start = 8.dp),
                 )
@@ -355,7 +367,68 @@ fun ChatScreenTopBarOptions(
                         mainViewModel.setChatNotifications(pirateId = pirateId)
                     }
                 }
+                Toast.makeText(context, "Notifications preference applied", Toast.LENGTH_SHORT)
+                    .show()
                 expanded = false
             })
+    }
+    if (showClearChatDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearChatDialog = false },
+            title = { Text(text = "Clear Chat", color = Color.White) },
+            text = {
+                Text(
+                    text = "By clicking \"Clear\", your chat history will be erased permanently. This will not affect other user in the chat.",
+                    color = LightColor,
+                )
+            },
+            containerColor = NavBarBackground,
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mainViewModel.viewModelScope.launch {
+                            mainViewModel.clearPirateChat(pirateId = pirateId)
+                            showClearChatDialog = false
+                        }
+                    },
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RedColor,
+                    ),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(id = clearChatIcon),
+                        contentDescription = "Clear Chat",
+                        modifier = Modifier
+                            .size(iconSize),
+                        tint = AppBackground,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Clear",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = AppBackground,
+                    )
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showClearChatDialog = false },
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                    )
+                ) {
+                    Text(
+                        text = "Cancel",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White
+                    )
+                }
+            }
+        )
     }
 }

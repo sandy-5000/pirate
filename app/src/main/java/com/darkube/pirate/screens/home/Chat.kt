@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,11 +41,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
+import com.darkube.pirate.utils.utcToLocal
 
 enum class ChatList {
     PIRATES, CREWS
@@ -61,6 +65,7 @@ fun Chat(
     mainViewModel.fetchChatsList()
     var selectedFilter by remember { mutableStateOf(ChatList.PIRATES) }
     val chatsList by mainViewModel.chatsListState.collectAsState()
+    val lastOpened by mainViewModel.lastOpened.collectAsState()
 
     val crews = listOf(
         listOf("universe-7", "Hey, how strong are we talking?", "10"),
@@ -68,6 +73,10 @@ fun Chat(
         listOf("ua-high", "Have no fear cause I am here.", "12"),
         listOf("hunter-association", "We got a new S-rank hunter.", "10"),
     )
+
+    LaunchedEffect(Unit) {
+        mainViewModel.setAllLastOpened()
+    }
 
     Column(
         modifier = modifier
@@ -89,6 +98,7 @@ fun Chat(
                 label = { Text("Pirates") },
                 colors = InputChipDefaults.inputChipColors(
                     selectedContainerColor = PrimaryColor,
+                    selectedLabelColor = Color.White,
                 )
             )
 //            InputChip(
@@ -140,7 +150,12 @@ fun Chat(
                         pirateId = chat.pirateId,
                         username = chat.username,
                         lastMessage = chat.message,
+                        receivedAt = chat.receiveTime,
                         profileImage = chat.image.toInt(),
+                        unreadMessages = chat.receiveTime > lastOpened.getOrDefault(
+                            DetailsKey.LAST_OPENED.value + ":" + chat.pirateId,
+                            "0000-01-01 00:00"
+                        ),
                         mainViewModel = mainViewModel,
                     )
                 }
@@ -148,7 +163,15 @@ fun Chat(
 
             ChatList.CREWS ->
                 crews.forEach { details ->
-                    ChatRow(details[0], details[0], details[1], details[2].toInt(), mainViewModel)
+                    ChatRow(
+                        details[0],
+                        details[0],
+                        details[1],
+                        "",
+                        details[2].toInt(),
+                        false,
+                        mainViewModel
+                    )
                 }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -160,11 +183,16 @@ fun ChatRow(
     pirateId: String,
     username: String,
     lastMessage: String = "",
+    receivedAt: String,
     profileImage: Int,
+    unreadMessages: Boolean,
     mainViewModel: MainViewModel,
 ) {
     val horizontalPadding = 24.dp
     val imageSize = 60.dp
+    val iconSize = 16.dp
+    val dateTime = utcToLocal(receivedAt)
+    val newMessagesIcon = R.drawable.chat_unread_icon
 
     Row(
         modifier = Modifier
@@ -192,7 +220,10 @@ fun ChatRow(
                 .clip(CircleShape)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Column {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.75f),
+        ) {
             Text(
                 text = username,
                 color = Color.LightGray,
@@ -208,6 +239,32 @@ fun ChatRow(
                 fontWeight = FontWeight.Normal,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceAround,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(iconSize + 4.dp)
+                    .padding(horizontal = 2.dp),
+            ) {
+                if (unreadMessages) {
+                    Icon(
+                        painter = painterResource(id = newMessagesIcon),
+                        contentDescription = "New Message",
+                        modifier = Modifier
+                            .size(iconSize),
+                    )
+                }
+            }
+            Text(
+                text = dateTime.second.substring(0, 5),
+                color = Color.LightGray,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Normal,
             )
         }
     }

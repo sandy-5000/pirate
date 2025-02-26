@@ -33,6 +33,9 @@ interface UserChatDao {
     )
     suspend fun getLatestInsertedMessage(pirateId: String, id: Int): List<UserChat>
 
+    @Query("DELETE FROM user_chats WHERE pirate_id = :pirateId")
+    suspend fun deletePirateChat(pirateId: String)
+
     @Query("DELETE FROM user_chats")
     suspend fun deleteAll()
 }

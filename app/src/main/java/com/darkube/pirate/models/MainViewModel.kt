@@ -24,6 +24,7 @@ import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
 import com.darkube.pirate.utils.DataBase
 import com.darkube.pirate.utils.HomeRoute
+import com.darkube.pirate.utils.getCurrentUtcTimestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -213,6 +214,27 @@ class MainViewModel(
             }
             _chatsListState.value = charRows
         }
+    }
+
+    private val _lastOpened = MutableStateFlow(mapOf<String, String>())
+    val lastOpened: StateFlow<Map<String, String>> = _lastOpened.asStateFlow()
+
+    fun setAllLastOpened() {
+        viewModelScope.launch {
+            val lastOpenedList = dataBase.userDetailsDao.getLastOpenedTime().first()
+            val lastOpenedMap = lastOpenedList.associate { it.key to it.value }.toMutableMap()
+            _lastOpened.value = lastOpenedMap
+        }
+    }
+
+    suspend fun setLastOpened(pirateId: String) {
+        dataBase.userDetailsDao.update(
+            UserDetails(
+                key = DetailsKey.LAST_OPENED.value + ":" + pirateId,
+                value = getCurrentUtcTimestamp()
+            )
+        )
+        setAllLastOpened()
     }
 
     // == REQUESTS - States
@@ -422,6 +444,17 @@ class MainViewModel(
             messageOffset += limit
         }
     }
+
+    fun clearPirateChat(pirateId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataBase.userChatDao.deletePirateChat(pirateId = pirateId)
+            dataBase.lastMessageDao.clearMessage(pirateId = pirateId)
+            if (pirateId == currentPirateId) {
+                _userChatState.value = emptyList()
+                messageOffset = 0
+            }
+        }
+    }
     // ________ ChatScreen
 
     // SettingsScreen - States
@@ -453,7 +486,7 @@ class MainViewModel(
 
     private fun setAllChatNotifications() {
         viewModelScope.launch {
-            val chatNotificationsList = dataBase.userDetailsDao.getKeysLike().first()
+            val chatNotificationsList = dataBase.userDetailsDao.getMutedChats().first()
             val chatNotificationsMap = chatNotificationsList.associate { it.key to it.value }.toMutableMap()
             _chatNotifications.value = chatNotificationsMap
         }

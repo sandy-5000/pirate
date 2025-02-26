@@ -155,6 +155,7 @@ fun Requests(
                     label = { Text("Requests") },
                     colors = InputChipDefaults.inputChipColors(
                         selectedContainerColor = PrimaryColor,
+                        selectedLabelColor = Color.White,
                     )
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -166,6 +167,7 @@ fun Requests(
                     label = { Text("Friends") },
                     colors = InputChipDefaults.inputChipColors(
                         selectedContainerColor = PrimaryColor,
+                        selectedLabelColor = Color.White,
                     )
                 )
             }

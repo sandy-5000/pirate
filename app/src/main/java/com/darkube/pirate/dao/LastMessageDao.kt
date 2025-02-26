@@ -15,6 +15,9 @@ interface LastMessageDao {
     )
     fun upsertMessage(pirateId: String, username: String, message: String)
 
+    @Query("UPDATE last_message SET message = '' WHERE pirate_id = :pirateId")
+    suspend fun clearMessage(pirateId: String)
+
     @Query(value = "SELECT * FROM last_message ORDER BY receive_time DESC")
     fun getAllMessages(): Flow<List<LastMessage>>
 
