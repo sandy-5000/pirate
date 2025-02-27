@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
   console.log('user connected:', socket.id)
 
   socket.on('init', ({ pirateId, status = USER_STATUS.ONLINE }) => {
-    if (!Object.values().includes(status)) {
+    if (!Object.values(USER_STATUS).includes(status)) {
       status = USER_STATUS.ONLINE
     }
     const prevSocket = userSockets.get(pirateId)
