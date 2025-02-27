@@ -27,7 +27,7 @@ object SocketManager : DefaultLifecycleObserver {
         }
         try {
             val body = JSONObject().put("pirateId", pirateId)
-            if (!flag) {
+            if (flag) {
                 body.put("status", "OFFLINE")
             }
             socket = IO.socket(SERVER_URL).apply {
