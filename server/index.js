@@ -52,6 +52,8 @@ const io = new SocketServer(server, {
 const pirateIds = new Map()
 const userSockets = new Map()
 const onlineUsers = new Map()
+const pairsMap = new Map()
+const rPairsMap = new Map()
 
 io.on('connection', (socket) => {
   console.log('user connected:', socket.id)
@@ -65,12 +67,54 @@ io.on('connection', (socket) => {
     pirateIds.set(socket.id, pirateId)
     userSockets.set(pirateId, socket)
     onlineUsers.set(pirateId, { status: USER_STATUS.ONLINE })
+    const otherPirateId = rPairsMap.get(pirateId)
+    if (otherPirateId) {
+      const otherSocket = userSockets.get(otherPirateId)
+      otherSocket?.emit('user-online-response', { isOnline: true })
+    }
   })
 
-  socket.on('is-online', ({ otherPirateId }) => {
+  socket.on('enter-chat', ({ otherPirateId }) => {
+    const pirateId = pirateIds.get(socket.id)
+    if (pirateId) {
+      pairsMap.set(pirateId, otherPirateId)
+      rPairsMap.set(otherPirateId, pirateId)
+    }
     const userInfo = onlineUsers.get(otherPirateId)
     const isOnline = userInfo?.status === USER_STATUS.ONLINE
-    socket.emit('is-online-response', { isOnline })
+    socket.emit('user-online-response', { isOnline })
+  })
+
+  socket.on('exit-chat', () => {
+    const pirateId = pirateIds.get(socket.id)
+    if (pirateId) {
+      const otherPirateId = pairsMap.get(pirateId)
+      if (otherPirateId) {
+        pairsMap.delete(pirateId)
+        rPairsMap.delete(otherPirateId)
+      }
+    }
+  })
+
+  const typingChanged = (isTyping) => {
+    const pirateId = pirateIds.get(socket.id)
+    if (!pirateId) {
+      return
+    }
+    const otherPirateId = pairsMap.get(pirateId)
+    if (!otherPirateId) {
+      return
+    }
+    const otherSocket = userSockets.get(otherPirateId)
+    otherSocket?.emit('typing-changed', { otherPirateId: pirateId, isTyping })
+  }
+
+  socket.on('started-typing', () => {
+    typingChanged(true)
+  })
+
+  socket.on('stopped-typing', () => {
+    typingChanged(false)
   })
 
   socket.on('disconnect', () => {
