@@ -179,12 +179,12 @@ fun ChatInput(
             BasicTextField(
                 value = message,
                 onValueChange = {
-                    if (message.isEmpty()) {
+                    message = it
+                    if (it.trim().isEmpty()) {
                         SocketManager.stoppedTyping()
                     } else {
                         SocketManager.startedTyping()
                     }
-                    message = it
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -279,7 +279,7 @@ fun ChatInput(
                             isLongPress = true
                         }
                     }
-                    if (message.isEmpty()) {
+                    if (message.trim().isEmpty()) {
                         return@IconButton
                     } else {
                         sendMessage()

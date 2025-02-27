@@ -155,8 +155,8 @@ fun ChatScreenTopBar(
                         .size(36.dp)
                         .clip(CircleShape)
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
                         text = pageTitle,

@@ -56,15 +56,13 @@ object SocketManager : DefaultLifecycleObserver {
         socket?.on("user-online-response") { args ->
             val response = args.getOrNull(0) as? JSONObject
             val isOnline = response?.optBoolean("isOnline") ?: false
-            Log.d("Socket.IO", "Received is-online response: $otherPirateId is $isOnline")
             isOnlineCallback(isOnline)
         }
         socket?.off("typing-changed")
         socket?.on("typing-changed") { args ->
             val response = args.getOrNull(0) as? JSONObject
             val isTyping = response?.optBoolean("isTyping") ?: false
-            val receiverPirateId = response?.optBoolean("otherPirateId") ?: ""
-            Log.d("Socket.IO", "Received is-typing response: $receiverPirateId is $isTyping")
+            val receiverPirateId = response?.optString("otherPirateId") ?: ""
             if (receiverPirateId == otherPirateId) {
                 isTypingCallback(isTyping)
             }
@@ -81,11 +79,11 @@ object SocketManager : DefaultLifecycleObserver {
     }
 
     fun startedTyping() {
-        socket?.emit("started-typing")
+        socket?.emit("started-typing", JSONObject().put("debug", ""))
     }
 
     fun stoppedTyping() {
-        socket?.emit("stopped-typing")
+        socket?.emit("stopped-typing", JSONObject().put("debug", ""))
     }
 
     override fun onStart(owner: LifecycleOwner) {
