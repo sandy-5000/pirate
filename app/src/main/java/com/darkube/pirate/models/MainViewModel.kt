@@ -71,6 +71,13 @@ class MainViewModel(
             instance?.setAllLastOpened()
         }
 
+        fun hideOnlineStatus(): Boolean {
+            return instance?._userState?.value?.getOrDefault(
+                DetailsKey.HIDE_ONLINE_STATUS.value,
+                "false"
+            ) == "true"
+        }
+
         fun emit(eventInfo: EventInfo) {
             if (eventInfo.type == EventType.MESSAGE) {
                 if (
@@ -503,13 +510,29 @@ class MainViewModel(
         setAllUserDetails()
     }
 
+    suspend fun setHideOnlineStatus() {
+        dataBase.userDetailsDao.update(
+            UserDetails(
+                key = DetailsKey.HIDE_ONLINE_STATUS.value,
+                value = "true"
+            )
+        )
+        setAllUserDetails()
+    }
+
+    suspend fun removeHideOnlineStatus() {
+        dataBase.userDetailsDao.delete(key = DetailsKey.HIDE_ONLINE_STATUS.value)
+        setAllUserDetails()
+    }
+
     private val _chatNotifications = MutableStateFlow(mapOf<String, String>())
     val chatNotifications: StateFlow<Map<String, String>> = _chatNotifications.asStateFlow()
 
     private fun setAllChatNotifications() {
         viewModelScope.launch {
             val chatNotificationsList = dataBase.userDetailsDao.getMutedChats().first()
-            val chatNotificationsMap = chatNotificationsList.associate { it.key to it.value }.toMutableMap()
+            val chatNotificationsMap =
+                chatNotificationsList.associate { it.key to it.value }.toMutableMap()
             _chatNotifications.value = chatNotificationsMap
         }
     }

@@ -2,7 +2,6 @@ package com.darkube.pirate.components
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -71,8 +70,11 @@ import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
+import com.darkube.pirate.ui.theme.PrimaryBlue
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.RedColor
+import com.darkube.pirate.ui.theme.SecondaryBlue
+import com.darkube.pirate.ui.theme.TertiaryBlue
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.launch
@@ -492,6 +494,7 @@ fun SettingScreenBottomScaffold(
                         onCheckedChange = { isOn = it },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = NavBarBackground,
+                            checkedTrackColor = PrimaryBlue,
                             checkedBorderColor = NavBarBackground,
                             uncheckedThumbColor = NavBarBackground,
                             uncheckedTrackColor = PrimaryColor,
@@ -528,7 +531,6 @@ fun SettingScreenBottomScaffold(
                 val mutedFriendsIds = remember(mutedFriends) {
                     mutedFriends.filter { it.value == "true" }.keys.toSet()
                 }
-                Log.d("mute-o", mutedFriendsIds.toString())
 
                 val filteredFriends by remember(friends, mutedFriends) {
                     derivedStateOf {
@@ -649,6 +651,7 @@ fun SettingScreenBottomScaffold(
                         },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = NavBarBackground,
+                            checkedTrackColor = PrimaryBlue,
                             checkedBorderColor = NavBarBackground,
                             uncheckedThumbColor = NavBarBackground,
                             uncheckedTrackColor = PrimaryColor,
@@ -672,69 +675,129 @@ fun SettingScreenBottomScaffold(
             }
 
             SettingsBottomComponent.PRIVACY -> {
-                val scrollState = rememberScrollState()
-
-                val policyMessages = listOf(
-                    listOf(
-                        "Privacy Policy for Pirate",
-                        "At Pirate, your privacy is our top priority. This Privacy Policy outlines how we handle your information, ensuring that your personal data is safe and secure. By using Pirate, you agree to the practices described in this policy.",
-                    ),
-                    listOf(
-                        "1. No Data Storage",
-                        "We want to assure you that Pirate does not store any messages, content, or communications you send through the app on our servers or backend systems. All messages and data are processed only temporarily during the communication session and are not retained in any form once the session ends."
-                    ),
-                    listOf(
-                        "2. No Use of Data for Other Purposes",
-                        "We do not collect, process, or store any personal information from your messages or interactions with Pirate for any other purpose. Your data is not used to create personal profiles, for analysis, or for any type of marketing, advertising, or business purposes."
-                    ),
-                    listOf(
-                        "3. No Sharing with Third Parties",
-                        "We do not share, sell, or disclose any user data or message content to third-party applications, advertisers, or any external organizations. Your information remains private and is not used in any form by any third-party services.",
-                    ),
-                    listOf(
-                        "4. Security",
-                        "We implement reasonable security measures to protect the data you send through Pirate. However, please note that no system can be completely secure, and we cannot guarantee absolute protection against unauthorized access.",
-                    ),
-                    listOf(
-                        "5. Changes to This Policy",
-                        "We reserve the right to update this Privacy Policy at any time. If we make any changes, we will update the \"Effective Date\" at the top of this page. We encourage you to periodically review this policy for any updates.",
-                    ),
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(500.dp),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .verticalScroll(scrollState)
-                            .fillMaxWidth(),
-                    ) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        policyMessages.forEachIndexed { index, messages ->
-                            Text(
-                                text = messages[0],
-                                modifier = Modifier
-                                    .padding(horizontal = horizontalPadding),
-                                fontSize = 16.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = messages[1],
-                                modifier = Modifier.padding(horizontal = horizontalPadding),
-                                fontSize = 14.sp, color = LightColor,
-                            )
-                            Spacer(modifier = Modifier.height(28.dp))
-                            if (index == 0) {
-                                Spacer(modifier = Modifier.height(12.dp))
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(20.dp))
+                var loading by remember { mutableStateOf(false) }
+                val hideOnlineStatus by remember {
+                    derivedStateOf {
+                        userState.getOrDefault(DetailsKey.HIDE_ONLINE_STATUS.value, "false") == "true"
                     }
                 }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Hide Online Status",
+                        fontSize = 16.sp,
+                        color = LightColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Switch(
+                        checked = hideOnlineStatus,
+                        enabled = !loading,
+                        onCheckedChange = {
+                            loading = true
+                            mainViewModel.viewModelScope.launch {
+                                if (it) {
+                                    mainViewModel.setHideOnlineStatus()
+                                } else {
+                                    mainViewModel.removeHideOnlineStatus()
+                                }
+                                loading = false
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = NavBarBackground,
+                            checkedTrackColor = PrimaryBlue,
+                            checkedBorderColor = NavBarBackground,
+                            uncheckedThumbColor = NavBarBackground,
+                            uncheckedTrackColor = PrimaryColor,
+                            uncheckedBorderColor = NavBarBackground,
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = "You can set your the online status preferences.",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "Customize your online status settings based on your preference. You will be able to see others' online status only if yours is visible.",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(120.dp))
             }
+
+//            SettingsBottomComponent.PRIVACY -> {
+//                val scrollState = rememberScrollState()
+//
+//                val policyMessages = listOf(
+//                    listOf(
+//                        "Privacy Policy for Pirate",
+//                        "At Pirate, your privacy is our top priority. This Privacy Policy outlines how we handle your information, ensuring that your personal data is safe and secure. By using Pirate, you agree to the practices described in this policy.",
+//                    ),
+//                    listOf(
+//                        "1. No Data Storage",
+//                        "We want to assure you that Pirate does not store any messages, content, or communications you send through the app on our servers or backend systems. All messages and data are processed only temporarily during the communication session and are not retained in any form once the session ends."
+//                    ),
+//                    listOf(
+//                        "2. No Use of Data for Other Purposes",
+//                        "We do not collect, process, or store any personal information from your messages or interactions with Pirate for any other purpose. Your data is not used to create personal profiles, for analysis, or for any type of marketing, advertising, or business purposes."
+//                    ),
+//                    listOf(
+//                        "3. No Sharing with Third Parties",
+//                        "We do not share, sell, or disclose any user data or message content to third-party applications, advertisers, or any external organizations. Your information remains private and is not used in any form by any third-party services.",
+//                    ),
+//                    listOf(
+//                        "4. Security",
+//                        "We implement reasonable security measures to protect the data you send through Pirate. However, please note that no system can be completely secure, and we cannot guarantee absolute protection against unauthorized access.",
+//                    ),
+//                    listOf(
+//                        "5. Changes to This Policy",
+//                        "We reserve the right to update this Privacy Policy at any time. If we make any changes, we will update the \"Effective Date\" at the top of this page. We encourage you to periodically review this policy for any updates.",
+//                    ),
+//                )
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(500.dp),
+//                ) {
+//                    Column(
+//                        modifier = Modifier
+//                            .verticalScroll(scrollState)
+//                            .fillMaxWidth(),
+//                    ) {
+//                        Spacer(modifier = Modifier.height(24.dp))
+//                        policyMessages.forEachIndexed { index, messages ->
+//                            Text(
+//                                text = messages[0],
+//                                modifier = Modifier
+//                                    .padding(horizontal = horizontalPadding),
+//                                fontSize = 16.sp,
+//                                color = Color.White,
+//                                fontWeight = FontWeight.SemiBold,
+//                            )
+//                            Spacer(modifier = Modifier.height(8.dp))
+//                            Text(
+//                                text = messages[1],
+//                                modifier = Modifier.padding(horizontal = horizontalPadding),
+//                                fontSize = 14.sp, color = LightColor,
+//                            )
+//                            Spacer(modifier = Modifier.height(28.dp))
+//                            if (index == 0) {
+//                                Spacer(modifier = Modifier.height(12.dp))
+//                            }
+//                        }
+//                        Spacer(modifier = Modifier.height(20.dp))
+//                    }
+//                }
+//            }
 
             SettingsBottomComponent.LOGOUT -> {
                 Text(

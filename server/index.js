@@ -58,7 +58,10 @@ const rPairsMap = new Map()
 io.on('connection', (socket) => {
   console.log('user connected:', socket.id)
 
-  socket.on('init', ({ pirateId }) => {
+  socket.on('init', ({ pirateId, status = USER_STATUS.ONLINE }) => {
+    if (!Object.values().includes(status)) {
+      status = USER_STATUS.ONLINE
+    }
     const prevSocket = userSockets.get(pirateId)
     if (prevSocket) {
       prevSocket.disconnect(true)
@@ -66,9 +69,9 @@ io.on('connection', (socket) => {
     }
     pirateIds.set(socket.id, pirateId)
     userSockets.set(pirateId, socket)
-    onlineUsers.set(pirateId, { status: USER_STATUS.ONLINE })
+    onlineUsers.set(pirateId, { status })
     const otherPirateId = rPairsMap.get(pirateId)
-    if (otherPirateId) {
+    if (otherPirateId && status === USER_STATUS.ONLINE) {
       const otherSocket = userSockets.get(otherPirateId)
       otherSocket?.emit('user-online-response', { isOnline: true })
     }

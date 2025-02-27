@@ -6,6 +6,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.darkube.pirate.config.SERVER_URL
+import com.darkube.pirate.models.MainViewModel
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONObject
@@ -20,14 +21,18 @@ object SocketManager : DefaultLifecycleObserver {
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
-    private fun connect() {
+    private fun connect(flag: Boolean = true) {
         if (socket != null) {
             return
         }
         try {
+            val body = JSONObject().put("pirateId", pirateId)
+            if (!flag) {
+                body.put("status", "OFFLINE")
+            }
             socket = IO.socket(SERVER_URL).apply {
                 on(Socket.EVENT_CONNECT) {
-                    emit("init", JSONObject().put("pirateId", pirateId))
+                    emit("init", body)
                     Log.d("Socket.IO", "Connected to server")
                 }
                 connect()
@@ -88,7 +93,7 @@ object SocketManager : DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
-        connect()
+        connect(MainViewModel.hideOnlineStatus())
         Log.d("Socket.IO", "App is in foreground")
     }
 

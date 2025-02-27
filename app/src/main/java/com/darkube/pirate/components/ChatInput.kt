@@ -2,7 +2,6 @@ package com.darkube.pirate.components
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -22,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,6 +92,14 @@ fun ChatInput(
     var isLongPress by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 
+    LaunchedEffect(message) {
+        if (message.isEmpty()) {
+            SocketManager.stoppedTyping()
+        } else {
+            SocketManager.startedTyping()
+        }
+    }
+
     val sendMessage = {
         val body = buildJsonObject {
             put("message", message.trim())
@@ -101,7 +109,7 @@ fun ChatInput(
             mainViewModel.viewModelScope.launch {
                 mainViewModel.updateNewMessageForPirate(
                     pirateId = pirateId,
-                    message = message,
+                    message = message.trim(),
                     type = MessageType.TEXT.value,
                     side = 0,
                     username = username,
@@ -181,11 +189,6 @@ fun ChatInput(
                 value = message,
                 onValueChange = {
                     message = it
-                    if (it.trim().isEmpty()) {
-                        SocketManager.stoppedTyping()
-                    } else {
-                        SocketManager.startedTyping()
-                    }
                 },
                 modifier = Modifier
                     .weight(1f)

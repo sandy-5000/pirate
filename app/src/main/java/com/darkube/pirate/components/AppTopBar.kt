@@ -43,7 +43,6 @@ import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.AppBackground
 import com.darkube.pirate.ui.theme.LightColor
-import com.darkube.pirate.ui.theme.LightRedColor
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.InviteFriendsRoute
@@ -117,6 +116,12 @@ fun ChatScreenTopBar(
     val iconSize = 20.dp
     val sidesPadding = 18.dp
     val backGroundColor = AppBackground
+    val userState by mainViewModel.userState.collectAsState()
+    val hideOnlineStatus by remember(userState) {
+        derivedStateOf {
+            userState.getOrDefault(DetailsKey.HIDE_ONLINE_STATUS.value, "false") == "true"
+        }
+    }
     val isPirateOnline by mainViewModel.otherUserOnline.collectAsState()
 
     Row(
@@ -168,7 +173,7 @@ fun ChatScreenTopBar(
                             start = titlePadding,
                         ),
                     )
-                    if (isPirateOnline) {
+                    if (isPirateOnline && !hideOnlineStatus) {
                         Text(
                             text = "online",
                             fontSize = 15.sp,
