@@ -97,18 +97,16 @@ io.on('connection', (socket) => {
   })
 
   const typingChanged = (isTyping) => {
-    console.log(socket.id, 'typing-changed-0', isTyping)
     const pirateId = pirateIds.get(socket.id)
     if (!pirateId) {
       return
     }
-    console.log(socket.id, 'typing-changed-1', isTyping)
     const otherPirateId = pairsMap.get(pirateId)
     if (!otherPirateId) {
       return
     }
-    console.log(socket.id, 'typing-changed-2', isTyping)
     const otherSocket = userSockets.get(otherPirateId)
+    console.log(socket.id, 'typing-changed', isTyping, otherSocket?.id)
     otherSocket?.emit('typing-changed', { otherPirateId: pirateId, isTyping })
   }
 
