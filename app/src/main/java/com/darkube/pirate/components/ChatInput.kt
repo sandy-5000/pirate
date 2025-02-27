@@ -2,6 +2,7 @@ package com.darkube.pirate.components
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -93,7 +94,7 @@ fun ChatInput(
 
     val sendMessage = {
         val body = buildJsonObject {
-            put("message", message)
+            put("message", message.trim())
         }
         loading = true
         if (userId == pirateId) {
