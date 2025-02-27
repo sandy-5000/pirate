@@ -774,6 +774,29 @@ fun SettingScreenBottomScaffold(
                 Spacer(modifier = Modifier.height(80.dp))
             }
 
+            SettingsBottomComponent.ABOUT -> {
+                Text(
+                    text = "About Pirate",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 16.sp,
+                    color = LightColor,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = "Hoist the sails and set course for adventure! Pirate lets ye chat with yer crew in a simple, fast, and fun way. No distractions, just smooth sailing!",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "Pirates never spill their secrets! With Pirate, ye can chat freely, knowing yer messages stay safe in the treasure chest of privacy.",
+                    modifier = Modifier.padding(horizontal = horizontalPadding),
+                    fontSize = 14.sp, color = LightColor,
+                )
+                Spacer(modifier = Modifier.height(60.dp))
+            }
+
             SettingsBottomComponent.LOGOUT -> {
                 Text(
                     text = "Logout From this Device",

@@ -8,6 +8,6 @@ enum class SettingsBottomComponent {
     NOTIFICATIONS,
     PRIVACY,
     DATA_AND_STORAGE,
-    HELP,
+    ABOUT,
     LOGOUT,
 }

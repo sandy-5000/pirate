@@ -34,11 +34,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darkube.pirate.R
 import com.darkube.pirate.R.drawable.share_icon
 import com.darkube.pirate.ui.theme.AppBackground
+import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryColor
 
@@ -57,8 +59,10 @@ fun InviteFriends(
         type = "text/plain"
     }
     val copyIcon = R.drawable.tabs_icon
-    val linkIcon = R.drawable.map_arrow_right_icon
+    val linkIcon = R.drawable.map_arrow_square_icon
     val iconSize = 20.dp
+    val imageSize = 100.dp
+    val pirateFlag = R.drawable.pirate_flag_outline
 
     val shareIntent = Intent.createChooser(sendIntent, null)
 
@@ -70,9 +74,37 @@ fun InviteFriends(
             .padding(top = 60.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Row(
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                painter = painterResource(id = pirateFlag),
+                contentDescription = "Shield",
+                modifier = Modifier
+                    .size(imageSize),
+            )
+        }
+        Spacer(modifier = Modifier.height(40.dp))
+        Text(
+            text = "Ahoy, Matey!",
+            modifier = Modifier.padding(horizontal = 20.dp),
+            fontSize = 18.sp,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Gather yer crew and set sail for adventure! Join me on Pirate for fast and simple chats—no buried treasure required!",
+            modifier = Modifier.padding(horizontal = 20.dp),
+            fontSize = 14.sp,
+            color = LightColor,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(40.dp))
         TextField(
             modifier = Modifier
-                .clip(shape = RoundedCornerShape(32.dp))
+                .clip(shape = RoundedCornerShape(20.dp))
                 .background(textBoxBackground),
             value = shareLink,
             onValueChange = {},
@@ -86,19 +118,23 @@ fun InviteFriends(
             leadingIcon = {
                 Icon(
                     painter = painterResource(id = linkIcon),
-                    contentDescription = "firstNameIcon",
+                    contentDescription = "Share Icon",
                     modifier = Modifier.size(iconSize),
                 )
             },
             trailingIcon = {
                 Icon(
                     painter = painterResource(id = copyIcon),
-                    contentDescription = "edit",
-                    modifier = Modifier.size(iconSize).clickable(onClick = {
-                        val clip = android.content.ClipData.newPlainText("Copied Text", shareLink)
-                    clipboardManager.setPrimaryClip(clip)
-                        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
-                    }),
+                    contentDescription = "Copy Icon",
+                    modifier = Modifier
+                        .size(iconSize)
+                        .clickable(onClick = {
+                            val clip =
+                                android.content.ClipData.newPlainText("Copied Text", shareLink)
+                            clipboardManager.setPrimaryClip(clip)
+                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT)
+                                .show()
+                        }),
                 )
             },
             textStyle = TextStyle(fontSize = 14.sp)
@@ -106,7 +142,7 @@ fun InviteFriends(
         Spacer(Modifier.height(20.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.Center,
         ) {
             Button(
                 onClick = {

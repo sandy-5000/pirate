@@ -288,17 +288,17 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-
+                    openBottomModel(SettingsBottomComponent.ABOUT)
                 })
                 .padding(internalPadding),
         ) {
             Icon(
                 painter = painterResource(id = helpIcon),
-                contentDescription = "Help",
+                contentDescription = "About",
                 modifier = Modifier.padding(start = internalPadding, end = internalPadding)
             )
             Text(
-                text = "Help",
+                text = "About",
                 color = Color.White,
             )
         }
