@@ -269,7 +269,7 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-
+                    openBottomModel(SettingsBottomComponent.DATA_AND_STORAGE)
                 })
                 .padding(internalPadding),
         ) {

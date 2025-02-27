@@ -12,6 +12,8 @@ import com.darkube.pirate.types.room.FriendsInfo
 import com.darkube.pirate.types.room.LastMessage
 import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
+import java.io.File
+import java.util.Locale
 
 @Database(
     entities = [UserDetails::class, LastMessage::class, FriendsInfo::class, UserChat::class],
@@ -40,6 +42,30 @@ object DatabaseProvider {
             ).build()
             INSTANCE = instance
             instance
+        }
+    }
+
+    @JvmStatic
+    fun getDatabaseSize(context: Context): String {
+        val dbFile = File(context.getDatabasePath("pirate_database").absolutePath)
+
+        if (!dbFile.exists()) return "0 KB"
+
+        val sizeInBytes = dbFile.length().toDouble()
+        return when {
+            sizeInBytes >= 1_073_741_824 -> String.format(
+                Locale.US,
+                "%.2f GB",
+                sizeInBytes / (1024 * 1024 * 1024)
+            )
+
+            sizeInBytes >= 1_048_576 -> String.format(
+                Locale.US,
+                "%.2f MB",
+                sizeInBytes / (1024 * 1024)
+            )
+
+            else -> String.format(Locale.US, "%.2f KB", sizeInBytes / 1024)
         }
     }
 }
