@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.services.SocketManager
 import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.ui.theme.AppBackground
@@ -116,6 +117,7 @@ fun ChatScreenTopBar(
     val iconSize = 20.dp
     val sidesPadding = 18.dp
     val backGroundColor = AppBackground
+    val isPirateOnline by mainViewModel.otherUserOnline.collectAsState()
 
     Row(
         modifier = Modifier
@@ -134,6 +136,7 @@ fun ChatScreenTopBar(
                 IconButton(
                     modifier = Modifier.padding(start = iconPadding),
                     onClick = {
+                        SocketManager.exitChatRoute(pirateId)
                         mainViewModel.navController.popBackStack()
                         mainViewModel.setAllLastOpened()
                     }
@@ -152,16 +155,32 @@ fun ChatScreenTopBar(
                         .size(36.dp)
                         .clip(CircleShape)
                 )
-                Text(
-                    text = pageTitle,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(
-                        start = titlePadding,
-                    ),
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = pageTitle,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(
+                            start = titlePadding,
+                        ),
+                    )
+                    if (isPirateOnline) {
+                        Text(
+                            text = "online",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(
+                                start = titlePadding,
+                            ),
+                        )
+                    }
+                }
             }
         }
         Column(

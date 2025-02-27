@@ -465,6 +465,18 @@ class MainViewModel(
             }
         }
     }
+
+    private val _otherUserOnline = MutableStateFlow(false)
+    val otherUserOnline: StateFlow<Boolean> = _otherUserOnline.asStateFlow()
+    fun setOtherUserOnline(flag: Boolean) {
+        _otherUserOnline.value = flag
+    }
+
+    private val _otherUserTyping = MutableStateFlow(false)
+    val otherUserTyping: StateFlow<Boolean> = _otherUserTyping.asStateFlow()
+    fun setOtherUserTyping(flag: Boolean) {
+        _otherUserTyping.value = flag
+    }
     // ________ ChatScreen
 
     // SettingsScreen - States

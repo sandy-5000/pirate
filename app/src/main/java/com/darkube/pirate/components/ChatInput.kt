@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.services.SocketManager
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.MessageType
@@ -177,7 +178,14 @@ fun ChatInput(
             }
             BasicTextField(
                 value = message,
-                onValueChange = { message = it },
+                onValueChange = {
+                    if (message.isEmpty()) {
+                        SocketManager.stoppedTyping()
+                    } else {
+                        SocketManager.startedTyping()
+                    }
+                    message = it
+                },
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp, end = 8.dp),

@@ -43,6 +43,7 @@ import com.darkube.pirate.R
 import com.darkube.pirate.components.ChatBubble
 import com.darkube.pirate.components.DataLoading
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.services.SocketManager
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.FriendType
 import com.darkube.pirate.types.RequestType
@@ -51,6 +52,7 @@ import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.LightRedColor
 import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryBlue
+import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.getMinutesDifference
 import com.darkube.pirate.utils.getProfileImage
@@ -143,6 +145,8 @@ fun Conversation(
     LaunchedEffect(Unit) {
         mainViewModel.resetChatState()
         mainViewModel.setLastOpened(pirateId = pirateId)
+        mainViewModel.setOtherUserOnline(false)
+        mainViewModel.setOtherUserTyping(false)
         if (pirateId == userId) {
             screenLoading = false
             mainViewModel.setChatScreen(FriendType.SELF)
@@ -150,6 +154,20 @@ fun Conversation(
             fetchFriendType()
         }
         fetchFriendInfo()
+    }
+
+    LaunchedEffect(chatScreen) {
+        if (chatScreen == FriendType.FRIENDS) {
+            SocketManager.enterChatRoute(
+                otherPirateId = pirateId,
+                isOnlineCallback = { isOnline ->
+                    mainViewModel.setOtherUserOnline(isOnline)
+                },
+                isTypingCallback = { isTyping ->
+                    mainViewModel.setOtherUserTyping(isTyping)
+                },
+            )
+        }
     }
 
     Column(
@@ -187,6 +205,7 @@ fun Friends(
     val messages by mainViewModel.userChatState.collectAsState()
     val listState = rememberLazyListState()
     var isLoading by remember { mutableStateOf(false) }
+    val isPirateTyping by mainViewModel.otherUserTyping.collectAsState()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -220,6 +239,24 @@ fun Friends(
                     mainViewModel = mainViewModel,
                     reload = reload,
                 )
+            }
+        }
+        if (isPirateTyping) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .padding(top = 4.dp, start = 20.dp)
+                        .clip(shape = CircleShape)
+                        .background(NavBarBackground)
+                        .padding(vertical = 8.dp, horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.Start,
+                ) {
+                    Text(
+                        "typing...",
+                        fontSize = 14.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
         items(messages.size) { index ->

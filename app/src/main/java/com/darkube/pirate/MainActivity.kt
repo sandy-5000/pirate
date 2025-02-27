@@ -1,6 +1,7 @@
 package com.darkube.pirate
 
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -64,6 +65,7 @@ import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
+import com.darkube.pirate.services.SocketManager
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.ui.theme.LightColor
@@ -115,6 +117,15 @@ fun AuthenticatedScreen(mainViewModel: MainViewModel, context: Context) {
                 message = "    Loading ...",
             )
         } else if (userState.getOrDefault("logged_in", "false") == "true") {
+            val userId = userState.getOrDefault("_id", "")
+            if (userId.isNotEmpty()) {
+                LaunchedEffect(userId) {
+                    SocketManager.initialize(
+                        application = context.applicationContext as Application,
+                        userId = userId,
+                    )
+                }
+            }
             MainScreen(mainViewModel = mainViewModel, context = context)
         } else {
             Authentication(
@@ -365,14 +376,17 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
             }
         }
         composable<ChatRoute> {
-            BackHandler {
-                mainViewModel.navController.popBackStack()
-                mainViewModel.setAllLastOpened()
-            }
             val args = it.toRoute<ChatRoute>()
             val pirateId = args.pirateId
             val username = args.username
             val profileImage = args.profileImage
+
+            BackHandler {
+                SocketManager.exitChatRoute(pirateId)
+                mainViewModel.navController.popBackStack()
+                mainViewModel.setAllLastOpened()
+            }
+
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
