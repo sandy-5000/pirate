@@ -252,9 +252,10 @@ fun Friends(
                     horizontalArrangement = Arrangement.Start,
                 ) {
                     Text(
-                        "typing...",
+                        text = "typing...",
+                        modifier = Modifier.padding(bottom = 2.dp),
                         fontSize = 14.sp,
-                        color = Color.White
+                        color = Color.White,
                     )
                 }
             }

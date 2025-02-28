@@ -23,6 +23,7 @@ import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
 import com.darkube.pirate.services.DataBase
+import com.darkube.pirate.services.KeyStoreManager
 import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.getCurrentUtcTimestamp
 import kotlinx.coroutines.Dispatchers
@@ -149,6 +150,28 @@ class MainViewModel(
         )
     }
 
+    val generateAndUploadKeys = { token: String ->
+        KeyStoreManager.regenerateKeyPair()
+        val publicKey = KeyStoreManager.getPublicKey().toString()
+        val headers = mapOf("token" to token)
+        val body = buildJsonObject {
+            put("public_key", publicKey)
+        }
+        fetch(
+            url = "/api/user/public_key",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    return@fetch
+                }
+            },
+            body = body,
+            headers = headers,
+            type = RequestType.PATCH,
+        )
+    }
+
     suspend fun login(userDetails: JsonObject, token: String) {
         val keys = listOf("_id", "first_name", "last_name", "username", "email", "bio")
         keys.forEach { key ->
@@ -160,6 +183,7 @@ class MainViewModel(
         dataBase.userDetailsDao.update(UserDetails(key = "profile_image", value = profileImage))
         dataBase.userDetailsDao.update(UserDetails(key = "token", value = token))
         dataBase.userDetailsDao.update(UserDetails(key = "logged_in", value = "true"))
+        generateAndUploadKeys(token)
         setAllUserDetails()
     }
 

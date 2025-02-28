@@ -2,7 +2,6 @@ package com.darkube.pirate.screens
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -44,7 +44,6 @@ import com.darkube.pirate.R
 import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.KeyStoreManager
-import com.darkube.pirate.services.MessageParser
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.RequestType
@@ -199,23 +198,23 @@ fun Privacy(
             ) {
                 Text(
                     text = "Public Key",
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     color = LightColor,
                     fontWeight = FontWeight.Normal,
                 )
                 Text(
                     text = publicKey.replace("\\s+", ""),
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     color = LightColor,
                     fontWeight = FontWeight.Normal,
                     maxLines = 2,
-                    lineHeight = 12.sp,
+                    lineHeight = 14.sp,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
             Icon(
                 painter = painterResource(id = copyIcon),
-                contentDescription = "edit",
+                contentDescription = "Copy",
                 modifier = Modifier
                     .clickable(onClick = {
                         val clip =
@@ -246,7 +245,7 @@ fun Privacy(
             ) {
                 Text(
                     text = "Private Key",
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     color = LightColor,
                     fontWeight = FontWeight.Normal,
                 )
@@ -258,12 +257,7 @@ fun Privacy(
                     maxLines = 1,
                 )
             }
-            Icon(
-                painter = painterResource(id = copyIcon),
-                contentDescription = "edit",
-                modifier = Modifier.size(iconSize),
-                tint = LightColor,
-            )
+            Spacer(modifier = Modifier.width(iconSize))
         }
         Row(
             modifier = Modifier
