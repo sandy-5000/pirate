@@ -8,7 +8,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.room.UserDetails
-import com.darkube.pirate.utils.DatabaseProvider
+import com.darkube.pirate.services.DatabaseProvider
 import com.darkube.pirate.utils.getCurrentUtcTimestamp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

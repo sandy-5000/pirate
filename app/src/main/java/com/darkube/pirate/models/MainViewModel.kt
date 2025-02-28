@@ -22,7 +22,7 @@ import com.darkube.pirate.types.Routes
 import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.types.room.UserChat
 import com.darkube.pirate.types.room.UserDetails
-import com.darkube.pirate.utils.DataBase
+import com.darkube.pirate.services.DataBase
 import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.getCurrentUtcTimestamp
 import kotlinx.coroutines.Dispatchers

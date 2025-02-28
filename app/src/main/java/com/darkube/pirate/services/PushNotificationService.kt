@@ -22,7 +22,6 @@ import com.darkube.pirate.types.EventType
 import com.darkube.pirate.types.MessageType
 import com.darkube.pirate.types.NotificationType
 import com.darkube.pirate.types.room.UserDetails
-import com.darkube.pirate.utils.DatabaseProvider
 import com.darkube.pirate.utils.getCurrentUtcTimestamp
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -41,17 +40,18 @@ class PushNotificationService : FirebaseMessagingService() {
         super.onMessageReceived(message)
 
         val username = message.data["username"] ?: ""
-        val receivedMessage = message.data["message"] ?: ""
+        val encryptedMessage = message.data["message"] ?: ""
         val type = message.data["type"] ?: ""
         val senderId = message.data["sender_id"] ?: ""
 
         if (NotificationType.entries.any { it.value == type }) {
+            val receivedMessage = MessageParser.decrypt(encryptedMessage)
             val typeEnum = NotificationType.valueOf(type)
             if (NotificationType.MESSAGE == typeEnum) {
                 saveMessageToDatabase(
                     senderId = senderId,
                     username = username,
-                    message = receivedMessage
+                    message = receivedMessage,
                 )
             }
             fetchConditionsFromDatabase(

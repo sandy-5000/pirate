@@ -6,13 +6,16 @@ import kotlinx.serialization.Serializable
 object HomeRoute
 
 @Serializable
+data class ChatRoute(val pirateId: String, val username: String, val profileImage: Int)
+
+@Serializable
 object SettingsRoute
 
 @Serializable
 object ProfileRoute
 
 @Serializable
-object InviteFriendsRoute
+object PrivacyRoute
 
 @Serializable
-data class ChatRoute(val pirateId: String, val username: String, val profileImage: Int)
+object InviteFriendsRoute

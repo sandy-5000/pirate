@@ -73,10 +73,8 @@ import com.darkube.pirate.ui.theme.NavBarBackground
 import com.darkube.pirate.ui.theme.PrimaryBlue
 import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.RedColor
-import com.darkube.pirate.ui.theme.SecondaryBlue
-import com.darkube.pirate.ui.theme.TertiaryBlue
 import com.darkube.pirate.utils.ChatRoute
-import com.darkube.pirate.utils.DatabaseProvider
+import com.darkube.pirate.services.DatabaseProvider
 import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
@@ -549,10 +547,10 @@ fun SettingScreenBottomScaffold(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Muted Chat Notifications",
+                        text = "Muted Chats",
                         modifier = Modifier.padding(start = 12.dp),
                         fontSize = 16.sp,
-                        color = Color.White,
+                        color = LightColor,
                         fontWeight = FontWeight.SemiBold,
                     )
                     IconButton(
@@ -598,7 +596,7 @@ fun SettingScreenBottomScaffold(
                         if (filteredFriends.isEmpty()) {
                             Column(
                                 modifier = Modifier
-                                    .height(220.dp)
+                                    .height(320.dp)
                                     .fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,
@@ -653,7 +651,6 @@ fun SettingScreenBottomScaffold(
                         },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = NavBarBackground,
-                            checkedTrackColor = PrimaryBlue,
                             checkedBorderColor = NavBarBackground,
                             uncheckedThumbColor = NavBarBackground,
                             uncheckedTrackColor = PrimaryColor,
@@ -670,69 +667,6 @@ fun SettingScreenBottomScaffold(
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "Customize your notification settings to enable or disable notifications based on your preference.",
-                    modifier = Modifier.padding(horizontal = horizontalPadding),
-                    fontSize = 14.sp, color = LightColor,
-                )
-                Spacer(modifier = Modifier.height(120.dp))
-            }
-
-            SettingsBottomComponent.PRIVACY -> {
-                var loading by remember { mutableStateOf(false) }
-                val hideOnlineStatus by remember {
-                    derivedStateOf {
-                        userState.getOrDefault(
-                            DetailsKey.HIDE_ONLINE_STATUS.value,
-                            "false"
-                        ) == "true"
-                    }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontalPadding),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Hide Online Status",
-                        fontSize = 16.sp,
-                        color = LightColor,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Switch(
-                        checked = hideOnlineStatus,
-                        enabled = !loading,
-                        onCheckedChange = {
-                            loading = true
-                            mainViewModel.viewModelScope.launch {
-                                if (it) {
-                                    mainViewModel.setHideOnlineStatus()
-                                } else {
-                                    mainViewModel.removeHideOnlineStatus()
-                                }
-                                loading = false
-                            }
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = NavBarBackground,
-                            checkedTrackColor = PrimaryBlue,
-                            checkedBorderColor = NavBarBackground,
-                            uncheckedThumbColor = NavBarBackground,
-                            uncheckedTrackColor = PrimaryColor,
-                            uncheckedBorderColor = NavBarBackground,
-                        )
-                    )
-                }
-                Spacer(modifier = Modifier.height(40.dp))
-                Text(
-                    text = "You can set your the online status preferences.",
-                    modifier = Modifier.padding(horizontal = horizontalPadding),
-                    fontSize = 14.sp, color = LightColor,
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text = "Customize your online status settings based on your preference. You will be able to see others' online status only if yours is visible.",
                     modifier = Modifier.padding(horizontal = horizontalPadding),
                     fontSize = 14.sp, color = LightColor,
                 )
@@ -804,7 +738,7 @@ fun SettingScreenBottomScaffold(
                         .padding(horizontal = horizontalPadding)
                         .padding(top = horizontalPadding),
                     fontSize = 16.sp,
-                    color = Color.White,
+                    color = LightColor,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.height(40.dp))

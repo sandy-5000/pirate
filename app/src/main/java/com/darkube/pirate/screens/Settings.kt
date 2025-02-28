@@ -27,17 +27,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.InviteFriendsRoute
+import com.darkube.pirate.utils.PrivacyRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
 @Composable
 fun Settings(
@@ -251,7 +250,7 @@ fun Settings(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-                    openBottomModel(SettingsBottomComponent.PRIVACY)
+                    mainViewModel.navController.navigate(PrivacyRoute)
                 })
                 .padding(internalPadding),
         ) {

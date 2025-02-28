@@ -10,6 +10,7 @@ enum class Routes(val value: String) {
     HOME(HomeRoute.javaClass.name),
     CHAT(ChatRoute.Companion::class.java.name.split("$").first()),
     SETTINGS(SettingsRoute.javaClass.name),
+    PRIVACY(ProfileRoute.javaClass.name),
     PROFILE(ProfileRoute.javaClass.name),
     INVITE_FRIENDS(InviteFriendsRoute.javaClass.name),
 }

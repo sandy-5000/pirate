@@ -58,18 +58,20 @@ import com.darkube.pirate.screens.Settings
 import com.darkube.pirate.screens.home.Home
 import com.darkube.pirate.ui.theme.PirateTheme
 import com.darkube.pirate.utils.ChatRoute
-import com.darkube.pirate.utils.DatabaseProvider
+import com.darkube.pirate.services.DatabaseProvider
 import com.darkube.pirate.utils.HomeRoute
 import com.darkube.pirate.utils.ProfileRoute
 import com.darkube.pirate.utils.SettingsRoute
 import com.darkube.pirate.utils.InviteFriendsRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.darkube.pirate.screens.InviteFriends
+import com.darkube.pirate.screens.Privacy
 import com.darkube.pirate.services.SocketManager
 import com.darkube.pirate.types.HomeScreen
 import com.darkube.pirate.types.SettingsBottomComponent
 import com.darkube.pirate.ui.theme.LightColor
 import com.darkube.pirate.ui.theme.NavBarBackground
+import com.darkube.pirate.utils.PrivacyRoute
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -150,35 +152,31 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
         }
     }
 
-    fun handleBack() {
-        mainViewModel.navController.popBackStack()
-    }
-
     NavHost(
         navController = mainViewModel.navController,
         startDestination = HomeRoute,
         enterTransition = {
             slideInHorizontally(
                 initialOffsetX = { it },
-                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
             )
         },
         exitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { -it / 2 },
-                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
             )
         },
         popExitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { it },
-                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
             )
         },
         popEnterTransition = {
             slideInHorizontally(
                 initialOffsetX = { -it / 2 },
-                animationSpec = spring(stiffness = Spring.StiffnessVeryLow),
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
             )
         },
     ) {
@@ -242,6 +240,45 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
                         mainViewModel = mainViewModel,
                     )
                 }
+            }
+        }
+        composable<ChatRoute> {
+            val args = it.toRoute<ChatRoute>()
+            val pirateId = args.pirateId
+            val username = args.username
+            val profileImage = args.profileImage
+
+            BackHandler {
+                SocketManager.exitChatRoute(pirateId)
+                mainViewModel.navController.popBackStack()
+                mainViewModel.setAllLastOpened()
+            }
+
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    ChatScreenTopBar(
+                        pageTitle = username,
+                        profileImage = profileImage,
+                        pirateId = pirateId,
+                        mainViewModel = mainViewModel,
+                    )
+                },
+                bottomBar = {
+                    AppChatInput(
+                        pirateId = pirateId,
+                        username = username,
+                        mainViewModel = mainViewModel
+                    )
+                }
+            ) { innerPadding ->
+                Conversation(
+                    modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
+                    pirateId = pirateId,
+                    username = username,
+                    profileImage = profileImage,
+                )
             }
         }
         composable<SettingsRoute> {
@@ -357,60 +394,40 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
                 }
             }
         }
-        composable<InviteFriendsRoute> {
+        composable<PrivacyRoute> {
             BackHandler {
-                handleBack()
+                mainViewModel.navController.popBackStack()
             }
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
                     BasicTopBar(
                         mainViewModel = mainViewModel,
-                        pageTitle = "InviteFriends",
+                        pageTitle = "Privacy",
+                    )
+                },
+            ) { innerPadding ->
+                Privacy(
+                    modifier = Modifier.padding(innerPadding),
+                    mainViewModel = mainViewModel,
+                )
+            }
+        }
+        composable<InviteFriendsRoute> {
+            BackHandler {
+                mainViewModel.navController.popBackStack()
+            }
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    BasicTopBar(
+                        mainViewModel = mainViewModel,
+                        pageTitle = "Invite Friends",
                     )
                 },
             ) { innerPadding ->
                 InviteFriends(
                     modifier = Modifier.padding(innerPadding),
-                )
-            }
-        }
-        composable<ChatRoute> {
-            val args = it.toRoute<ChatRoute>()
-            val pirateId = args.pirateId
-            val username = args.username
-            val profileImage = args.profileImage
-
-            BackHandler {
-                SocketManager.exitChatRoute(pirateId)
-                mainViewModel.navController.popBackStack()
-                mainViewModel.setAllLastOpened()
-            }
-
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = {
-                    ChatScreenTopBar(
-                        pageTitle = username,
-                        profileImage = profileImage,
-                        pirateId = pirateId,
-                        mainViewModel = mainViewModel,
-                    )
-                },
-                bottomBar = {
-                    AppChatInput(
-                        pirateId = pirateId,
-                        username = username,
-                        mainViewModel = mainViewModel
-                    )
-                }
-            ) { innerPadding ->
-                Conversation(
-                    modifier = Modifier.padding(innerPadding),
-                    mainViewModel = mainViewModel,
-                    pirateId = pirateId,
-                    username = username,
-                    profileImage = profileImage,
                 )
             }
         }

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import com.darkube.pirate.R
 import com.darkube.pirate.models.MainViewModel
+import com.darkube.pirate.services.MessageParser
 import com.darkube.pirate.services.SocketManager
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.FriendType
@@ -100,10 +101,45 @@ fun ChatInput(
         }
     }
 
-    val sendMessage = {
+    val sendEncryptedMessage = { encryptedMessage: String ->
         val body = buildJsonObject {
-            put("message", message.trim())
+            put("message", encryptedMessage)
         }
+        fetch(
+            url = "/api/pushtoken/message/$pirateId",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(
+                            context,
+                            "Failed to Sent Message",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    loading = false
+                    return@fetch
+                }
+                mainViewModel.viewModelScope.launch {
+                    mainViewModel.updateNewMessageForPirate(
+                        pirateId = pirateId,
+                        message = message,
+                        type = MessageType.TEXT.value,
+                        side = 0,
+                        username = username,
+                    )
+                    loading = false
+                    message = ""
+                }
+            },
+            body = body,
+            headers = mainViewModel.getHeaders(),
+            type = RequestType.POST,
+        )
+    }
+
+    val sendMessage = {
         loading = true
         if (userId == pirateId) {
             mainViewModel.viewModelScope.launch {
@@ -119,7 +155,7 @@ fun ChatInput(
             }
         } else {
             fetch(
-                url = "/api/pushtoken/message/$pirateId",
+                url = "/api/user/public_key$pirateId",
                 callback = { response: JsonElement ->
                     val error =
                         response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
@@ -134,21 +170,25 @@ fun ChatInput(
                         loading = false
                         return@fetch
                     }
-                    mainViewModel.viewModelScope.launch {
-                        mainViewModel.updateNewMessageForPirate(
-                            pirateId = pirateId,
-                            message = message,
-                            type = MessageType.TEXT.value,
-                            side = 0,
-                            username = username,
-                        )
+                    val publicKey: String =
+                        response.jsonObject["result"]?.jsonObject?.get("public_key")?.jsonPrimitive?.contentOrNull
+                            ?: ""
+                    if (publicKey.isEmpty()) {
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(
+                                context,
+                                "Failed to Sent Message",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                         loading = false
-                        message = ""
+                        return@fetch
                     }
+                    val encryptedMessage = MessageParser.encrypt(message.trim(), publicKey)
+                    sendEncryptedMessage(encryptedMessage)
                 },
-                body = body,
                 headers = mainViewModel.getHeaders(),
-                type = RequestType.POST,
+                type = RequestType.GET,
             )
         }
     }

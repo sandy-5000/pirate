@@ -58,7 +58,7 @@ fun InviteFriends(
         putExtra(Intent.EXTRA_TEXT, shareLink)
         type = "text/plain"
     }
-    val copyIcon = R.drawable.tabs_icon
+    val copyIcon = R.drawable.copy_icon
     val linkIcon = R.drawable.map_arrow_square_icon
     val iconSize = 20.dp
     val imageSize = 100.dp

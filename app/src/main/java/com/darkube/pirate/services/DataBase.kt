@@ -1,4 +1,4 @@
-package com.darkube.pirate.utils
+package com.darkube.pirate.services
 
 import android.content.Context
 import androidx.room.Database
