@@ -306,47 +306,5 @@ fun Privacy(
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(top = 16.dp),
-//            horizontalArrangement = Arrangement.SpaceBetween,
-//            verticalAlignment = Alignment.CenterVertically,
-//        ) {
-//            Text(
-//                text = "Generate a new key pair:",
-//                fontSize = 14.sp, color = LightColor,
-//            )
-//            Button(
-//                onClick = {
-//                    val encryptedMsg = MessageParser.encrypt("Sandyblaze", publicKey)
-//                    Log.d("key-o", encryptedMsg)
-//                    val message = MessageParser.decrypt(encryptedMsg)
-//                    Log.d("key-o", message)
-//                },
-//                shape = RoundedCornerShape(4.dp),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = SecondaryBlue,
-//                    disabledContainerColor = NavBarBackground,
-//                ),
-//                contentPadding = PaddingValues(horizontal = 12.dp),
-//            ) {
-//                Row {
-//                    Icon(
-//                        painter = painterResource(id = generateIcon),
-//                        contentDescription = "Generate",
-//                        modifier = Modifier
-//                            .size(iconSize),
-//                        tint = AppBackground
-//                    )
-//                    Spacer(modifier = Modifier.size(4.dp))
-//                    Text(
-//                        "Test",
-//                        fontSize = 15.sp,
-//                        color = AppBackground
-//                    )
-//                }
-//            }
-//        }
     }
 }

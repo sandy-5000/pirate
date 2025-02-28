@@ -155,7 +155,7 @@ fun ChatInput(
             }
         } else {
             fetch(
-                url = "/api/user/public_key$pirateId",
+                url = "/api/user/public_key/$pirateId",
                 callback = { response: JsonElement ->
                     val error =
                         response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
@@ -163,7 +163,7 @@ fun ChatInput(
                         Handler(Looper.getMainLooper()).post {
                             Toast.makeText(
                                 context,
-                                "Failed to Sent Message",
+                                "Failed to get key",
                                 Toast.LENGTH_LONG
                             ).show()
                         }
