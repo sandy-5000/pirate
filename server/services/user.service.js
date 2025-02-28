@@ -80,6 +80,24 @@ export default class UserService {
     return user
   }
 
+  static async getPublicKey(_id) {
+    const user = await _users.findById(_id, { public_key: 1 })
+    if (!user) {
+      throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
+    }
+    return user.public_key
+  }
+
+  static async updatePublicKey(_id, public_key) {
+    const user = await _users.findById(_id, { public_key: 1 })
+    if (!user) {
+      throw new Error(ERRORS.AUTH.USER_NOT_FOUND)
+    }
+    user.public_key = public_key
+    await user.save()
+    return user.public_key
+  }
+
   static async update({
     _id,
     type,

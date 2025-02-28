@@ -138,6 +138,41 @@ app.route('/friend/:receiver_id').get(validateToken, async (req, res) => {
   }
 })
 
+app.route('/public_key/:receiver_id').get(validateToken, async (req, res) => {
+  const { receiver_id } = req.params || {}
+  try {
+    let public_key = await UserService.getPublicKey(receiver_id)
+    return res.json({ result: { public_key } })
+  } catch (e) {
+    if (e.message === ERRORS.INTERNAL_SERVER_ERROR) {
+      return res.status(500).json({
+        error: ERRORS.INTERNAL_SERVER_ERROR,
+      })
+    }
+    return res.status(400).json({
+      error: e.message,
+    })
+  }
+})
+
+app.route('/public_key').patch(validateToken, async (req, res) => {
+  try {
+    const { _id = '' } = req.token_data || {}
+    const { public_key } = req.body
+    await UserService.updatePublicKey(_id, public_key)
+    return res.json({ result: { public_key } })
+  } catch (e) {
+    if (e.message === ERRORS.INTERNAL_SERVER_ERROR) {
+      return res.status(500).json({
+        error: ERRORS.INTERNAL_SERVER_ERROR,
+      })
+    }
+    return res.status(400).json({
+      error: e.message,
+    })
+  }
+})
+
 app
   .route('/profile')
   .get(validateToken, async (req, res) => {
