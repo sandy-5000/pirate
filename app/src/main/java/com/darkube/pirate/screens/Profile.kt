@@ -444,7 +444,7 @@ fun Profile(
                         value = userName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("User Name") },
+                        label = { Text("username") },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedLabelColor = Color.White,
                             focusedBorderColor = AppBackground,
@@ -456,7 +456,11 @@ fun Profile(
                                 contentDescription = "userNameIcon",
                                 modifier = Modifier.size(iconSize),
                             )
-                        })
+                        },
+                        trailingIcon = {
+                            Spacer(modifier = Modifier.width(iconSize))
+                        }
+                    )
                 }
                 Row(
                     modifier = Modifier
@@ -493,7 +497,7 @@ fun Profile(
                                 contentDescription = "Email",
                                 modifier = Modifier
                                     .size(iconSize),
-                                tint = if (isValidEmail) LightColor else RedColor,
+                                tint = if (isValidEmail) Color.White else RedColor,
                             )
                         },
                         trailingIcon = {

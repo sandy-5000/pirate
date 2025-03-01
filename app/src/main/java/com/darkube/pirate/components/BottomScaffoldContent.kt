@@ -75,6 +75,7 @@ import com.darkube.pirate.ui.theme.PrimaryColor
 import com.darkube.pirate.ui.theme.RedColor
 import com.darkube.pirate.utils.ChatRoute
 import com.darkube.pirate.services.DatabaseProvider
+import com.darkube.pirate.ui.theme.SecondaryBlue
 import com.darkube.pirate.utils.getProfileImage
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
@@ -541,15 +542,13 @@ fun SettingScreenBottomScaffold(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = horizontalPadding)
-                        .padding(horizontal = horizontalPadding),
+                        .padding(horizontalPadding),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "Muted Chats",
-                        modifier = Modifier.padding(start = 12.dp),
-                        fontSize = 16.sp,
+                        fontSize = 20.sp,
                         color = LightColor,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -559,19 +558,25 @@ fun SettingScreenBottomScaffold(
                             mainViewModel.fetchFriends()
                         },
                         modifier = Modifier
-                            .padding(8.dp)
                             .clip(shape = CircleShape)
-                            .background(NavBarBackground)
+                            .background(PrimaryColor)
+                            .size(iconSize + 16.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = refreshIcon),
                             contentDescription = "reload",
                             modifier = Modifier
-                                .size(iconSize),
+                                .size(iconSize + 4.dp),
                             tint = Color.White
                         )
                     }
                 }
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = horizontalPadding),
+                    text = "You can Unmute individual users notification preferences.",
+                    fontSize = 14.sp, color = LightColor,
+                )
 
                 Column(
                     modifier = Modifier
@@ -660,7 +665,7 @@ fun SettingScreenBottomScaffold(
                 }
                 Spacer(modifier = Modifier.height(40.dp))
                 Text(
-                    text = "You can set your the notifications preferences.",
+                    text = "You can set your notifications preferences.",
                     modifier = Modifier.padding(horizontal = horizontalPadding),
                     fontSize = 14.sp, color = LightColor,
                 )
@@ -681,17 +686,31 @@ fun SettingScreenBottomScaffold(
                 ) {
                     Text(
                         text = "Data and Storage",
-                        fontSize = 16.sp,
+                        fontSize = 20.sp,
                         color = LightColor,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Used Storage: " + DatabaseProvider.getDatabaseSize(context = context),
-                        fontSize = 18.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "Storage used: ",
+                            fontSize = 16.sp,
+                            color = LightColor,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = DatabaseProvider.getDatabaseSize(context = context),
+                            fontSize = 16.sp,
+                            color = LightColor,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(

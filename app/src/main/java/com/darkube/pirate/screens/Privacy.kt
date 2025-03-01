@@ -163,7 +163,7 @@ fun Privacy(
         }
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = "You can set your the online status preferences.",
+            text = "You can set your online status preferences.",
             fontSize = 14.sp, color = LightColor,
         )
         Spacer(modifier = Modifier.height(20.dp))
@@ -171,7 +171,7 @@ fun Privacy(
             text = "Customize your online status settings based on your preference. You will be able to see others' online status only if yours is visible.",
             fontSize = 14.sp, color = LightColor,
         )
-        DividerLine(verticalPadding = 20.dp, horizontalPadding = 4.dp)
+        DividerLine(verticalPadding = 32.dp, horizontalPadding = 4.dp)
         Text(
             text = "Key Pair",
             modifier = Modifier
