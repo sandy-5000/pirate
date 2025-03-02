@@ -219,7 +219,7 @@ fun Login(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.Start
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -243,15 +243,15 @@ fun Login(
                         })
                     )
                 }
-                Text(
-                    "Forgot Password",
-                    color = Color.LightGray,
-                    fontSize = 14.sp,
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable(onClick = {
-                        setAuthenticatePage(AuthenticatePage.OTP)
-                    })
-                )
+//                Text(
+//                    "Forgot Password",
+//                    color = Color.LightGray,
+//                    fontSize = 14.sp,
+//                    textDecoration = TextDecoration.Underline,
+//                    modifier = Modifier.clickable(onClick = {
+//                        setAuthenticatePage(AuthenticatePage.OTP)
+//                    })
+//                )
             }
             Button(
                 onClick = {
