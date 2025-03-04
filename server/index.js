@@ -62,7 +62,9 @@ io.on('connection', (socket) => {
     othersSet?.forEach((otherId) => {
       const otherSocket = userSockets.get(otherId)
       console.log('MultiCast', otherSocket?.id, status)
-      otherSocket?.emit('user-online-response', { isOnline: status })
+      otherSocket?.emit('user-online-response', {
+        isOnline: status === USER_STATUS.ONLINE,
+      })
     })
   }
 
