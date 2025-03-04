@@ -61,7 +61,7 @@ io.on('connection', (socket) => {
     const othersSet = rListMap.get(pirateId)
     othersSet?.forEach((otherId) => {
       const otherSocket = userSockets.get(otherId)
-      console.log('MultiCast', userSockets?.id, status)
+      console.log('MultiCast', otherSocket?.id, status)
       otherSocket?.emit('user-online-response', { isOnline: status })
     })
   }
@@ -80,17 +80,18 @@ io.on('connection', (socket) => {
     pirateIds.set(socket.id, pirateId)
     userSockets.set(pirateId, socket)
     onlineUsers.set(pirateId, { status })
+    console.log('init', socket.id)
     multiCastStatus(pirateId, status)
   })
 
-  socket.on('set-status', ({ pirateId, status = USER_STATUS.ONLINE }) => {
-    if (!Object.values(USER_STATUS).includes(status)) {
-      status = USER_STATUS.ONLINE
-    }
-    onlineUsers.set(pirateId, { status })
-    console.log('MultiCast', 'start', status)
-    multiCastStatus(pirateId, status)
-  })
+  // socket.on('set-status', ({ pirateId, status = USER_STATUS.ONLINE }) => {
+  //   if (!Object.values(USER_STATUS).includes(status)) {
+  //     status = USER_STATUS.ONLINE
+  //   }
+  //   onlineUsers.set(pirateId, { status })
+  //   console.log('MultiCast', 'start', status)
+  //   multiCastStatus(pirateId, status)
+  // })
 
   socket.on('enter-chat', ({ otherPirateId }) => {
     const pirateId = pirateIds.get(socket.id)
