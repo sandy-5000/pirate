@@ -3,6 +3,7 @@ package com.darkube.pirate.models
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -110,6 +111,14 @@ class MainViewModel(
                 instance?.requestDetailsFetched = false
             }
         }
+
+        fun setAppInForeground(flag: Boolean) {
+            instance?.appInForeground?.value = flag
+        }
+
+        fun getAppInForeground(): Boolean {
+            return instance?.appInForeground?.value ?: false
+        }
     }
 
     fun getCurrentRoute(): String {
@@ -117,6 +126,8 @@ class MainViewModel(
             "/"
         ).first()
     }
+
+    private var appInForeground = mutableStateOf(false)
 
     private val _userState = MutableStateFlow(mapOf("logged_in" to "loading"))
     val userState: StateFlow<Map<String, String>> = _userState.asStateFlow()

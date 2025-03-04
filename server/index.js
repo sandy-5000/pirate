@@ -54,8 +54,17 @@ const userSockets = new Map()
 const onlineUsers = new Map()
 const pairsMap = new Map()
 const rPairsMap = new Map()
+const rListMap = new Map()
 
 io.on('connection', (socket) => {
+  const multiCastStatus = (pirateId, status) => {
+    const othersSet = rListMap.get(pirateId)
+    othersSet?.forEach((otherId) => {
+      const otherSocket = userSockets.get(otherId)
+      otherSocket?.emit('user-online-response', { isOnline: status })
+    })
+  }
+
   console.log('user connected:', socket.id)
 
   socket.on('init', ({ pirateId, status = USER_STATUS.ONLINE }) => {
@@ -70,11 +79,7 @@ io.on('connection', (socket) => {
     pirateIds.set(socket.id, pirateId)
     userSockets.set(pirateId, socket)
     onlineUsers.set(pirateId, { status })
-    const otherPirateId = rPairsMap.get(pirateId)
-    if (otherPirateId && status === USER_STATUS.ONLINE) {
-      const otherSocket = userSockets.get(otherPirateId)
-      otherSocket?.emit('user-online-response', { isOnline: true })
-    }
+    multiCastStatus(pirateId, status)
   })
 
   socket.on('enter-chat', ({ otherPirateId }) => {
@@ -85,6 +90,12 @@ io.on('connection', (socket) => {
     }
     const userInfo = onlineUsers.get(otherPirateId)
     const isOnline = userInfo?.status === USER_STATUS.ONLINE
+    if (isOnline) {
+      if (!rListMap.has(otherPirateId)) {
+        rListMap.set(otherPirateId, new Set())
+      }
+      rListMap.get(otherPirateId).add(pirateId)
+    }
     socket.emit('user-online-response', { isOnline })
   })
 
@@ -95,6 +106,7 @@ io.on('connection', (socket) => {
       if (otherPirateId) {
         pairsMap.delete(pirateId)
         rPairsMap.delete(otherPirateId)
+        rListMap.get(otherPirateId)?.delete(pirateId)
       }
     }
   })
@@ -125,6 +137,7 @@ io.on('connection', (socket) => {
     if (pirateId) {
       onlineUsers.delete(pirateId)
       userSockets.delete(pirateId)
+      multiCastStatus(pirateId, false)
     }
     pirateIds.delete(socket.id)
     console.log('user disconnected:', socket.id)

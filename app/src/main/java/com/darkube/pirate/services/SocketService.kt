@@ -21,7 +21,7 @@ object SocketManager : DefaultLifecycleObserver {
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
-    private fun connect(flag: Boolean = true) {
+    fun connect(flag: Boolean = true) {
         if (socket != null) {
             return
         }
@@ -93,12 +93,14 @@ object SocketManager : DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
+        MainViewModel.setAppInForeground(true)
         connect(MainViewModel.hideOnlineStatus())
         Log.d("Socket.IO", "App is in foreground")
     }
 
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
+        MainViewModel.setAppInForeground(false)
         disconnect()
         Log.d("Socket.IO", "App is in background")
     }

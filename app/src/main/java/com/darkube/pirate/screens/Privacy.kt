@@ -44,6 +44,7 @@ import com.darkube.pirate.R
 import com.darkube.pirate.components.DividerLine
 import com.darkube.pirate.models.MainViewModel
 import com.darkube.pirate.services.KeyStoreManager
+import com.darkube.pirate.services.SocketManager
 import com.darkube.pirate.services.fetch
 import com.darkube.pirate.types.DetailsKey
 import com.darkube.pirate.types.RequestType
@@ -149,6 +150,7 @@ fun Privacy(
                         } else {
                             mainViewModel.removeHideOnlineStatus()
                         }
+                        SocketManager.connect(!it)
                         loading = false
                     }
                 },

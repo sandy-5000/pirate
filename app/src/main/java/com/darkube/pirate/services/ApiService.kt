@@ -1,6 +1,7 @@
 package com.darkube.pirate.services
 
 import android.util.Log
+import com.darkube.pirate.config.SERVER_URL
 import com.darkube.pirate.types.RequestType
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.coroutines.CoroutineScope
@@ -52,15 +53,13 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://the-pirate-api.onrender.com"
-
     private val json = Json {
         ignoreUnknownKeys = true
     }
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(SERVER_URL)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(ApiService::class.java)

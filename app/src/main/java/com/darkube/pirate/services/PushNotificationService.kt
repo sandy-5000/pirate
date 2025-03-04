@@ -45,8 +45,12 @@ class PushNotificationService : FirebaseMessagingService() {
         val senderId = message.data["sender_id"] ?: ""
 
         if (NotificationType.entries.any { it.value == type }) {
-            val receivedMessage = MessageParser.decrypt(encryptedMessage)
             val typeEnum = NotificationType.valueOf(type)
+            val receivedMessage = if (NotificationType.MESSAGE == typeEnum) {
+                MessageParser.decrypt(encryptedMessage)
+            } else {
+                encryptedMessage
+            }
             if (NotificationType.MESSAGE == typeEnum) {
                 saveMessageToDatabase(
                     senderId = senderId,
@@ -139,7 +143,10 @@ object NotificationHelper {
         message: String,
         type: NotificationType,
     ) {
-        if (MainViewModel.isApplicationOn() && MainViewModel.getCurrentPirateId() == pirateId && type == NotificationType.MESSAGE) {
+        if (
+            MainViewModel.isApplicationOn() && MainViewModel.getAppInForeground() &&
+            MainViewModel.getCurrentPirateId() == pirateId && type == NotificationType.MESSAGE
+        ) {
             return
         }
 
