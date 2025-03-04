@@ -88,6 +88,7 @@ io.on('connection', (socket) => {
       status = USER_STATUS.ONLINE
     }
     onlineUsers.set(pirateId, { status })
+    console.log('MultiCast', 'start', status)
     multiCastStatus(pirateId, status)
   })
 
