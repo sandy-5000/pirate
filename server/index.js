@@ -61,6 +61,7 @@ io.on('connection', (socket) => {
     const othersSet = rListMap.get(pirateId)
     othersSet?.forEach((otherId) => {
       const otherSocket = userSockets.get(otherId)
+      console.log('MultiCast', userSockets?.id, status)
       otherSocket?.emit('user-online-response', { isOnline: status })
     })
   }
@@ -78,6 +79,14 @@ io.on('connection', (socket) => {
     }
     pirateIds.set(socket.id, pirateId)
     userSockets.set(pirateId, socket)
+    onlineUsers.set(pirateId, { status })
+    multiCastStatus(pirateId, status)
+  })
+
+  socket.on('set-status', ({ pirateId, status = USER_STATUS.ONLINE }) => {
+    if (!Object.values(USER_STATUS).includes(status)) {
+      status = USER_STATUS.ONLINE
+    }
     onlineUsers.set(pirateId, { status })
     multiCastStatus(pirateId, status)
   })
@@ -135,9 +144,9 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const pirateId = pirateIds.get(socket.id)
     if (pirateId) {
+      multiCastStatus(pirateId, false)
       onlineUsers.delete(pirateId)
       userSockets.delete(pirateId)
-      multiCastStatus(pirateId, false)
     }
     pirateIds.delete(socket.id)
     console.log('user disconnected:', socket.id)
