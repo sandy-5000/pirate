@@ -119,6 +119,14 @@ class MainViewModel(
         fun getAppInForeground(): Boolean {
             return instance?.appInForeground?.value ?: false
         }
+
+        fun setOtherUserOnline(flag: Boolean) {
+            instance?.setOtherUserOnline(flag)
+        }
+
+        fun setOtherUserTyping(flag: Boolean) {
+            instance?.setOtherUserTyping(flag)
+        }
     }
 
     fun getCurrentRoute(): String {

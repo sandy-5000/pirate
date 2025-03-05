@@ -9,6 +9,10 @@ import com.darkube.pirate.config.SERVER_URL
 import com.darkube.pirate.models.MainViewModel
 import io.socket.client.IO
 import io.socket.client.Socket
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.net.URISyntaxException
 
@@ -33,6 +37,12 @@ object SocketManager : DefaultLifecycleObserver {
             socket = IO.socket(SERVER_URL).apply {
                 on(Socket.EVENT_CONNECT) {
                     emit("init", body)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        if (MainViewModel.getCurrentPirateId().isNotEmpty()) {
+                            delay(500)
+                            enterChatRoute(MainViewModel.getCurrentPirateId())
+                        }
+                    }
                     Log.d("Socket.IO", "Connected to server")
                 }
                 connect()
@@ -43,15 +53,15 @@ object SocketManager : DefaultLifecycleObserver {
     }
 
     private fun disconnect() {
+        if (MainViewModel.getCurrentPirateId().isNotEmpty()) {
+            exitChatRoute(MainViewModel.getCurrentPirateId())
+        }
         socket?.disconnect()
         socket = null
     }
 
-    fun enterChatRoute(
-        otherPirateId: String,
-        isOnlineCallback: (Boolean) -> Unit,
-        isTypingCallback: (Boolean) -> Unit,
-    ) {
+    fun enterChatRoute(otherPirateId: String) {
+        Log.d("Socket.IO", "Enter Chat")
         socket?.emit(
             "enter-chat",
             JSONObject().put("otherPirateId", otherPirateId)
@@ -61,7 +71,7 @@ object SocketManager : DefaultLifecycleObserver {
         socket?.on("user-online-response") { args ->
             val response = args.getOrNull(0) as? JSONObject
             val isOnline = response?.optBoolean("isOnline") ?: false
-            isOnlineCallback(isOnline)
+            MainViewModel.setOtherUserOnline(isOnline)
         }
         socket?.off("typing-changed")
         socket?.on("typing-changed") { args ->
@@ -69,12 +79,13 @@ object SocketManager : DefaultLifecycleObserver {
             val isTyping = response?.optBoolean("isTyping") ?: false
             val receiverPirateId = response?.optString("otherPirateId") ?: ""
             if (receiverPirateId == otherPirateId) {
-                isTypingCallback(isTyping)
+                MainViewModel.setOtherUserTyping(isTyping)
             }
         }
     }
 
     fun exitChatRoute(otherPirateId: String) {
+        Log.d("Socket.IO", "Exit Chat")
         socket?.emit(
             "exit-chat",
             JSONObject().put("otherPirateId", otherPirateId)

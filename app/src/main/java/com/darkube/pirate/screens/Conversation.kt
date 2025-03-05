@@ -158,15 +158,7 @@ fun Conversation(
 
     LaunchedEffect(chatScreen) {
         if (chatScreen == FriendType.FRIENDS) {
-            SocketManager.enterChatRoute(
-                otherPirateId = pirateId,
-                isOnlineCallback = { isOnline ->
-                    mainViewModel.setOtherUserOnline(isOnline)
-                },
-                isTypingCallback = { isTyping ->
-                    mainViewModel.setOtherUserTyping(isTyping)
-                },
-            )
+            SocketManager.enterChatRoute(otherPirateId = pirateId)
         }
     }
 
