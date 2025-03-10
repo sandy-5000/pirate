@@ -1,4 +1,4 @@
-package com.darkube.pirate.ui.theme
+package com.pirate.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -12,10 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryColor,
+    primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80,
-    background = AppBackground,
+    tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -36,10 +35,9 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun PirateTheme(
-    // darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    darkTheme: Boolean = true,
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

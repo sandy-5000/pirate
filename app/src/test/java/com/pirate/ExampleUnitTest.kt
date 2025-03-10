@@ -1,4 +1,4 @@
-package com.darkube.pirate
+package com.pirate
 
 import org.junit.Test
 

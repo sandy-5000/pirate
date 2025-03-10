@@ -1,4 +1,4 @@
-package com.darkube.pirate.ui.theme
+package com.pirate.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

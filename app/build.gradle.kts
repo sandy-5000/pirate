@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.darkube.pirate"
-    compileSdk = 34
+    namespace = "com.pirate"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.darkube.pirate"
+        applicationId = "com.pirate"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
