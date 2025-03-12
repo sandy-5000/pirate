@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="200dp" android:viewportHeight="50" android:viewportWidth="50" android:width="200dp">
+      
+    <path android:fillColor="#FFFFFF" android:pathData="M25,10m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+      
+    <path android:fillAlpha="0.3" android:fillColor="#FFFFFF" android:pathData="M25,40m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.3"/>
+      
+    <path android:fillAlpha="0.3" android:fillColor="#FFFFFF" android:pathData="M32.5,12m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.3"/>
+      
+    <path android:fillAlpha="0.3" android:fillColor="#FFFFFF" android:pathData="M17.5,38m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.3"/>
+      
+    <path android:fillAlpha="0.93" android:fillColor="#FFFFFF" android:pathData="M17.5,12m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.93"/>
+      
+    <path android:fillAlpha="0.3" android:fillColor="#FFFFFF" android:pathData="M32.5,38m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.3"/>
+      
+    <path android:fillAlpha="0.65" android:fillColor="#FFFFFF" android:pathData="M10,25m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.65"/>
+      
+    <path android:fillAlpha="0.3" android:fillColor="#FFFFFF" android:pathData="M40,25m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.3"/>
+      
+    <path android:fillAlpha="0.86" android:fillColor="#FFFFFF" android:pathData="M12,17.5m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.86"/>
+      
+    <path android:fillAlpha="0.3" android:fillColor="#FFFFFF" android:pathData="M38,32.5m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.3"/>
+      
+    <path android:fillAlpha="0.44" android:fillColor="#FFFFFF" android:pathData="M12,32.5m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.44"/>
+      
+    <path android:fillAlpha="0.3" android:fillColor="#FFFFFF" android:pathData="M38,17.5m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" android:strokeAlpha="0.3"/>
+    
+</vector>

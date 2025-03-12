@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 data class ScheduledMessages(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "schedule_id")
-    val scheduleId: String,
+    val scheduleId: Long,
     @ColumnInfo(name = "pirate_id")
     val pirateId: String,
     val message: String,

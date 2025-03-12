@@ -10,16 +10,21 @@ import com.pirate.models.PreferencesModel
 import com.pirate.models.ScheduledMessagesModel
 import com.pirate.models.UserChatsModel
 import com.pirate.models.UserDetailsModel
+import com.pirate.models.types.FriendsInfo
+import com.pirate.models.types.Preferences
+import com.pirate.models.types.ScheduledMessages
+import com.pirate.models.types.UserChats
+import com.pirate.models.types.UserDetails
 import java.io.File
 import java.util.Locale
 
 @Database(
     entities = [
-        FriendsInfoModel::class,
-        PreferencesModel::class,
-        ScheduledMessagesModel::class,
-        UserChatsModel::class,
-        UserDetailsModel::class
+        FriendsInfo::class,
+        Preferences::class,
+        ScheduledMessages::class,
+        UserChats::class,
+        UserDetails::class,
     ],
     version = 1,
     exportSchema = false,

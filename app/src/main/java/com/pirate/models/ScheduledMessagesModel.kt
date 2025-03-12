@@ -2,6 +2,7 @@ package com.pirate.models
 
 import androidx.room.Dao
 import androidx.room.Query
+import com.pirate.models.types.ScheduledMessages
 
 @Dao
 interface ScheduledMessagesModel {
@@ -14,7 +15,7 @@ interface ScheduledMessagesModel {
             schedule_id = :scheduleId
         """
     )
-    fun getMessage(scheduleId: String)
+    suspend fun getMessage(scheduleId: String): ScheduledMessages?
 
     @Query(
         value = """
@@ -24,6 +25,6 @@ interface ScheduledMessagesModel {
             schedule_id = :scheduleId
         """
     )
-    fun deleteMessage(scheduleId: String)
+    suspend fun deleteMessage(scheduleId: String)
 
 }
