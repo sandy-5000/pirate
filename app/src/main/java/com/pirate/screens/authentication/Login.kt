@@ -1,5 +1,6 @@
 package com.pirate.screens.authentication
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -53,6 +54,8 @@ import com.pirate.types.AuthenticatePage
 import com.pirate.types.RequestType
 import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.LightColor
+import com.pirate.ui.theme.PrimaryBlue
+import com.pirate.ui.theme.PrimaryColor
 import com.pirate.ui.theme.SecondaryBlue
 import com.pirate.viewModels.MainViewModel
 import kotlinx.coroutines.launch
@@ -118,11 +121,11 @@ fun Login(
             Row(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 12.dp),
             ) {
                 Text(
-                    text = "Log in, sailor!\nThe high seas be callin’!",
-                    fontSize = 13.sp,
+                    text = "Welcome back, captain!\nThe high seas be callin’!",
+                    fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -296,7 +299,7 @@ fun Login(
                 enabled = !loading,
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = SecondaryBlue,
+                    containerColor = PrimaryBlue,
                 )
             ) {
                 Row {
@@ -305,13 +308,13 @@ fun Login(
                         contentDescription = "Login",
                         modifier = Modifier
                             .size(iconSize),
-                        tint = backgroundColor
+                        tint = Color.White
                     )
                     Spacer(modifier = Modifier.size(4.dp))
                     Text(
                         "Login",
                         fontSize = 15.sp,
-                        color = backgroundColor
+                        color = Color.White,
                     )
                 }
             }

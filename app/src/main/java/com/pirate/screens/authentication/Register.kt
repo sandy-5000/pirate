@@ -54,9 +54,11 @@ import com.pirate.components.UnderLoading
 import com.pirate.services.fetch
 import com.pirate.types.AuthenticatePage
 import com.pirate.types.RequestType
+import com.pirate.types.Status
 import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.GreenColor
 import com.pirate.ui.theme.LightColor
+import com.pirate.ui.theme.PrimaryBlue
 import com.pirate.ui.theme.PrimaryColor
 import com.pirate.ui.theme.RedColor
 import com.pirate.ui.theme.SecondaryBlue
@@ -69,10 +71,6 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-
-enum class Status {
-    AVAILABLE, NOT_AVAILABLE, LOADING
-}
 
 @Composable
 fun Register(
@@ -604,7 +602,7 @@ fun Register(
                             enabled = !loading,
                             shape = RoundedCornerShape(4.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = SecondaryBlue,
+                                containerColor = PrimaryBlue,
                             ),
                         ) {
                             Row {
@@ -613,13 +611,13 @@ fun Register(
                                     contentDescription = "Register",
                                     modifier = Modifier
                                         .size(iconSize),
-                                    tint = backgroundColor
+                                    tint = Color.White
                                 )
                                 Spacer(modifier = Modifier.size(4.dp))
                                 Text(
                                     "Register",
                                     fontSize = 15.sp,
-                                    color = backgroundColor
+                                    color = Color.White
                                 )
                             }
                         }
