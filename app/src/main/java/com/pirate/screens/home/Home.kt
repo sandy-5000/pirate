@@ -33,8 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,6 +43,7 @@ import com.pirate.R
 import com.pirate.types.HomeScreen
 import com.pirate.ui.theme.NavBarBackground
 import com.pirate.ui.theme.PrimaryColor
+import com.pirate.utils.InviteFriendsRoute
 import com.pirate.utils.ProfileRoute
 import com.pirate.utils.SettingsRoute
 import com.pirate.utils.getProfileImage
@@ -57,13 +56,14 @@ fun Home(
     val homeScreen by mainViewModel.homeScreenState.collectAsState()
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
     ) {
         when (homeScreen) {
             HomeScreen.CHATS -> Chats(mainViewModel = mainViewModel)
 
             HomeScreen.REQUESTS -> Requests()
+
+            HomeScreen.FRIENDS -> Friends()
 
             else -> {}
         }
@@ -72,16 +72,16 @@ fun Home(
             displayTitle = when (homeScreen) {
                 HomeScreen.CHATS -> "Chats"
                 HomeScreen.REQUESTS -> "Requests"
+                HomeScreen.FRIENDS -> "Friends"
                 else -> ""
             },
             mainViewModel = mainViewModel,
         )
         BottomBar(
             modifier = Modifier
-                .padding(bottom = 32.dp)
+                .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp)
-                .align(Alignment.BottomCenter),
-            mainViewModel = mainViewModel
+                .align(Alignment.BottomCenter), mainViewModel = mainViewModel
         )
     }
 }
@@ -97,8 +97,8 @@ fun TopBar(
     val userState by mainViewModel.userState.collectAsState()
     val profileImage = userState.getOrDefault("profile_image", "8").toInt()
     val imageSize = 40.dp
-    val iconSize = 20.dp
     val optionHeight = 48.dp
+    val cornerSize = 16.dp
     val optionsIcon = Icons.Default.MoreVert
 
     Row(
@@ -121,9 +121,7 @@ fun TopBar(
             )
             Spacer(modifier = Modifier.width(24.dp))
             Text(
-                text = displayTitle,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                text = displayTitle, fontWeight = FontWeight.SemiBold, fontSize = 16.sp
             )
         }
         Box {
@@ -138,68 +136,79 @@ fun TopBar(
                     onDismissRequest = { expanded = false },
                     properties = PopupProperties(focusable = true)
                 ) {
-                    Column(
+                    Card(
+                        shape = RoundedCornerShape(cornerSize),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = NavBarBackground),
                         modifier = Modifier
                             .width(200.dp)
-                            .padding(top = 44.dp, end = 8.dp)
-                            .clip(shape = RoundedCornerShape(16.dp))
-                            .background(PrimaryColor)
+                            .padding(top = 48.dp, end = 8.dp),
                     ) {
-                        Row(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(optionHeight)
-                                .clickable(onClick = {})
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                                .clip(shape = RoundedCornerShape(cornerSize))
+                                .background(PrimaryColor)
                         ) {
-                            Text("Mark all read")
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(optionHeight)
-                                .clickable(onClick = {})
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("Invite friends")
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(optionHeight)
-                                .clickable(onClick = {})
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("Filter unread chats")
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(optionHeight)
-                                .clickable(onClick = {
-                                    expanded = false
-                                    mainViewModel.navController.navigate(SettingsRoute)
-                                })
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("Settings")
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(optionHeight)
-                                .clickable(onClick = {
-                                    expanded = false
-                                    mainViewModel.navController.navigate(ProfileRoute)
-                                })
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("View Profile")
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(optionHeight)
+                                    .clickable(onClick = {})
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("Mark all read")
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(optionHeight)
+                                    .clickable(onClick = {
+                                        expanded = false
+                                        mainViewModel.navController.navigate(InviteFriendsRoute)
+                                    })
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("Invite friends")
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(optionHeight)
+                                    .clickable(onClick = {})
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("Filter unread chats")
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(optionHeight)
+                                    .clickable(onClick = {
+                                        expanded = false
+                                        mainViewModel.navController.navigate(SettingsRoute)
+                                    })
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("Settings")
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(optionHeight)
+                                    .clickable(onClick = {
+                                        expanded = false
+                                        mainViewModel.navController.navigate(ProfileRoute)
+                                    })
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("View Profile")
+                            }
                         }
                     }
                 }
@@ -214,18 +223,18 @@ fun BottomBar(
     mainViewModel: MainViewModel,
 ) {
     val iconSize = 24.dp
-    val iconButtonHeight = iconSize + 40.dp
+    val iconButtonHeight = iconSize + 44.dp
     val iconButtonWidth = iconSize + 48.dp
     val cornerSize = 12.dp
     val chatIcon = R.drawable.icon_chat_round_line
-    val requestIcon = R.drawable.icon_users_group
+    val requestIcon = R.drawable.icon_passport
+    val friendsIcon = R.drawable.icon_users_group
 
     Card(
         shape = RoundedCornerShape(cornerSize),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(containerColor = NavBarBackground),
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
@@ -236,13 +245,12 @@ fun BottomBar(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(vertical = 4.dp)
                     .height(iconButtonHeight)
                     .width(iconButtonWidth)
-                    .clip(shape = RoundedCornerShape(cornerSize))
                     .clickable(onClick = {
                         mainViewModel.setHomeScreen(HomeScreen.CHATS)
-                    }),
+                    })
+                    .padding(top = 4.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -250,20 +258,18 @@ fun BottomBar(
                     painter = painterResource(id = chatIcon),
                     contentDescription = "chats",
                     tint = Color.White,
-                    modifier = Modifier
-                        .size(iconSize),
+                    modifier = Modifier.size(iconSize),
                 )
                 Text(text = "Chats", fontSize = 13.sp)
             }
             Column(
                 modifier = Modifier
-                    .padding(vertical = 4.dp)
                     .height(iconButtonHeight)
                     .width(iconButtonWidth)
-                    .clip(shape = RoundedCornerShape(cornerSize))
                     .clickable(onClick = {
                         mainViewModel.setHomeScreen(HomeScreen.REQUESTS)
-                    }),
+                    })
+                    .padding(top = 4.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -271,10 +277,28 @@ fun BottomBar(
                     painter = painterResource(id = requestIcon),
                     contentDescription = "request",
                     tint = Color.White,
-                    modifier = Modifier
-                        .size(iconSize),
+                    modifier = Modifier.size(iconSize),
                 )
                 Text(text = "Requests", fontSize = 13.sp)
+            }
+            Column(
+                modifier = Modifier
+                    .height(iconButtonHeight)
+                    .width(iconButtonWidth)
+                    .clickable(onClick = {
+                        mainViewModel.setHomeScreen(HomeScreen.FRIENDS)
+                    })
+                    .padding(top = 4.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(id = friendsIcon),
+                    contentDescription = "friends",
+                    tint = Color.White,
+                    modifier = Modifier.size(iconSize),
+                )
+                Text(text = "friends", fontSize = 13.sp)
             }
         }
     }

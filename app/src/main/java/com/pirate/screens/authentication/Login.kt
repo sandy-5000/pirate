@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -149,6 +150,11 @@ fun Login(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         focusedBorderColor = textBoxColor,
+                        selectionColors = TextSelectionColors(
+                            handleColor = LightColor,
+                            backgroundColor = Color.DarkGray,
+                        ),
+                        cursorColor = LightColor,
                     ),
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Next
@@ -192,6 +198,11 @@ fun Login(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedLabelColor = Color.White,
                         focusedBorderColor = textBoxColor,
+                        selectionColors = TextSelectionColors(
+                            handleColor = LightColor,
+                            backgroundColor = Color.DarkGray,
+                        ),
+                        cursorColor = LightColor,
                     ),
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Done

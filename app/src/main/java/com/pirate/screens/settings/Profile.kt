@@ -4,12 +4,15 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,6 +49,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -62,6 +69,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
@@ -90,11 +98,15 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlin.math.roundToInt
 
 @Composable
 fun Profile(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
+    bottomModel: Boolean,
+    openModel: () -> Unit,
+    closeModel: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val iconSize = 20.dp
@@ -145,9 +157,6 @@ fun Profile(
     var loadingNameUpdate by remember { mutableStateOf(false) }
     var loadingEmailUpdate by remember { mutableStateOf(false) }
     var loadingPasswordUpdate by remember { mutableStateOf(false) }
-
-    var bottomModel by remember { mutableStateOf(false) }
-
 
     val checkAvailability = {
         var makeCall = true
@@ -248,7 +257,11 @@ fun Profile(
         )
     }
 
-    Box {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppBackground),
+    ) {
         Column(
             modifier = modifier
                 .imePadding()
@@ -276,7 +289,7 @@ fun Profile(
                                 .size(imageSize)
                                 .clip(CircleShape)
                                 .clickable(onClick = {
-                                    bottomModel = true
+                                    openModel()
                                 })
                         )
                         Icon(
@@ -755,38 +768,21 @@ fun Profile(
             modifier = Modifier.align(Alignment.TopCenter),
             mainViewModel = mainViewModel,
         )
-        AnimatedVisibility(
+        ProfileBottomModal(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            mainViewModel = mainViewModel,
             visible = bottomModel,
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it }),
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(0.7f)
-                        .background(AppBackground)
-                        .clickable(onClick = { bottomModel = false })
-                ) {}
-                BottomModal(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    mainViewModel = mainViewModel,
-                    closeModel = {
-                        bottomModel = false
-                    },
-                )
-            }
-        }
+            closeModel = closeModel,
+        )
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BottomModal(
+fun ProfileBottomModal(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
+    visible: Boolean,
     closeModel: () -> Unit,
 ) {
     val cornerShape = 16.dp
@@ -839,112 +835,164 @@ fun BottomModal(
         )
     }
 
-    Surface(
-        modifier = modifier
+    var offsetY by remember { mutableFloatStateOf(0f) }
+    var animationDuration by remember { mutableIntStateOf(0) }
+    val maxDrag = 2000f
+    val animatedOffset by animateFloatAsState(
+        targetValue = offsetY,
+        animationSpec = tween(animationDuration)
+    )
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(initialOffsetY = { it }),
+        exit = slideOutVertically(targetOffsetY = { it }),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.6f)
-                .clip(shape = RoundedCornerShape(topStart = cornerShape, topEnd = cornerShape))
-                .background(AppBackground)
+        Box(
+            modifier = Modifier.fillMaxSize(),
         ) {
-            Row(
+            Spacer(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(edgeHeight + 2.dp)
-                    .background(LightColor),
-                verticalAlignment = Alignment.Bottom,
+                    .fillMaxSize()
+                    .alpha(0.7f)
+                    .background(AppBackground)
+                    .clickable(onClick = {
+                        closeModel()
+                    })
+            )
+            Surface(
+                modifier = modifier
+                    .offset { IntOffset(0, animatedOffset.roundToInt()) }
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(edgeHeight)
+                        .fillMaxHeight(0.6f)
                         .clip(
                             shape = RoundedCornerShape(
                                 topStart = cornerShape,
                                 topEnd = cornerShape
                             )
                         )
-                        .background(AppBackground),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Spacer(
-                        modifier = Modifier
-                            .width(24.dp)
-                            .height(4.dp)
-                            .clip(shape = RoundedCornerShape(4.dp))
-                            .background(LightColor)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 2.dp, horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    "Select your profile picture",
-                    color = LightColor,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-                IconButton(onClick = {
-                    closeModel()
-                }) {
-                    Icon(
-                        painter = painterResource(id = crossIcon),
-                        contentDescription = "close",
-                        modifier = Modifier
-                            .size(crossIconSize)
-                            .clip(shape = CircleShape),
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-            ) {
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    repeat(13) { index ->
-                        Box(
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = getProfileImage(index)),
-                                contentDescription = "Profile Image",
-                                modifier = Modifier
-                                    .clickable(onClick = {
-                                        updateProfileImage(index)
-                                    })
-                                    .size(imageSize)
-                                    .clip(shape = CircleShape),
+                        .background(AppBackground)
+                        .pointerInput(Unit) {
+                            detectVerticalDragGestures(
+                                onDragStart = {
+                                    animationDuration = 0
+                                },
+                                onVerticalDrag = { _, dragAmount ->
+                                    offsetY = (offsetY + dragAmount).coerceIn(0f, maxDrag)
+                                },
+                                onDragEnd = {
+                                    animationDuration = 300
+                                    if (offsetY < 400f) {
+                                        offsetY = 0f
+                                    } else {
+                                        closeModel()
+                                        offsetY = 0f
+                                    }
+                                }
                             )
-                            if (index == profileImage) {
-                                Icon(
-                                    painter = painterResource(id = checkIcon),
-                                    contentDescription = "Selected",
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .clip(shape = CircleShape)
-                                        .background(AppBackground)
-                                        .size(iconSize),
+                        }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(edgeHeight + 2.dp)
+                            .background(LightColor),
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(edgeHeight)
+                                .clip(
+                                    shape = RoundedCornerShape(
+                                        topStart = cornerShape,
+                                        topEnd = cornerShape
+                                    )
                                 )
-                            }
+                                .background(AppBackground),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Spacer(
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(4.dp)
+                                    .clip(shape = RoundedCornerShape(4.dp))
+                                    .background(LightColor)
+                            )
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp, horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "Select your profile picture",
+                            color = LightColor,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                        IconButton(onClick = {
+                            closeModel()
+                        }) {
+                            Icon(
+                                painter = painterResource(id = crossIcon),
+                                contentDescription = "close",
+                                modifier = Modifier
+                                    .size(crossIconSize)
+                                    .clip(shape = CircleShape),
+                            )
+                        }
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                    ) {
+                        FlowRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            repeat(13) { index ->
+                                Box(
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = getProfileImage(index)),
+                                        contentDescription = "Profile Image",
+                                        modifier = Modifier
+                                            .clickable(onClick = {
+                                                updateProfileImage(index)
+                                            })
+                                            .size(imageSize)
+                                            .clip(shape = CircleShape),
+                                    )
+                                    if (index == profileImage) {
+                                        Icon(
+                                            painter = painterResource(id = checkIcon),
+                                            contentDescription = "Selected",
+                                            modifier = Modifier
+                                                .align(Alignment.BottomEnd)
+                                                .clip(shape = CircleShape)
+                                                .background(AppBackground)
+                                                .size(iconSize),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }

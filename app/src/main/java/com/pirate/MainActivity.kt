@@ -28,6 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.messaging.FirebaseMessaging
 import com.pirate.components.DataLoading
+import com.pirate.screens.InviteFriends
 import com.pirate.screens.authentication.Authenticate
 import com.pirate.screens.home.Home
 import com.pirate.screens.settings.Profile
@@ -45,6 +49,7 @@ import com.pirate.services.SocketManager
 import com.pirate.types.HomeScreen
 import com.pirate.ui.theme.PirateTheme
 import com.pirate.utils.HomeRoute
+import com.pirate.utils.InviteFriendsRoute
 import com.pirate.utils.ProfileRoute
 import com.pirate.utils.SettingsRoute
 import com.pirate.viewModels.MainViewModel
@@ -180,19 +185,51 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
         }
 
         composable<ProfileRoute> {
+            var bottomModel by remember { mutableStateOf(false) }
+            val openModel = { bottomModel = true }
+            val closeModel = { bottomModel = false }
             BackHandler {
-                mainViewModel.navController.popBackStack()
+                if (bottomModel) {
+                    closeModel()
+                } else {
+                    mainViewModel.navController.popBackStack()
+                }
             }
 
-            Profile(mainViewModel = mainViewModel)
+            Profile(
+                mainViewModel = mainViewModel,
+                bottomModel = bottomModel,
+                openModel = openModel,
+                closeModel = closeModel,
+            )
         }
 
         composable<SettingsRoute> {
+            var bottomModel by remember { mutableStateOf(false) }
+            val openModel = { bottomModel = true }
+            val closeModel = { bottomModel = false }
+            BackHandler {
+                if (bottomModel) {
+                    closeModel()
+                } else {
+                    mainViewModel.navController.popBackStack()
+                }
+            }
+
+            Settings(
+                mainViewModel = mainViewModel,
+                bottomModel = bottomModel,
+                openModel = openModel,
+                closeModel = closeModel,
+            )
+        }
+
+        composable<InviteFriendsRoute> {
             BackHandler {
                 mainViewModel.navController.popBackStack()
             }
 
-            Settings(mainViewModel = mainViewModel)
+            InviteFriends()
         }
     }
 }
