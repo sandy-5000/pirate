@@ -642,8 +642,7 @@ fun SettingsBottomModal(
                                 ) {
                                     filteredFriends.map { details ->
                                         DisplayFriend(
-                                            firstName = details.firstName,
-                                            lastName = details.lastName,
+                                            name = details.name,
                                             pirateId = details.id,
                                             username = details.username,
                                             profileImage = details.profileImage,
@@ -918,8 +917,7 @@ fun SettingsBottomModal(
 
 @Composable
 fun DisplayFriend(
-    firstName: String,
-    lastName: String,
+    name: String,
     username: String,
     pirateId: String,
     profileImage: Int,
@@ -953,7 +951,7 @@ fun DisplayFriend(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = "$firstName $lastName",
+                    text = name,
                     color = Color.LightGray,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,

@@ -1,22 +1,30 @@
 package com.pirate.viewModels
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.pirate.models.types.FriendsInfo
 import com.pirate.models.types.Preferences
+import com.pirate.models.types.UserChats
 import com.pirate.models.types.UserDetails
 import com.pirate.services.DataBase
 import com.pirate.services.KeyStoreManager
 import com.pirate.services.fetch
 import com.pirate.types.Details
+import com.pirate.types.EventInfo
+import com.pirate.types.EventType
+import com.pirate.types.FriendType
 import com.pirate.types.HomeScreen
+import com.pirate.types.MessageType
 import com.pirate.types.PreferencesKey
 import com.pirate.types.RequestType
 import com.pirate.types.Routes
 import com.pirate.utils.HomeRoute
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,6 +68,21 @@ class MainViewModel(
             return instance?.currentPirateId ?: ""
         }
 
+        fun refreshLastOpened() {
+            instance?.fetchChatsList()
+        }
+
+        fun reloadRequestsData() {
+            if (instance?.getCurrentRoute() == Routes.HOME.value && instance?.homeScreenState?.value == HomeScreen.REQUESTS) {
+                instance?.fetchMessageRequests()
+                instance?.fetchPendingRequests()
+                instance?.fetchFriends()
+            } else {
+                instance?.requestDetailsFetched = false
+                instance?.friendsFetched = false
+            }
+        }
+
         fun setAppInForeground(flag: Boolean) {
             instance?.appInForeground?.value = flag
         }
@@ -73,6 +96,24 @@ class MainViewModel(
                 PreferencesKey.HIDE_ONLINE_STATUS.value,
                 "false"
             ) == "true"
+        }
+
+        fun emit(eventInfo: EventInfo) {
+            if (eventInfo.type == EventType.MESSAGE) {
+                if (
+                    instance?.getCurrentRoute() == Routes.HOME.value &&
+                    instance?.homeScreenState?.value == HomeScreen.CHATS
+                ) {
+                    instance?.fetchChatsList()
+                }
+                if (
+                    instance?.getCurrentRoute() == Routes.CHAT.value &&
+                    instance?.currentPirateId == eventInfo.pirateId &&
+                    eventInfo.userChats != null
+                ) {
+                    instance?.updateNewMessageForPirate(eventInfo.userChats)
+                }
+            }
         }
 
         fun setOtherUserOnline(flag: Boolean) {
@@ -154,7 +195,7 @@ class MainViewModel(
         }
         val profileImage =
             userDetails.jsonObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "5"
-        with(dataBase.userDetailsModel){
+        with(dataBase.userDetailsModel) {
             update(UserDetails(key = "profile_image", value = profileImage))
             update(UserDetails(key = "token", value = token))
             update(UserDetails(key = "logged_in", value = "true"))
@@ -187,6 +228,33 @@ class MainViewModel(
 
     fun setHomeScreen(screen: HomeScreen) {
         _homeScreenState.value = screen
+    }
+
+    private val _chatsListState = MutableStateFlow(value = emptyList<FriendsInfo>())
+    val chatsListState: StateFlow<List<FriendsInfo>> = _chatsListState.asStateFlow()
+
+    fun fetchChatsList() {
+        viewModelScope.launch {
+            val chatsList = dataBase.friendsInfoModel.getAll().first()
+            _chatsListState.value = chatsList
+                .filter { chat -> chat.lastMessageId.isNotEmpty() }
+        }
+    }
+
+    private fun insertNewChat(pirateId: String, name: String, username: String, image: String) {
+        viewModelScope.launch {
+            val friendInfo =
+                FriendsInfo(pirateId = pirateId, name = name, username = username, image = image)
+            dataBase.friendsInfoModel.upsert(friendsInfo = friendInfo)
+        }
+    }
+
+    private val _lastOpened = MutableStateFlow(mapOf<String, String>())
+    val lastOpened: StateFlow<Map<String, String>> = _lastOpened.asStateFlow()
+
+    suspend fun setLastOpened(pirateId: String) {
+        dataBase.friendsInfoModel.updateLastOpened(pirateId = pirateId)
+        fetchChatsList()
     }
 
     // == REQUESTS - States
@@ -232,9 +300,7 @@ class MainViewModel(
                         ?: buildJsonObject { emptyMap<String, String>() }
                     Details(
                         username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
-                            ?: "N/A",
-                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
                             ?: "2").toInt()
@@ -265,9 +331,7 @@ class MainViewModel(
                         ?: buildJsonObject { emptyMap<String, String>() }
                     Details(
                         username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
-                            ?: "N/A",
-                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
                             ?: "10").toInt()
@@ -313,16 +377,27 @@ class MainViewModel(
                     ?: buildJsonArray { emptyArray<JsonObject>() }
                 _requestScreenDateFriends.value = friendsList.map { details ->
                     val detailObject = details.jsonObject
+                    val pirateId = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                    val username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                    val name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A"
+                    val profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                        ?: "10").toInt()
                     Details(
-                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
-                            ?: "N/A",
-                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
-                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
-                            ?: "3").toInt()
+                        username = username,
+                        name = name,
+                        id = pirateId,
+                        profileImage = profileImage
                     )
                 }
+                _requestScreenDateFriends.value.forEach { details: Details ->
+                    insertNewChat(
+                        pirateId = details.id,
+                        name = details.name,
+                        username = details.username,
+                        image = details.profileImage.toString()
+                    )
+                }
+                fetchChatsList()
                 _requestScreenLoadingFriends.value = false
             },
             headers = getHeaders(),
@@ -333,10 +408,69 @@ class MainViewModel(
     // ________ HomeScreen
 
     // ChatScreen - States
+    private val _chatScreenState = MutableStateFlow(FriendType.INVALID)
+    val chatScreenState: StateFlow<FriendType> = _chatScreenState.asStateFlow()
+
+    fun setChatScreen(screen: FriendType) {
+        _chatScreenState.value = screen
+    }
 
     private var currentPirateId by mutableStateOf("")
     fun setPirateId(pirateId: String) {
         currentPirateId = pirateId
+    }
+
+    private val _userChatState = MutableStateFlow(emptyList<UserChats>())
+    val userChatState: StateFlow<List<UserChats>> = _userChatState.asStateFlow()
+    private var messageOffset by mutableIntStateOf(0)
+
+    fun resetChatState() {
+        setChatScreen(FriendType.INVALID)
+        _userChatState.value = emptyList()
+        messageOffset = 0
+    }
+
+    fun updateNewMessageForPirate(userChats: UserChats) {
+        if (userChats.pirateId != currentPirateId) {
+            return
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            if (userChats.side == 0) {
+                dataBase.userChatsModel.insertMessage(userChats = userChats)
+                dataBase.friendsInfoModel.updateLastOpened(userChats.pirateId)
+            }
+            var id = ""
+            if (_userChatState.value.isNotEmpty()) {
+                id = _userChatState.value[0].messageId
+            }
+            val newMessages =
+                dataBase.userChatsModel.getLatestInsertedMessage(userChats.pirateId, id)
+            _userChatState.value = newMessages + _userChatState.value
+            messageOffset += newMessages.size
+        }
+    }
+
+    fun getMessagesForPirate(pirateId: String, limit: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val oldMessages = dataBase.userChatsModel.getMessagesForPirate(
+                pirateId = pirateId,
+                limit = limit,
+                offset = messageOffset
+            )
+            _userChatState.value += oldMessages
+            messageOffset += limit
+        }
+    }
+
+    fun clearPirateChat(pirateId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataBase.userChatsModel.deletePirateChat(pirateId = pirateId)
+            dataBase.friendsInfoModel.clearLastMessage(pirateId = pirateId)
+            if (pirateId == currentPirateId) {
+                _userChatState.value = emptyList()
+                messageOffset = 0
+            }
+        }
     }
 
     private val _otherUserOnline = MutableStateFlow(false)

@@ -1,5 +1,6 @@
 package com.pirate.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pirate.R
 import com.pirate.components.DataLoading
+import com.pirate.components.DividerLine
+import com.pirate.types.FriendType
 import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.LightColor
 import com.pirate.ui.theme.NavBarBackground
@@ -78,7 +81,7 @@ fun Friends(
                 } else {
                     friends.forEach { friend ->
                         Friend(
-                            displayName = friend.firstName + " " + friend.lastName,
+                            name = friend.name,
                             username = friend.username,
                             userId = friend.id,
                             profileImage = friend.profileImage,
@@ -89,12 +92,20 @@ fun Friends(
                 }
             }
         }
+        if (!loadingFriends && friends.isNotEmpty()) {
+            DividerLine(
+                modifier = Modifier.padding(top = 60.dp),
+                verticalPadding = 0.dp,
+                horizontalPadding = 20.dp,
+                color = Color.DarkGray,
+            )
+        }
     }
 }
 
 @Composable
 fun Friend(
-    displayName: String,
+    name: String,
     username: String,
     userId: String,
     profileImage: Int,
@@ -129,7 +140,7 @@ fun Friend(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = displayName,
+                    text = name,
                     color = Color.LightGray,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
@@ -148,7 +159,7 @@ fun Friend(
         }
         IconButton(
             onClick = {
-//                mainViewModel.setChatScreen(FriendType.INVALID)
+                mainViewModel.setChatScreen(FriendType.INVALID)
 //                mainViewModel.navController.navigate(
 //                    ChatRoute(
 //                        pirateId = userId,

@@ -11,19 +11,19 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DividerLine(
+    modifier: Modifier = Modifier,
     verticalPadding: Dp = 8.dp,
-    horizontalPadding: Dp = 16.dp
+    horizontalPadding: Dp = 16.dp,
+    color: Color = Color.Gray,
 ) {
     Row(
-        modifier = Modifier.padding(
-            start = horizontalPadding,
-            end = horizontalPadding,
-            top = verticalPadding,
-            bottom = verticalPadding
+        modifier = modifier.padding(
+            horizontal = horizontalPadding,
+            vertical = verticalPadding,
         )
     ) {
         HorizontalDivider(
-            color = Color.Gray,
+            color = color,
             thickness = 1.dp
         )
     }

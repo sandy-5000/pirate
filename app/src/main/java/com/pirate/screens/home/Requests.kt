@@ -118,7 +118,7 @@ fun Requests(
                 } else {
                     requests.forEach { messageRequest ->
                         MessageRequest(
-                            displayName = messageRequest.firstName + " " + messageRequest.lastName,
+                            displayName = messageRequest.name,
                             username = messageRequest.username,
                             userId = messageRequest.id,
                             profileImage = messageRequest.profileImage,
@@ -162,7 +162,7 @@ fun Requests(
                 } else {
                     pendings.forEach { pendingRequest ->
                         PendingRequest(
-                            displayName = pendingRequest.firstName + " " + pendingRequest.lastName,
+                            displayName = pendingRequest.name,
                             username = pendingRequest.username,
                             userId = pendingRequest.id,
                             profileImage = pendingRequest.profileImage,

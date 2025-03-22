@@ -1,15 +1,17 @@
 package com.pirate.models
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Upsert
 import com.pirate.models.types.FriendsInfo
+import com.pirate.utils.getTimeStamp
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FriendsInfoModel {
 
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun upsert(friendsInfo: FriendsInfo)
 
     @Query(
@@ -34,12 +36,31 @@ interface FriendsInfoModel {
         value = """
         UPDATE friends_info
         SET
-            last_opened_at = CURRENT_TIMESTAMP
+            last_opened_at = :timeStamp
         WHERE
             pirate_id = :pirateId
         """
     )
-    suspend fun updateLastOpened(pirateId: String)
+    suspend fun updateLastOpenedInternal(pirateId: String, timeStamp: Long)
+
+    suspend fun updateLastOpened(pirateId: String) {
+        updateLastOpenedInternal(pirateId, getTimeStamp())
+    }
+
+    @Query(
+        value = """
+        UPDATE friends_info 
+        SET 
+            last_message_id = '', 
+            last_message = '',
+            last_message_status = -1,
+            last_message_type = 'TXT',
+            received_at = 0
+        WHERE 
+            pirate_id = :pirateId
+        """
+    )
+    suspend fun clearLastMessage(pirateId: String)
 
     @Query(
         value = """

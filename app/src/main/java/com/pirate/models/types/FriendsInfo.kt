@@ -16,20 +16,20 @@ data class FriendsInfo(
     val username: String,
     @ColumnInfo(defaultValue = "LOCAL:12")
     val image: String,
-    @ColumnInfo(name = "last_opened_at", defaultValue = "")
-    val lastOpenedAt: String,
+    @ColumnInfo(name = "last_opened_at", defaultValue = "0")
+    val lastOpenedAt: Long = 0,
     @ColumnInfo(defaultValue = "0")
-    val pinned: Int,
+    val pinned: Int = 0,
 
     @ColumnInfo(name = "last_message_id")
-    val lastMessageId: String,
+    val lastMessageId: String = "",
     @ColumnInfo(name = "last_message", defaultValue = "")
-    val lastMessage: String,
+    val lastMessage: String = "",
     @ColumnInfo(name = "last_message_status", defaultValue = "-1")
-    val lastMessageStatus: Int,
+    val lastMessageStatus: Int = -1,
     @ColumnInfo(name = "last_message_type", defaultValue = "TXT")
-    val lastMessageType: String,
-    @ColumnInfo(name = "received_at", defaultValue = "")
-    val receivedAt: String
+    val lastMessageType: String = "TXT",
+    @ColumnInfo(name = "received_at", defaultValue = "0")
+    val receivedAt: Long = 0,
 
 )

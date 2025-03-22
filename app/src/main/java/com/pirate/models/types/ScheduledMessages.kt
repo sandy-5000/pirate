@@ -13,5 +13,5 @@ data class ScheduledMessages(
     val pirateId: String,
     val message: String,
     @ColumnInfo(name = "send_at")
-    val sendAt: String,
+    val sendAt: Long,
 )
