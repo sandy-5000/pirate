@@ -42,6 +42,7 @@ import com.pirate.components.DataLoading
 import com.pirate.screens.InviteFriends
 import com.pirate.screens.authentication.Authenticate
 import com.pirate.screens.home.Home
+import com.pirate.screens.settings.Privacy
 import com.pirate.screens.settings.Profile
 import com.pirate.screens.settings.Settings
 import com.pirate.services.DatabaseProvider
@@ -50,6 +51,7 @@ import com.pirate.types.HomeScreen
 import com.pirate.ui.theme.PirateTheme
 import com.pirate.utils.HomeRoute
 import com.pirate.utils.InviteFriendsRoute
+import com.pirate.utils.PrivacyRoute
 import com.pirate.utils.ProfileRoute
 import com.pirate.utils.SettingsRoute
 import com.pirate.viewModels.MainViewModel
@@ -222,6 +224,14 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
                 openModel = openModel,
                 closeModel = closeModel,
             )
+        }
+
+        composable<PrivacyRoute> {
+            BackHandler {
+                mainViewModel.navController.popBackStack()
+            }
+
+            Privacy(mainViewModel = mainViewModel)
         }
 
         composable<InviteFriendsRoute> {

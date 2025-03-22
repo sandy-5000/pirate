@@ -41,6 +41,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.pirate.R
 import com.pirate.types.HomeScreen
+import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.NavBarBackground
 import com.pirate.ui.theme.PrimaryColor
 import com.pirate.utils.InviteFriendsRoute
@@ -61,9 +62,9 @@ fun Home(
         when (homeScreen) {
             HomeScreen.CHATS -> Chats(mainViewModel = mainViewModel)
 
-            HomeScreen.REQUESTS -> Requests()
+            HomeScreen.REQUESTS -> Requests(mainViewModel = mainViewModel)
 
-            HomeScreen.FRIENDS -> Friends()
+            HomeScreen.FRIENDS -> Friends(mainViewModel = mainViewModel)
 
             else -> {}
         }
@@ -105,6 +106,7 @@ fun TopBar(
         modifier = modifier
             .fillMaxWidth()
             .height(60.dp)
+            .background(AppBackground)
             .padding(start = 24.dp, end = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

@@ -42,7 +42,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -58,6 +60,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -68,6 +71,7 @@ import com.pirate.components.BasicTopBar
 import com.pirate.components.DividerLine
 import com.pirate.services.DatabaseProvider
 import com.pirate.services.fetch
+import com.pirate.types.PreferencesKey
 import com.pirate.types.RequestType
 import com.pirate.types.SettingsBottomComponent
 import com.pirate.ui.theme.AppBackground
@@ -77,6 +81,7 @@ import com.pirate.ui.theme.PrimaryBlue
 import com.pirate.ui.theme.PrimaryColor
 import com.pirate.ui.theme.RedColor
 import com.pirate.utils.InviteFriendsRoute
+import com.pirate.utils.PrivacyRoute
 import com.pirate.utils.ProfileRoute
 import com.pirate.utils.getProfileImage
 import com.pirate.viewModels.MainViewModel
@@ -256,6 +261,8 @@ fun Settings(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = {
+                        openModel()
+                        bottomComponent = SettingsBottomComponent.CHATS
                     })
                     .padding(internalPadding),
             ) {
@@ -273,6 +280,8 @@ fun Settings(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = {
+                        openModel()
+                        bottomComponent = SettingsBottomComponent.NOTIFICATIONS
                     })
                     .padding(internalPadding),
             ) {
@@ -290,6 +299,7 @@ fun Settings(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = {
+                        mainViewModel.navController.navigate(PrivacyRoute)
                     })
                     .padding(internalPadding),
             ) {
@@ -517,6 +527,7 @@ fun SettingsBottomModal(
                     when (settingsComponent) {
                         SettingsBottomComponent.APPEARANCE -> {
                             var isOn by remember { mutableStateOf(true) }
+                            Spacer(modifier = Modifier.height(24.dp))
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -559,24 +570,208 @@ fun SettingsBottomModal(
                             Spacer(modifier = Modifier.height(120.dp))
                         }
 
+                        SettingsBottomComponent.CHATS -> {
+                            val scrollState = rememberScrollState()
+
+                            LaunchedEffect(Unit) {
+                                mainViewModel.fetchFriends()
+                            }
+
+                            val loadingFriends by mainViewModel.requestScreenLoadingFriends.collectAsState()
+                            val friends by mainViewModel.requestScreenDateFriends.collectAsState()
+                            val mutedFriends by mainViewModel.chatNotifications.collectAsState()
+
+                            val mutedFriendsIds = remember(mutedFriends) {
+                                mutedFriends.filter { it.value == "true" }.keys.toSet()
+                            }
+
+                            val filteredFriends by remember(friends, mutedFriends) {
+                                derivedStateOf {
+                                    friends.filter { (PreferencesKey.MUTED_CHATS.value + ":" + it.id) in mutedFriendsIds }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontalPadding),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "Muted Chats",
+                                    fontSize = 20.sp,
+                                    color = LightColor,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                IconButton(
+                                    enabled = !loadingFriends,
+                                    onClick = {
+                                        mainViewModel.fetchFriends()
+                                    },
+                                    modifier = Modifier
+                                        .clip(shape = CircleShape)
+                                        .background(PrimaryColor)
+                                        .size(iconSize + 16.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = refreshIcon),
+                                        contentDescription = "reload",
+                                        modifier = Modifier
+                                            .size(iconSize + 4.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                            Text(
+                                modifier = Modifier
+                                    .padding(horizontal = horizontalPadding),
+                                text = "You can Unmute individual users notification preferences.",
+                                fontSize = 14.sp, color = LightColor,
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(400.dp),
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .verticalScroll(scrollState)
+                                        .fillMaxWidth(),
+                                ) {
+                                    filteredFriends.map { details ->
+                                        DisplayFriend(
+                                            firstName = details.firstName,
+                                            lastName = details.lastName,
+                                            pirateId = details.id,
+                                            username = details.username,
+                                            profileImage = details.profileImage,
+                                            mainViewModel = mainViewModel,
+                                        )
+                                    }
+                                    if (filteredFriends.isEmpty()) {
+                                        Column(
+                                            modifier = Modifier
+                                                .height(320.dp)
+                                                .fillMaxWidth(),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center,
+                                        ) {
+                                            Text(
+                                                "No user's chat is muted",
+                                                color = LightColor,
+                                                textAlign = TextAlign.Center,
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(40.dp))
+                                }
+                            }
+                        }
+
+                        SettingsBottomComponent.NOTIFICATIONS -> {
+                            var loading by remember { mutableStateOf(false) }
+                            val notificationsOn by remember {
+                                derivedStateOf {
+                                    userState.getOrDefault(
+                                        PreferencesKey.APP_NOTIFICATION.value,
+                                        "false"
+                                    ) != "true"
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Card(
+                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = NavBarBackground),
+                                modifier = modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(
+                                        horizontal = horizontalPadding,
+                                        vertical = 8.dp
+                                    )
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            text = "Show Notifications",
+                                            fontSize = 16.sp,
+                                            color = LightColor,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        Switch(
+                                            checked = notificationsOn,
+                                            enabled = !loading,
+                                            onCheckedChange = {
+                                                loading = true
+                                                mainViewModel.viewModelScope.launch {
+                                                    if (it) {
+                                                        mainViewModel.removeMuteNotifications()
+                                                    } else {
+                                                        mainViewModel.setMuteNotifications()
+                                                    }
+                                                    loading = false
+                                                }
+                                            },
+                                            colors = SwitchDefaults.colors(
+                                                checkedThumbColor = LightColor,
+                                                checkedBorderColor = LightColor,
+                                                uncheckedThumbColor = LightColor,
+                                                uncheckedTrackColor = PrimaryColor,
+                                                uncheckedBorderColor = LightColor,
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            Card(
+                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = NavBarBackground),
+                                modifier = modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(
+                                        vertical = 16.dp
+                                    )
+                                ) {
+                                    Text(
+                                        text = "You can set your notifications preferences.",
+                                        modifier = Modifier.padding(horizontal = horizontalPadding),
+                                        fontSize = 14.sp, color = LightColor,
+                                    )
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Text(
+                                        text = "Customize your notification settings to enable or disable notifications based on your preference.",
+                                        modifier = Modifier.padding(horizontal = horizontalPadding),
+                                        fontSize = 14.sp, color = LightColor,
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
+
                         SettingsBottomComponent.DATA_AND_STORAGE -> {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(20.dp),
                             ) {
-                                Text(
-                                    text = "Data and Storage",
-                                    fontSize = 20.sp,
-                                    color = LightColor,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
                                 Card(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                                     colors = CardDefaults.cardColors(containerColor = NavBarBackground),
-                                    modifier = modifier
-                                        .padding(top = 12.dp)
+                                    modifier = Modifier
+                                        .padding(top = 16.dp)
                                         .fillMaxWidth()
                                 ) {
                                     Row(
@@ -603,26 +798,38 @@ fun SettingsBottomModal(
                                     }
                                 }
                             }
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "Your data is securely stored on your device for fast access and better privacy.",
-                                modifier = Modifier.padding(horizontal = horizontalPadding),
-                                fontSize = 14.sp, color = LightColor,
-                            )
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Text(
-                                text = "You can clear your app's storage by selecting 'Clear Data' in the app settings.",
-                                modifier = Modifier.padding(horizontal = horizontalPadding),
-                                fontSize = 14.sp, color = LightColor,
-                            )
-                            Spacer(modifier = Modifier.height(80.dp))
+                            Card(
+                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = NavBarBackground),
+                                modifier = Modifier
+                                    .padding(horizontal = 20.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "Your data is securely stored on your device for fast access and better privacy.",
+                                        modifier = Modifier.padding(horizontal = horizontalPadding),
+                                        fontSize = 14.sp, color = LightColor,
+                                    )
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Text(
+                                        text = "You can clear your app's storage by selecting 'Clear Data' in the app settings.",
+                                        modifier = Modifier.padding(horizontal = horizontalPadding),
+                                        fontSize = 14.sp, color = LightColor,
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(40.dp))
                         }
 
                         SettingsBottomComponent.ABOUT -> {
+                            Spacer(modifier = Modifier.height(24.dp))
                             Text(
                                 text = "About Pirate",
                                 modifier = Modifier.padding(horizontal = horizontalPadding),
-                                fontSize = 16.sp,
+                                fontSize = 20.sp,
                                 color = LightColor,
                                 fontWeight = FontWeight.SemiBold,
                             )
@@ -642,12 +849,13 @@ fun SettingsBottomModal(
                         }
 
                         SettingsBottomComponent.LOGOUT -> {
+                            Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Logout From this Device",
                                 modifier = Modifier
                                     .padding(horizontal = horizontalPadding)
                                     .padding(top = horizontalPadding),
-                                fontSize = 16.sp,
+                                fontSize = 18.sp,
                                 color = LightColor,
                                 fontWeight = FontWeight.SemiBold,
                             )
@@ -703,6 +911,90 @@ fun SettingsBottomModal(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun DisplayFriend(
+    firstName: String,
+    lastName: String,
+    username: String,
+    pirateId: String,
+    profileImage: Int,
+    mainViewModel: MainViewModel,
+) {
+    val horizontalPadding = 24.dp
+    val unMuteIcon = R.drawable.icon_volume_loud
+    val iconSize = 24.dp
+    val imageSize = 48.dp
+
+    Row(
+        modifier = Modifier
+            .clickable(onClick = {})
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row {
+            Image(
+                painter = painterResource(id = getProfileImage(profileImage)),
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .size(imageSize)
+                    .clip(shape = CircleShape),
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .padding(start = 16.dp),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "$firstName $lastName",
+                    color = Color.LightGray,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = username,
+                    color = Color.LightGray,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        IconButton(
+            onClick = {
+                mainViewModel.viewModelScope.launch {
+                    mainViewModel.removeChatNotifications(pirateId = pirateId)
+                }
+            },
+            modifier = Modifier
+                .padding(8.dp)
+                .clip(shape = CircleShape)
+                .background(NavBarBackground)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(PrimaryColor)
+                    .padding(start = 2.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(id = unMuteIcon),
+                    contentDescription = "View",
+                    modifier = Modifier
+                        .size(iconSize),
+                    tint = Color.White
+                )
             }
         }
     }

@@ -6,10 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.pirate.models.types.Preferences
 import com.pirate.models.types.UserDetails
 import com.pirate.services.DataBase
 import com.pirate.services.KeyStoreManager
 import com.pirate.services.fetch
+import com.pirate.types.Details
 import com.pirate.types.HomeScreen
 import com.pirate.types.PreferencesKey
 import com.pirate.types.RequestType
@@ -22,10 +24,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -184,6 +189,147 @@ class MainViewModel(
         _homeScreenState.value = screen
     }
 
+    // == REQUESTS - States
+    private var requestDetailsFetched = false
+    fun requestScreenLoaded() {
+        if (requestDetailsFetched) {
+            return
+        }
+        fetchMessageRequests()
+        fetchPendingRequests()
+        requestDetailsFetched = true
+    }
+
+    private val _requestScreenLoadingRequests = MutableStateFlow(true)
+    val requestScreenLoadingRequests: StateFlow<Boolean> =
+        _requestScreenLoadingRequests.asStateFlow()
+    private val _requestScreenLoadingPendings = MutableStateFlow(true)
+    val requestScreenLoadingPendings: StateFlow<Boolean> =
+        _requestScreenLoadingPendings.asStateFlow()
+
+    private val _requestScreenDateRequests = MutableStateFlow(emptyList<Details>())
+    val requestScreenDateRequests: StateFlow<List<Details>> =
+        _requestScreenDateRequests.asStateFlow()
+    private val _requestScreenDatePendings = MutableStateFlow(emptyList<Details>())
+    val requestScreenDatePendings: StateFlow<List<Details>> =
+        _requestScreenDatePendings.asStateFlow()
+
+    fun fetchMessageRequests() {
+        _requestScreenLoadingRequests.value = true
+        fetch(
+            url = "/api/user/message-requests",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    _requestScreenLoadingRequests.value = false
+                    return@fetch
+                }
+                val result: JsonArray = response.jsonObject["result"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<String>() }
+                _requestScreenDateRequests.value = result.map { details ->
+                    val detailObject = details.jsonObject["sender_id"]?.jsonObject
+                        ?: buildJsonObject { emptyMap<String, String>() }
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "2").toInt()
+                    )
+                }
+                _requestScreenLoadingRequests.value = false
+            },
+            headers = getHeaders(),
+            type = RequestType.GET,
+        )
+    }
+
+    fun fetchPendingRequests() {
+        _requestScreenLoadingPendings.value = true
+        fetch(
+            url = "/api/user/pending-requests",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    _requestScreenLoadingPendings.value = false
+                    return@fetch
+                }
+                val result: JsonArray = response.jsonObject["result"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<JsonObject>() }
+                _requestScreenDatePendings.value = result.map { details ->
+                    val detailObject = details.jsonObject["receiver_id"]?.jsonObject
+                        ?: buildJsonObject { emptyMap<String, String>() }
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "10").toInt()
+                    )
+                }
+                _requestScreenLoadingPendings.value = false
+            },
+            headers = getHeaders(),
+            type = RequestType.GET,
+        )
+    }
+
+    // == FRIENDS - States
+    private var friendsFetched = false
+    fun friendsScreenLoaded() {
+        if (friendsFetched) {
+            return
+        }
+        fetchFriends()
+        friendsFetched = true
+    }
+
+    private val _requestScreenLoadingFriends = MutableStateFlow(true)
+    val requestScreenLoadingFriends: StateFlow<Boolean> = _requestScreenLoadingFriends.asStateFlow()
+
+    private val _requestScreenDateFriends = MutableStateFlow(emptyList<Details>())
+    val requestScreenDateFriends: StateFlow<List<Details>> = _requestScreenDateFriends.asStateFlow()
+
+    fun fetchFriends() {
+        _requestScreenLoadingFriends.value = true
+        fetch(
+            url = "/api/user/friends",
+            callback = { response: JsonElement ->
+                val error =
+                    response.jsonObject["error"]?.jsonPrimitive?.contentOrNull ?: ""
+                if (error.isNotEmpty()) {
+                    _requestScreenLoadingFriends.value = false
+                    return@fetch
+                }
+                val result: JsonObject = response.jsonObject["result"]?.jsonObject
+                    ?: buildJsonObject { emptyMap<String, JsonObject>() }
+                val friendsList: JsonArray = result["friends"]?.jsonArray
+                    ?: buildJsonArray { emptyArray<JsonObject>() }
+                _requestScreenDateFriends.value = friendsList.map { details ->
+                    val detailObject = details.jsonObject
+                    Details(
+                        username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        firstName = detailObject["first_name"]?.jsonPrimitive?.contentOrNull
+                            ?: "N/A",
+                        lastName = detailObject["last_name"]?.jsonPrimitive?.contentOrNull ?: "",
+                        id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
+                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "3").toInt()
+                    )
+                }
+                _requestScreenLoadingFriends.value = false
+            },
+            headers = getHeaders(),
+            type = RequestType.GET,
+        )
+    }
+
     // ________ HomeScreen
 
     // ChatScreen - States
@@ -206,4 +352,64 @@ class MainViewModel(
     }
     // ________ ChatScreen
 
+    // SettingsScreen - States
+
+    suspend fun setMuteNotifications() {
+        dataBase.userDetailsModel.update(
+            UserDetails(
+                key = PreferencesKey.APP_NOTIFICATION.value,
+                value = "true"
+            )
+        )
+        setAllUserDetails()
+    }
+
+    suspend fun removeMuteNotifications() {
+        dataBase.userDetailsModel.delete(key = PreferencesKey.APP_NOTIFICATION.value)
+        setAllUserDetails()
+    }
+
+    suspend fun setHideOnlineStatus() {
+        dataBase.userDetailsModel.update(
+            UserDetails(
+                key = PreferencesKey.HIDE_ONLINE_STATUS.value,
+                value = "true"
+            )
+        )
+        setAllUserDetails()
+    }
+
+    suspend fun removeHideOnlineStatus() {
+        dataBase.userDetailsModel.delete(key = PreferencesKey.HIDE_ONLINE_STATUS.value)
+        setAllUserDetails()
+    }
+
+    private val _chatNotifications = MutableStateFlow(mapOf<String, String>())
+    val chatNotifications: StateFlow<Map<String, String>> = _chatNotifications.asStateFlow()
+
+    private fun setAllChatNotifications() {
+        viewModelScope.launch {
+            val chatNotificationsList = dataBase.preferencesModel.getMutedChats().first()
+            val chatNotificationsMap =
+                chatNotificationsList.associate { it.key to it.value }.toMutableMap()
+            _chatNotifications.value = chatNotificationsMap
+        }
+    }
+
+    suspend fun setChatNotifications(pirateId: String) {
+        dataBase.preferencesModel.update(
+            Preferences(
+                key = PreferencesKey.MUTED_CHATS.value + ":" + pirateId,
+                value = "true"
+            )
+        )
+        setAllChatNotifications()
+    }
+
+    suspend fun removeChatNotifications(pirateId: String) {
+        dataBase.preferencesModel.delete(key = PreferencesKey.MUTED_CHATS.value + ":" + pirateId)
+        setAllChatNotifications()
+    }
+
+    // ________ SettingsScreen
 }
