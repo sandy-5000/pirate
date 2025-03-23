@@ -220,6 +220,23 @@ class MainViewModel(
         navController.navigate(HomeRoute)
     }
 
+    fun updateProfileInfo(
+        pirateId: String,
+        name: String,
+        username: String,
+        profileImage: String
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataBase.friendsInfoModel.update(
+                pirateId = pirateId,
+                name = name,
+                username = username,
+                image = profileImage,
+            )
+            fetchChatsList()
+        }
+    }
+
     // HomeScreen - States
 
     // == CHAT - States
@@ -302,8 +319,7 @@ class MainViewModel(
                         username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
-                            ?: "2").toInt()
+                        profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "2"
                     )
                 }
                 _requestScreenLoadingRequests.value = false
@@ -333,8 +349,7 @@ class MainViewModel(
                         username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
-                            ?: "10").toInt()
+                        profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "10"
                     )
                 }
                 _requestScreenLoadingPendings.value = false
@@ -380,8 +395,7 @@ class MainViewModel(
                     val pirateId = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
                     val username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A"
                     val name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A"
-                    val profileImage = (detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
-                        ?: "10").toInt()
+                    val profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "10"
                     Details(
                         username = username,
                         name = name,

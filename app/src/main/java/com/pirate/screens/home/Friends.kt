@@ -1,6 +1,5 @@
 package com.pirate.screens.home
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,6 +41,7 @@ import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.LightColor
 import com.pirate.ui.theme.NavBarBackground
 import com.pirate.ui.theme.PrimaryColor
+import com.pirate.utils.ChatRoute
 import com.pirate.utils.getProfileImage
 import com.pirate.viewModels.MainViewModel
 
@@ -108,7 +108,7 @@ fun Friend(
     name: String,
     username: String,
     userId: String,
-    profileImage: Int,
+    profileImage: String,
     mainViewModel: MainViewModel,
 ) {
     val horizontalPadding = 28.dp
@@ -127,7 +127,7 @@ fun Friend(
     ) {
         Row {
             Image(
-                painter = painterResource(id = getProfileImage(profileImage)),
+                painter = painterResource(id = getProfileImage(profileImage.toInt())),
                 contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(imageSize)
@@ -160,13 +160,13 @@ fun Friend(
         IconButton(
             onClick = {
                 mainViewModel.setChatScreen(FriendType.INVALID)
-//                mainViewModel.navController.navigate(
-//                    ChatRoute(
-//                        pirateId = userId,
-//                        username = username,
-//                        profileImage = profileImage,
-//                    )
-//                )
+                mainViewModel.navController.navigate(
+                    ChatRoute(
+                        pirateId = userId,
+                        username = username,
+                        profileImage = profileImage,
+                    )
+                )
             },
             modifier = Modifier
                 .padding(8.dp)

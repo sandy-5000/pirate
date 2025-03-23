@@ -14,7 +14,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -32,15 +31,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.google.firebase.messaging.FirebaseMessaging
 import com.pirate.components.DataLoading
 import com.pirate.screens.InviteFriends
 import com.pirate.screens.authentication.Authenticate
+import com.pirate.screens.home.Conversation
 import com.pirate.screens.home.Home
 import com.pirate.screens.settings.Privacy
 import com.pirate.screens.settings.Profile
@@ -49,6 +49,7 @@ import com.pirate.services.DatabaseProvider
 import com.pirate.services.SocketManager
 import com.pirate.types.HomeScreen
 import com.pirate.ui.theme.PirateTheme
+import com.pirate.utils.ChatRoute
 import com.pirate.utils.HomeRoute
 import com.pirate.utils.InviteFriendsRoute
 import com.pirate.utils.PrivacyRoute
@@ -174,16 +175,46 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
         },
     ) {
         composable<HomeRoute> {
+            var bottomModel by remember { mutableStateOf(false) }
+            val openModel = { bottomModel = true }
+            val closeModel = { bottomModel = false }
             val homeScreenState by mainViewModel.homeScreenState.collectAsState()
             BackHandler {
-                if (homeScreenState != HomeScreen.CHATS) {
+                if (bottomModel) {
+                    closeModel()
+                } else if (homeScreenState != HomeScreen.CHATS) {
                     mainViewModel.setHomeScreen(HomeScreen.CHATS)
                 } else {
                     (context as Activity).moveTaskToBack(true)
                 }
             }
 
-            Home(mainViewModel = mainViewModel)
+            Home(
+                mainViewModel = mainViewModel,
+                openModel = openModel,
+                closeModel = closeModel,
+                bottomModel = bottomModel
+            )
+        }
+
+        composable<ChatRoute> {
+            val args = it.toRoute<ChatRoute>()
+            val pirateId = args.pirateId
+            val username = args.username
+            val profileImage = args.profileImage
+
+            BackHandler {
+                SocketManager.exitChatRoute(pirateId)
+                mainViewModel.navController.popBackStack()
+                mainViewModel.fetchChatsList()
+            }
+
+            Conversation(
+                mainViewModel = mainViewModel,
+                pirateId = pirateId,
+                username = username,
+                profileImage = profileImage,
+            )
         }
 
         composable<ProfileRoute> {

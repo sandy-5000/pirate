@@ -81,7 +81,7 @@ class PushNotificationService : FirebaseMessagingService() {
                     messageType = MessageType.TEXT.value,
                     messageStatus = 1,
                     side = 1,
-                    receivedAt = timestamp,
+                    receivedAt = timestamp.toLong(),
                 )
                 dataBase.userChatsModel.insertMessage(userChats = userChats)
                 val eventInfo = EventInfo(

@@ -186,7 +186,7 @@ fun MessageRequest(
     displayName: String,
     username: String,
     userId: String,
-    profileImage: Int,
+    profileImage: String,
     mainViewModel: MainViewModel,
     reload: () -> Unit
 ) {
@@ -327,7 +327,7 @@ fun PendingRequest(
     displayName: String,
     username: String,
     userId: String,
-    profileImage: Int,
+    profileImage: String,
     mainViewModel: MainViewModel,
     reload: () -> Unit,
 ) {
@@ -409,7 +409,7 @@ fun PendingRequest(
 fun UserProfile(
     displayName: String,
     username: String,
-    profileImage: Int,
+    profileImage: String,
     verticalPadding: Dp = 4.dp,
     horizontalPadding: Dp = 20.dp,
     imageSize: Dp = 92.dp
@@ -423,7 +423,7 @@ fun UserProfile(
         horizontalArrangement = Arrangement.Start
     ) {
         Image(
-            painter = painterResource(id = getProfileImage(profileImage)),
+            painter = painterResource(id = getProfileImage(profileImage.toInt())),
             contentDescription = "Profile Image",
             modifier = Modifier
                 .size(imageSize)

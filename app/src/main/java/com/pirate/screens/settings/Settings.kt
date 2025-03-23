@@ -920,7 +920,7 @@ fun DisplayFriend(
     name: String,
     username: String,
     pirateId: String,
-    profileImage: Int,
+    profileImage: String,
     mainViewModel: MainViewModel,
 ) {
     val horizontalPadding = 24.dp
@@ -938,7 +938,7 @@ fun DisplayFriend(
     ) {
         Row {
             Image(
-                painter = painterResource(id = getProfileImage(profileImage)),
+                painter = painterResource(id = getProfileImage(profileImage.toInt())),
                 contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(imageSize)

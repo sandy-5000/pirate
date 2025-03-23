@@ -25,7 +25,7 @@ data class UserChats(
     @ColumnInfo(name = "file_path", defaultValue = "")
     val filePath: String = "",
     @ColumnInfo(name = "received_at")
-    val receivedAt: String,
+    val receivedAt: Long,
     val side: Int,
 
     @ColumnInfo(name = "referred_id", defaultValue = "")
