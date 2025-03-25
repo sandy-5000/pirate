@@ -1,5 +1,6 @@
 package com.pirate.viewModels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -535,7 +536,7 @@ class MainViewModel(
     private val _chatNotifications = MutableStateFlow(mapOf<String, String>())
     val chatNotifications: StateFlow<Map<String, String>> = _chatNotifications.asStateFlow()
 
-    private fun setAllChatNotifications() {
+    fun setAllChatNotifications() {
         viewModelScope.launch {
             val chatNotificationsList = dataBase.preferencesModel.getMutedChats().first()
             val chatNotificationsMap =

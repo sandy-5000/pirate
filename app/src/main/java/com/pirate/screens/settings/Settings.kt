@@ -607,7 +607,7 @@ fun SettingsBottomModal(
                                 IconButton(
                                     enabled = !loadingFriends,
                                     onClick = {
-                                        mainViewModel.fetchFriends()
+                                        mainViewModel.setAllChatNotifications()
                                     },
                                     modifier = Modifier
                                         .clip(shape = CircleShape)
@@ -618,7 +618,7 @@ fun SettingsBottomModal(
                                         painter = painterResource(id = refreshIcon),
                                         contentDescription = "reload",
                                         modifier = Modifier
-                                            .size(iconSize + 4.dp),
+                                            .size(iconSize),
                                         tint = Color.White
                                     )
                                 }

@@ -16,9 +16,9 @@ interface PreferencesModel {
     @Query("SELECT * from preferences where `key` = :key")
     fun key(key: String): Preferences?
 
-    @Query("SELECT * FROM user_details WHERE `key` LIKE :startsWith || ':%'")
+    @Query("SELECT * FROM preferences WHERE `key` LIKE :startsWith || ':%'")
     fun getMutedChats(startsWith: String = PreferencesKey.MUTED_CHATS.value): Flow<List<Preferences>>
 
-    @Query("DELETE from user_details where `key` = :key")
+    @Query("DELETE from preferences where `key` = :key")
     suspend fun delete(key: String)
 }

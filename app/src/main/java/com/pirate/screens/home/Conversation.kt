@@ -1,8 +1,10 @@
 package com.pirate.screens.home
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,19 +14,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,25 +44,38 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewModelScope
 import com.pirate.R
+import com.pirate.components.AppChatInput
 import com.pirate.components.ChatBubble
 import com.pirate.components.DataLoading
 import com.pirate.services.SocketManager
 import com.pirate.services.fetch
 import com.pirate.types.FriendType
+import com.pirate.types.PreferencesKey
 import com.pirate.types.RequestType
 import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.LightColor
 import com.pirate.ui.theme.LightRedColor
 import com.pirate.ui.theme.NavBarBackground
 import com.pirate.ui.theme.PrimaryBlue
+import com.pirate.ui.theme.PrimaryColor
 import com.pirate.ui.theme.RedColor
+import com.pirate.utils.InviteFriendsRoute
+import com.pirate.utils.ProfileRoute
+import com.pirate.utils.SettingsRoute
 import com.pirate.utils.getMinutesDifference
 import com.pirate.utils.getProfileImage
 import com.pirate.utils.timestampToLocal
@@ -168,7 +192,9 @@ fun Conversation(
     ) {
         Column(
             modifier = modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(top = 68.dp, bottom = 68.dp)
+                .imePadding(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -185,6 +211,18 @@ fun Conversation(
                 )
             }
         }
+        ChatScreenTopBar(
+            modifier = Modifier.align(Alignment.TopCenter),
+            pageTitle = username,
+            profileImage = profileImage,
+            pirateId = pirateId,
+            mainViewModel = mainViewModel
+        )
+        AppChatInput(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            pirateId = pirateId,
+            mainViewModel = mainViewModel,
+        )
     }
 }
 
@@ -220,7 +258,7 @@ fun Friends(
     LazyColumn(
         state = listState,
         reverseLayout = true,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         item {
             Row(
@@ -593,5 +631,241 @@ fun Remaining(
     }
     if (chatScreen != FriendType.FRIENDS && chatScreen != FriendType.SELF) {
         Spacer(modifier = Modifier.height(400.dp))
+    }
+}
+
+@Composable
+fun ChatScreenTopBar(
+    modifier: Modifier = Modifier,
+    pageTitle: String,
+    profileImage: String,
+    pirateId: String,
+    mainViewModel: MainViewModel,
+) {
+    val barHeight = 68.dp
+    val iconPadding = 16.dp
+    val titlePadding = 12.dp
+    val iconSize = 20.dp
+    val sidesPadding = 18.dp
+    val backGroundColor = AppBackground
+    val userState by mainViewModel.userState.collectAsState()
+    val hideOnlineStatus by remember(userState) {
+        derivedStateOf {
+            userState.getOrDefault(PreferencesKey.HIDE_ONLINE_STATUS.value, "false") == "true"
+        }
+    }
+    val isPirateOnline by mainViewModel.otherUserOnline.collectAsState()
+
+    val context = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+    val optionHeight = 48.dp
+    val optionsIcon = Icons.Default.MoreVert
+    val cornerSize = 16.dp
+    val mutedFriends by mainViewModel.chatNotifications.collectAsState()
+    val mutedFriendsIds = remember(mutedFriends) {
+        mutedFriends.filter { it.value == "true" }.keys.toSet()
+    }
+    var showClearChatDialog by remember { mutableStateOf(false) }
+    val clearChatIcon = R.drawable.icon_broom
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(barHeight)
+            .background(color = backGroundColor),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    modifier = Modifier.padding(start = iconPadding),
+                    onClick = {
+                        SocketManager.exitChatRoute(pirateId)
+                        mainViewModel.navController.popBackStack()
+                        mainViewModel.fetchChatsList()
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.icon_arrow_left),
+                        contentDescription = "Back",
+                        modifier = Modifier
+                            .size(iconSize),
+                    )
+                }
+                Image(
+                    painter = painterResource(id = getProfileImage(profileImage.toInt())),
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                )
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = pageTitle,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Normal,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(
+                            start = titlePadding,
+                        ),
+                    )
+                    if (isPirateOnline && !hideOnlineStatus) {
+                        Text(
+                            text = "online",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(
+                                start = titlePadding,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(end = sidesPadding),
+        ) {
+            Box {
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = optionsIcon, contentDescription = "Menu"
+                    )
+                }
+                if (expanded) {
+                    Popup(
+                        alignment = Alignment.TopEnd,
+                        onDismissRequest = { expanded = false },
+                        properties = PopupProperties(focusable = true)
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(cornerSize),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                            colors = CardDefaults.cardColors(containerColor = NavBarBackground),
+                            modifier = Modifier
+                                .width(200.dp)
+                                .padding(top = 48.dp, end = 8.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(shape = RoundedCornerShape(cornerSize))
+                                    .background(PrimaryColor)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(optionHeight)
+                                        .clickable(onClick = {
+                                            showClearChatDialog = true
+                                            expanded = false
+                                        })
+                                        .padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text("Clear Chat")
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(optionHeight)
+                                        .clickable(onClick = {
+                                            mainViewModel.viewModelScope.launch {
+                                                if ((PreferencesKey.MUTED_CHATS.value + ":" + pirateId) in mutedFriendsIds) {
+                                                    mainViewModel.removeChatNotifications(pirateId = pirateId)
+                                                } else {
+                                                    mainViewModel.setChatNotifications(pirateId = pirateId)
+                                                }
+                                            }
+                                            Toast.makeText(context, "Notifications preference applied", Toast.LENGTH_SHORT)
+                                                .show()
+                                            expanded = false
+                                        })
+                                        .padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = if ((PreferencesKey.MUTED_CHATS.value + ":" + pirateId) in mutedFriendsIds) {
+                                            "Unmute notifications"
+                                        } else {
+                                            "Mute notifications"
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (showClearChatDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearChatDialog = false },
+            title = { Text(text = "Clear Chat", color = Color.White) },
+            text = {
+                Text(
+                    text = "By clicking \"Clear\", your chat history will be erased permanently. This will not affect other user in the chat.",
+                    color = LightColor,
+                )
+            },
+            containerColor = NavBarBackground,
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mainViewModel.viewModelScope.launch {
+                            mainViewModel.clearPirateChat(pirateId = pirateId)
+                            showClearChatDialog = false
+                        }
+                    },
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RedColor,
+                    ),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(id = clearChatIcon),
+                        contentDescription = "Clear Chat",
+                        modifier = Modifier
+                            .size(iconSize),
+                        tint = AppBackground,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Clear",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = AppBackground,
+                    )
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showClearChatDialog = false },
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                    )
+                ) {
+                    Text(
+                        text = "Cancel",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White
+                    )
+                }
+            }
+        )
     }
 }
