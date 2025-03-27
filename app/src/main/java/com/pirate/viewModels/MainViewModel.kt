@@ -253,7 +253,7 @@ class MainViewModel(
 
     fun fetchChatsList() {
         viewModelScope.launch {
-            val chatsList = dataBase.friendsInfoModel.getAll().first()
+            val chatsList = dataBase.friendsInfoModel.getAll()
             _chatsListState.value = chatsList
                 .filter { chat -> chat.lastMessageId.isNotEmpty() }
         }
@@ -267,11 +267,13 @@ class MainViewModel(
         }
     }
 
-    private val _lastOpened = MutableStateFlow(mapOf<String, String>())
-    val lastOpened: StateFlow<Map<String, String>> = _lastOpened.asStateFlow()
-
     suspend fun setLastOpened(pirateId: String) {
         dataBase.friendsInfoModel.updateLastOpened(pirateId = pirateId)
+        fetchChatsList()
+    }
+
+    suspend fun markAllRead() {
+        dataBase.friendsInfoModel.updateLastOpenedAll()
         fetchChatsList()
     }
 

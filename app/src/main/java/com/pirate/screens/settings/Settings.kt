@@ -424,7 +424,7 @@ fun SettingsBottomModal(
 
     val horizontalPadding = 20.dp
     val logoutIcon = R.drawable.icon_exit
-    val refreshIcon = R.drawable.icon_refresh
+    val refreshIcon = R.drawable.icon_restart
     val iconSize = 20.dp
     val userState by mainViewModel.userState.collectAsState()
     val context = LocalContext.current

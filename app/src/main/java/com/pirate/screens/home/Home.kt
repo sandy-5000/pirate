@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.viewModelScope
 import com.pirate.R
 import com.pirate.components.SearchLoading
 import com.pirate.services.fetch
@@ -79,12 +80,14 @@ import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.LightColor
 import com.pirate.ui.theme.NavBarBackground
 import com.pirate.ui.theme.PrimaryColor
+import com.pirate.ui.theme.PrimaryLightColor
 import com.pirate.utils.ChatRoute
 import com.pirate.utils.InviteFriendsRoute
 import com.pirate.utils.ProfileRoute
 import com.pirate.utils.SettingsRoute
 import com.pirate.utils.getProfileImage
 import com.pirate.viewModels.MainViewModel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -94,6 +97,10 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.math.roundToInt
+
+enum class RequestsType {
+    MESSAGE_REQUESTS, PENDING_REQUESTS
+}
 
 @Composable
 fun Home(
@@ -112,6 +119,8 @@ fun Home(
         targetValue = offsetY,
         animationSpec = tween(animationDuration)
     )
+
+    var requestsType by remember { mutableStateOf(RequestsType.MESSAGE_REQUESTS) }
 
     val reloadData = {
         if (HomeScreen.FRIENDS == homeScreen) {
@@ -146,7 +155,13 @@ fun Home(
         when (homeScreen) {
             HomeScreen.CHATS -> Chats(mainViewModel = mainViewModel)
 
-            HomeScreen.REQUESTS -> Requests(mainViewModel = mainViewModel)
+            HomeScreen.REQUESTS -> Requests(
+                mainViewModel = mainViewModel,
+                requestsType = requestsType,
+                setRequestsType = { type ->
+                    requestsType = type
+                },
+            )
 
             HomeScreen.FRIENDS -> Friends(mainViewModel = mainViewModel)
 
@@ -154,14 +169,16 @@ fun Home(
         }
         if (HomeScreen.CHATS != homeScreen) {
             Icon(
-                painter = painterResource(id = R.drawable.icon_spinner),
+                painter = painterResource(id = R.drawable.icon_restart),
                 modifier = Modifier
                     .offset { IntOffset(0, animatedOffset.roundToInt()) }
                     .rotate(degrees = animatedOffset * 0.5f)
                     .align(Alignment.TopCenter)
-                    .size(32.dp)
+                    .size(40.dp)
                     .clip(shape = CircleShape)
-                    .background(PrimaryColor),
+                    .background(PrimaryLightColor)
+                    .padding(8.dp)
+                    .padding(bottom = 1.dp),
                 contentDescription = "loading",
             )
         }
@@ -175,13 +192,29 @@ fun Home(
             },
             mainViewModel = mainViewModel,
         )
-        SearchButton(
+        BottomActionButton(
             modifier = Modifier
                 .padding(bottom = 108.dp)
                 .padding(horizontal = 24.dp)
                 .align(Alignment.BottomEnd),
             visible = HomeScreen.CHATS == homeScreen,
-            openSearch = openModel,
+            openBottomModal = openModel,
+            icon = R.drawable.icon_search,
+        )
+        BottomActionButton(
+            modifier = Modifier
+                .padding(bottom = 108.dp)
+                .padding(horizontal = 24.dp)
+                .align(Alignment.BottomEnd),
+            visible = HomeScreen.REQUESTS == homeScreen,
+            openBottomModal = {
+                if (RequestsType.MESSAGE_REQUESTS == requestsType) {
+                    requestsType = RequestsType.PENDING_REQUESTS
+                } else if (RequestsType.PENDING_REQUESTS == requestsType) {
+                    requestsType = RequestsType.MESSAGE_REQUESTS
+                }
+            },
+            icon = R.drawable.icon_transfer_horizontal_square,
         )
         BottomBar(
             modifier = Modifier
@@ -281,7 +314,11 @@ fun TopBar(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(optionHeight)
-                                        .clickable(onClick = {})
+                                        .clickable(onClick = {
+                                            mainViewModel.viewModelScope.launch {
+                                                mainViewModel.markAllRead()
+                                            }
+                                        })
                                         .padding(horizontal = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
@@ -299,16 +336,6 @@ fun TopBar(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text("Invite friends")
-                                }
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(optionHeight)
-                                        .clickable(onClick = {})
-                                        .padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text("Filter unread chats")
                                 }
                                 Row(
                                     modifier = Modifier
@@ -435,14 +462,14 @@ fun BottomBar(
 }
 
 @Composable
-fun SearchButton(
+fun BottomActionButton(
     modifier: Modifier,
     visible: Boolean,
-    openSearch: () -> Unit,
+    openBottomModal: () -> Unit,
+    icon: Int,
 ) {
     val iconSize = 24.dp
     val cornerSize = 12.dp
-    val searchIcon = R.drawable.icon_search
 
     AnimatedVisibility(
         visible = visible,
@@ -461,12 +488,12 @@ fun SearchButton(
             Box(
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(8.dp))
-                    .clickable(onClick = { openSearch() })
+                    .clickable(onClick = { openBottomModal() })
                     .padding(16.dp),
             ) {
                 Icon(
-                    painter = painterResource(id = searchIcon),
-                    contentDescription = "Search",
+                    painter = painterResource(id = icon),
+                    contentDescription = "BottomIcon",
                     modifier = Modifier
                         .size(iconSize),
                     tint = Color.White

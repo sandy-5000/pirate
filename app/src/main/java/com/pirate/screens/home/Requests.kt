@@ -2,7 +2,6 @@ package com.pirate.screens.home
 
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,10 +60,13 @@ import kotlinx.serialization.json.put
 fun Requests(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
+    requestsType: RequestsType,
+    setRequestsType: (type: RequestsType) -> Unit,
 ) {
     val requestsScrollState = rememberScrollState()
     val horizontalPadding = 24.dp
-    val minTabHeight = 220.dp
+    val switchIcon = R.drawable.icon_transfer_horizontal_square
+    val iconSize = 20.dp
 
     val loadingMessageRequest by mainViewModel.requestScreenLoadingRequests.collectAsState()
     val loadingPendingRequest by mainViewModel.requestScreenLoadingPendings.collectAsState()
@@ -81,12 +84,12 @@ fun Requests(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
             Column(
                 modifier = Modifier
                     .verticalScroll(requestsScrollState)
                     .weight(1f),
             ) {
+                Spacer(modifier = Modifier.height(80.dp))
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
                     colors = CardDefaults.cardColors(containerColor = NavBarBackground),
@@ -95,91 +98,104 @@ fun Requests(
                         .padding(bottom = 8.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Message Requests",
-                        modifier = Modifier
-                            .padding(16.dp),
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-                if (loadingMessageRequest) {
-                    DataLoading(
-                        durationMillis = 1200, modifier = Modifier
-                            .fillMaxWidth()
-                            .height(minTabHeight)
-                    )
-                } else if (requests.isEmpty()) {
-                    EmptyList(
-                        "No Message Requests",
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(minTabHeight)
-                    )
-                } else {
-                    requests.forEach { messageRequest ->
-                        MessageRequest(
-                            displayName = messageRequest.name,
-                            username = messageRequest.username,
-                            userId = messageRequest.id,
-                            profileImage = messageRequest.profileImage,
-                            mainViewModel = mainViewModel,
-                            reload = {
-                                mainViewModel.fetchMessageRequests()
-                                mainViewModel.fetchFriends()
+                            .clickable(onClick = {
+                                if (RequestsType.MESSAGE_REQUESTS == requestsType) {
+                                    setRequestsType(RequestsType.PENDING_REQUESTS)
+                                } else if (RequestsType.PENDING_REQUESTS == requestsType) {
+                                    setRequestsType(RequestsType.MESSAGE_REQUESTS)
+                                }
+                            })
+                            .padding(end = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = when (requestsType) {
+                                RequestsType.MESSAGE_REQUESTS -> "Message Requests"
+                                RequestsType.PENDING_REQUESTS -> "Pending Requests"
                             },
+                            modifier = Modifier
+                                .padding(16.dp),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Icon(
+                            painter = painterResource(id = switchIcon),
+                            contentDescription = "switch",
+                            modifier = Modifier.size(iconSize),
                         )
                     }
-                    Spacer(modifier = Modifier.height(60.dp))
                 }
-                Card(
-                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = NavBarBackground),
-                    modifier = Modifier
-                        .padding(horizontal = horizontalPadding)
-                        .padding(bottom = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Pending Requests",
-                        modifier = Modifier
-                            .padding(16.dp),
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-                if (loadingPendingRequest) {
-                    DataLoading(
-                        durationMillis = 1200, modifier = Modifier
-                            .fillMaxWidth()
-                            .height(minTabHeight)
-                    )
-                } else if (pendings.isEmpty()) {
-                    EmptyList(
-                        "No Pending Requests",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(minTabHeight)
-                    )
-                } else {
-                    pendings.forEach { pendingRequest ->
-                        PendingRequest(
-                            displayName = pendingRequest.name,
-                            username = pendingRequest.username,
-                            userId = pendingRequest.id,
-                            profileImage = pendingRequest.profileImage,
-                            mainViewModel = mainViewModel,
-                            reload = {
-                                mainViewModel.fetchPendingRequests()
-                                mainViewModel.fetchFriends()
-                            },
+                if (RequestsType.MESSAGE_REQUESTS == requestsType) {
+                    if (loadingMessageRequest) {
+                        DataLoading(
+                            durationMillis = 1200, modifier = Modifier
+                                .fillMaxSize()
                         )
+                    } else if (requests.isEmpty()) {
+                        EmptyList(
+                            message = "No Message Requests",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        )
+                        Spacer(modifier = Modifier.height(60.dp))
+                    } else {
+                        requests.forEach { messageRequest ->
+                            MessageRequest(
+                                displayName = messageRequest.name,
+                                username = messageRequest.username,
+                                userId = messageRequest.id,
+                                profileImage = messageRequest.profileImage,
+                                mainViewModel = mainViewModel,
+                                reload = {
+                                    mainViewModel.fetchMessageRequests()
+                                    mainViewModel.fetchFriends()
+                                },
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(60.dp))
                     }
-                    Spacer(modifier = Modifier.height(60.dp))
+                }
+                if (RequestsType.PENDING_REQUESTS == requestsType) {
+                    if (loadingPendingRequest) {
+                        DataLoading(
+                            durationMillis = 1200, modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    } else if (pendings.isEmpty()) {
+                        EmptyList(
+                            message = "No Pending Requests",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        )
+                        Spacer(modifier = Modifier.height(60.dp))
+                    } else {
+                        pendings.forEach { pendingRequest ->
+                            PendingRequest(
+                                displayName = pendingRequest.name,
+                                username = pendingRequest.username,
+                                userId = pendingRequest.id,
+                                profileImage = pendingRequest.profileImage,
+                                mainViewModel = mainViewModel,
+                                reload = {
+                                    mainViewModel.fetchPendingRequests()
+                                    mainViewModel.fetchFriends()
+                                },
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(60.dp))
+                    }
                 }
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
 }
+
 
 @Composable
 fun MessageRequest(

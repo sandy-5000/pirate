@@ -49,6 +49,19 @@ interface FriendsInfoModel {
 
     @Query(
         value = """
+        UPDATE friends_info
+        SET
+            last_opened_at = :timeStamp
+        """
+    )
+    suspend fun updateLastOpenedAllInternal(timeStamp: Long)
+
+    suspend fun updateLastOpenedAll() {
+        updateLastOpenedAllInternal(getTimeStamp())
+    }
+
+    @Query(
+        value = """
         UPDATE friends_info 
         SET 
             last_message_id = '', 
@@ -74,7 +87,7 @@ interface FriendsInfoModel {
     suspend fun setPinned(pirateId: String, pinned: Int)
 
     @Query(value = "SELECT * FROM friends_info")
-    fun getAll(): Flow<List<FriendsInfo>>
+    suspend fun getAll(): List<FriendsInfo>
 
     @Query(value = "DELETE FROM friends_info")
     suspend fun deleteAll()

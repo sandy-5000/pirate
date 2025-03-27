@@ -24,6 +24,8 @@ data class UserChats(
     val messageType: String = MessageType.TEXT.value,
     @ColumnInfo(name = "file_path", defaultValue = "")
     val filePath: String = "",
+    @ColumnInfo(name = "sent_at")
+    val sentAt: Long,
     @ColumnInfo(name = "received_at")
     val receivedAt: Long,
     val side: Int,

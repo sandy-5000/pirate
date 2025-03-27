@@ -87,10 +87,23 @@ object DatabaseProvider {
 
 private const val createTriggerOnInsertOrUpdate = """
     
-    DROP TRIGGER IF EXISTS update_friends_on_message_insert_or_update;
+    CREATE TRIGGER update_friends_on_message_insert
+    AFTER INSERT ON user_chats
+    FOR EACH ROW
+    BEGIN
+        UPDATE friends_info 
+        SET 
+            last_message_id = NEW.message_id,
+            last_message = NEW.message,
+            last_message_status = NEW.message_status,
+            last_message_type = NEW.message_type,
+            received_at = NEW.received_at
+        WHERE 
+            pirate_id = NEW.pirate_id;
+    END;
     
-    CREATE TRIGGER update_friends_on_message_insert_or_update
-    AFTER INSERT OR UPDATE ON user_chats
+    CREATE TRIGGER update_friends_on_message_update
+    AFTER UPDATE ON user_chats
     FOR EACH ROW
     BEGIN
         UPDATE friends_info 

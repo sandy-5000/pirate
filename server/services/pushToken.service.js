@@ -38,6 +38,7 @@ export default class PushTokenService {
         message: messageToSend,
         sender_id,
         type,
+        received_at: Date.now() + '',
       },
       token,
     }

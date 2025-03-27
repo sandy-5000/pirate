@@ -276,7 +276,7 @@ fun Friends(
                 )
             }
         }
-        if (isPirateTyping) {
+        if (chatScreen == FriendType.FRIENDS && isPirateTyping) {
             item {
                 Row(
                     modifier = Modifier
@@ -299,14 +299,14 @@ fun Friends(
             val start =
                 index == messages.lastIndex || messages[index + 1].side != messages[index].side ||
                         getMinutesDifference(
+                            messages[index + 1].receivedAt,
                             messages[index].receivedAt,
-                            messages[index + 1].receivedAt
                         ) > 5
             val end =
                 index == 0 || messages[index - 1].side != messages[index].side ||
                         getMinutesDifference(
+                            messages[index].receivedAt,
                             messages[index - 1].receivedAt,
-                            messages[index].receivedAt
                         ) > 5
             val dayStart = index == messages.lastIndex ||
                     timestampToLocal(messages[index].receivedAt).first != timestampToLocal(messages[index + 1].receivedAt).first
@@ -686,7 +686,6 @@ fun ChatScreenTopBar(
                     onClick = {
                         SocketManager.exitChatRoute(pirateId)
                         mainViewModel.navController.popBackStack()
-                        mainViewModel.fetchChatsList()
                     }
                 ) {
                     Icon(

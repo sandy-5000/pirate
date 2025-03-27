@@ -45,7 +45,6 @@ import com.pirate.services.MessageParser
 import com.pirate.services.SocketManager
 import com.pirate.services.fetch
 import com.pirate.types.FriendType
-import com.pirate.types.MessageType
 import com.pirate.types.RequestType
 import com.pirate.ui.theme.LightColor
 import com.pirate.ui.theme.NavBarBackground
@@ -105,7 +104,7 @@ fun ChatInput(
     }
 
     val sendEncryptedMessage =
-        { messageId: String, receivedAt: Long, encryptedMessage: String, plainMessage: String ->
+        { messageId: String, encryptedMessage: String, plainMessage: String ->
             val body = buildJsonObject {
                 put("message", encryptedMessage)
             }
@@ -125,11 +124,13 @@ fun ChatInput(
                         loading = false
                         return@fetch
                     }
+                    val receivedAt = getTimeStamp()
                     val userChats = UserChats(
                         messageId = messageId,
                         pirateId = pirateId,
                         message = plainMessage,
                         messageStatus = 1,
+                        sentAt = receivedAt,
                         receivedAt = receivedAt,
                         side = 0,
                     )
@@ -146,14 +147,17 @@ fun ChatInput(
         }
 
     val sendMessage = {
+        val messageToSend = message.trim()
         loading = true
         if (userId == pirateId) {
+            val receivedAt = getTimeStamp()
             val userChats = UserChats(
                 messageId = uniqId(),
                 pirateId = pirateId,
-                message = message,
+                message = messageToSend,
                 messageStatus = 1,
-                receivedAt = getTimeStamp(),
+                sentAt = receivedAt,
+                receivedAt = receivedAt,
                 side = 0,
             )
             mainViewModel.viewModelScope.launch {
@@ -193,12 +197,15 @@ fun ChatInput(
                         return@fetch
                     }
                     val messageId = uniqId()
-                    val receivedAt = getTimeStamp()
                     val encryptedMessage = MessageParser.encrypt(
-                        message = messageId + ":" + receivedAt.toString() + ":" + message.trim(),
+                        message = "$messageId:$messageToSend",
                         publicKeyStr = publicKey
                     )
-                    sendEncryptedMessage(messageId, receivedAt, encryptedMessage, message.trim())
+                    sendEncryptedMessage(
+                        messageId,
+                        encryptedMessage,
+                        messageToSend,
+                    )
                 },
                 headers = mainViewModel.getHeaders(),
                 type = RequestType.GET,

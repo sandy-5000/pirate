@@ -3,9 +3,11 @@ package com.pirate.screens.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,11 +21,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,13 +44,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pirate.R
+import com.pirate.models.types.FriendsInfo
 import com.pirate.types.FriendType
 import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.NavBarBackground
-import com.pirate.ui.theme.RedColor
+import com.pirate.ui.theme.PrimaryLightColor
+import com.pirate.utils.ChatRoute
 import com.pirate.utils.getProfileImage
 import com.pirate.utils.timestampToLocal
 import com.pirate.viewModels.MainViewModel
+
+enum class ChatFilter {
+    ALL, UNREAD
+}
 
 @Composable
 fun Chats(
@@ -49,11 +64,25 @@ fun Chats(
     mainViewModel: MainViewModel,
 ) {
     val scrollState = rememberScrollState()
+    val horizontalScrollState = rememberScrollState()
     val horizontalPadding = 24.dp
     val ghostIcon = R.drawable.icon_ghost_smile
 
-    mainViewModel.fetchChatsList()
+    var chatFilter by remember { mutableStateOf(ChatFilter.ALL) }
+
     val chatsList by mainViewModel.chatsListState.collectAsState()
+    val filteredChatList by remember(chatsList, chatFilter) {
+        mutableStateOf(chatsList.filter { chat ->
+            when (chatFilter) {
+                ChatFilter.ALL -> true
+                ChatFilter.UNREAD -> chat.receivedAt > chat.lastOpenedAt
+            }
+        })
+    }
+
+    LaunchedEffect(Unit) {
+        mainViewModel.fetchChatsList()
+    }
 
     Box(
         modifier = Modifier
@@ -71,7 +100,50 @@ fun Chats(
                     .weight(1f),
             ) {
                 Spacer(modifier = Modifier.height(60.dp))
-                if (chatsList.isEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(horizontalScrollState)
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = {
+                            chatFilter = ChatFilter.ALL
+                        },
+                        modifier = Modifier.height(32.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (ChatFilter.ALL == chatFilter) {
+                                PrimaryLightColor
+                            } else {
+                                AppBackground
+                            },
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) {
+                        Text("All Chats", color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = {
+                            chatFilter = ChatFilter.UNREAD
+                        },
+                        modifier = Modifier.height(32.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (ChatFilter.UNREAD == chatFilter) {
+                                PrimaryLightColor
+                            } else {
+                                AppBackground
+                            },
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) {
+                        Text("Unread", color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+                if (filteredChatList.isEmpty()) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -96,14 +168,17 @@ fun Chats(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Your chats are empty. Try messaging your friends or searching for new ones.",
+                                text = when (chatFilter) {
+                                    ChatFilter.ALL -> "Your chats are empty. Try messaging your friends or searching for new ones."
+                                    ChatFilter.UNREAD -> "Hi, Pirate\nYou've reviewed all your chats.\nSwitch to 'All Chats', to find your chats."
+                                },
                                 textAlign = TextAlign.Center,
                                 fontSize = 14.sp,
                             )
                         }
                     }
                 }
-                chatsList
+                filteredChatList
                     .forEach { chat ->
                         ChatRow(
                             pirateId = chat.pirateId,
@@ -114,7 +189,7 @@ fun Chats(
                                 chat.lastMessage
                             },
                             receivedAt = chat.receivedAt,
-                            profileImage = chat.image.toInt(),
+                            profileImage = chat.image,
                             unreadMessages = chat.receivedAt > chat.lastOpenedAt,
                             mainViewModel = mainViewModel,
                         )
@@ -131,7 +206,7 @@ fun ChatRow(
     username: String,
     lastMessage: String = "",
     receivedAt: Long,
-    profileImage: Int,
+    profileImage: String,
     unreadMessages: Boolean,
     mainViewModel: MainViewModel,
 ) {
@@ -145,13 +220,13 @@ fun ChatRow(
         modifier = Modifier
             .clickable(onClick = {
                 mainViewModel.setChatScreen(FriendType.INVALID)
-//                mainViewModel.navController.navigate(
-//                    ChatRoute(
-//                        pirateId = pirateId,
-//                        username = username,
-//                        profileImage = profileImage,
-//                    )
-//                )
+                mainViewModel.navController.navigate(
+                    ChatRoute(
+                        pirateId = pirateId,
+                        username = username,
+                        profileImage = profileImage,
+                    )
+                )
             })
             .padding(start = horizontalPadding, end = horizontalPadding)
             .fillMaxWidth()
@@ -160,7 +235,7 @@ fun ChatRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(id = getProfileImage(profileImage)),
+            painter = painterResource(id = getProfileImage(profileImage.toInt())),
             contentDescription = "Profile Image",
             modifier = Modifier
                 .size(imageSize)

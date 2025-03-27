@@ -23,6 +23,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.pirate.models.types.UserChats
 import com.pirate.types.PreferencesKey
+import com.pirate.utils.getTimeStamp
 import com.pirate.viewModels.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,7 @@ class PushNotificationService : FirebaseMessagingService() {
         val encryptedMessage = message.data["message"] ?: ""
         val type = message.data["type"] ?: ""
         val senderId = message.data["sender_id"] ?: ""
+        val receivedAt = message.data["received_at"] ?: ""
 
         if (NotificationType.entries.any { it.value == type }) {
             val typeEnum = NotificationType.valueOf(type)
@@ -55,6 +57,7 @@ class PushNotificationService : FirebaseMessagingService() {
                     senderId = senderId,
                     username = username,
                     message = receivedMessage,
+                    receivedAt = receivedAt,
                 )
             }
             fetchConditionsFromDatabase(
@@ -67,13 +70,17 @@ class PushNotificationService : FirebaseMessagingService() {
         }
     }
 
-    private fun saveMessageToDatabase(senderId: String, username: String, message: String) {
+    private fun saveMessageToDatabase(
+        senderId: String,
+        username: String,
+        message: String,
+        receivedAt: String
+    ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val dataBase = DatabaseProvider.getInstance(applicationContext)
                 val messageId = message.substring(0, 12)
-                val timestamp = message.substring(13, 26)
-                val text = message.substring(27)
+                val text = message.substring(13)
                 val userChats = UserChats(
                     messageId = messageId,
                     pirateId = senderId,
@@ -81,7 +88,8 @@ class PushNotificationService : FirebaseMessagingService() {
                     messageType = MessageType.TEXT.value,
                     messageStatus = 1,
                     side = 1,
-                    receivedAt = timestamp.toLong(),
+                    sentAt = receivedAt.toLong(),
+                    receivedAt = getTimeStamp(),
                 )
                 dataBase.userChatsModel.insertMessage(userChats = userChats)
                 val eventInfo = EventInfo(
@@ -111,7 +119,8 @@ class PushNotificationService : FirebaseMessagingService() {
             try {
                 val dataBase = DatabaseProvider.getInstance(applicationContext)
                 val appNotificationFlag =
-                    dataBase.userDetailsModel.key(PreferencesKey.APP_NOTIFICATION.value)?.value ?: "false"
+                    dataBase.userDetailsModel.key(PreferencesKey.APP_NOTIFICATION.value)?.value
+                        ?: "false"
                 if (appNotificationFlag == "true") {
                     return@launch
                 }
@@ -201,7 +210,13 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(icon)
             .setContentTitle(title)
-            .setContentText(message)
+            .setContentText(
+                if (NotificationType.MESSAGE == type) {
+                    message.substring(13)
+                } else {
+                    message
+                }
+            )
             .setSubText(username)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
