@@ -44,10 +44,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pirate.R
-import com.pirate.models.types.FriendsInfo
 import com.pirate.types.FriendType
 import com.pirate.ui.theme.AppBackground
 import com.pirate.ui.theme.NavBarBackground
+import com.pirate.ui.theme.PrimaryColor
 import com.pirate.ui.theme.PrimaryLightColor
 import com.pirate.utils.ChatRoute
 import com.pirate.utils.getProfileImage
@@ -67,6 +67,7 @@ fun Chats(
     val horizontalScrollState = rememberScrollState()
     val horizontalPadding = 24.dp
     val ghostIcon = R.drawable.icon_ghost_smile
+    val userState by mainViewModel.userState.collectAsState()
 
     var chatFilter by remember { mutableStateOf(ChatFilter.ALL) }
 
@@ -143,7 +144,54 @@ fun Chats(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                 }
-                if (filteredChatList.isEmpty()) {
+                if (ChatFilter.ALL == chatFilter) {
+                    Text(
+                        text = "Note to Self",
+                        modifier = Modifier.padding(
+                            horizontal = horizontalPadding,
+                            vertical = 8.dp
+                        ),
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                    )
+                    ChatRow(
+                        pirateId = userState.getOrDefault("_id", ""),
+                        username = userState.getOrDefault("username", ""),
+                        lastMessage = "Tap to Chat ...",
+                        receivedAt = 0,
+                        profileImage = userState.getOrDefault("profile_image", ""),
+                        unreadMessages = false,
+                        mainViewModel = mainViewModel,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                if (filteredChatList.isNotEmpty()) {
+                    Text(
+                        text = "Chats",
+                        modifier = Modifier.padding(
+                            horizontal = horizontalPadding,
+                            vertical = 8.dp
+                        ),
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                    )
+                    filteredChatList
+                        .forEach { chat ->
+                            ChatRow(
+                                pirateId = chat.pirateId,
+                                username = chat.username,
+                                lastMessage = if (chat.lastMessageId.isEmpty()) {
+                                    "Tap to Chat ..."
+                                } else {
+                                    chat.lastMessage
+                                },
+                                receivedAt = chat.receivedAt,
+                                profileImage = chat.image,
+                                unreadMessages = chat.receivedAt > chat.lastOpenedAt,
+                                mainViewModel = mainViewModel,
+                            )
+                        }
+                } else if (ChatFilter.UNREAD == chatFilter) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -155,7 +203,7 @@ fun Chats(
                             modifier = Modifier
                                 .fillMaxWidth(0.6f)
                                 .clip(shape = RoundedCornerShape(12.dp))
-                                .background(NavBarBackground)
+                                .background(PrimaryColor)
                                 .padding(horizontal = 12.dp, vertical = 20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
@@ -174,26 +222,11 @@ fun Chats(
                                 },
                                 textAlign = TextAlign.Center,
                                 fontSize = 14.sp,
+                                color = Color.White
                             )
                         }
                     }
                 }
-                filteredChatList
-                    .forEach { chat ->
-                        ChatRow(
-                            pirateId = chat.pirateId,
-                            username = chat.username,
-                            lastMessage = if (chat.lastMessageId.isEmpty()) {
-                                "Tap to Chat ..."
-                            } else {
-                                chat.lastMessage
-                            },
-                            receivedAt = chat.receivedAt,
-                            profileImage = chat.image,
-                            unreadMessages = chat.receivedAt > chat.lastOpenedAt,
-                            mainViewModel = mainViewModel,
-                        )
-                    }
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
@@ -282,12 +315,14 @@ fun ChatRow(
                     )
                 }
             }
-            Text(
-                text = dateTime.second.substring(0, 5),
-                color = Color.LightGray,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal,
-            )
+            if (receivedAt > 0) {
+                Text(
+                    text = dateTime.second.substring(0, 5),
+                    color = Color.LightGray,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
         }
     }
 }

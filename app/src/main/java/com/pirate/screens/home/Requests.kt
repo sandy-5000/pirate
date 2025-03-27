@@ -84,56 +84,60 @@ fun Requests(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            Spacer(modifier = Modifier.height(80.dp))
+            Card(
+                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = NavBarBackground),
+                modifier = Modifier
+                    .padding(horizontal = horizontalPadding)
+                    .padding(bottom = 8.dp)
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = {
+                            if (RequestsType.MESSAGE_REQUESTS == requestsType) {
+                                setRequestsType(RequestsType.PENDING_REQUESTS)
+                            } else if (RequestsType.PENDING_REQUESTS == requestsType) {
+                                setRequestsType(RequestsType.MESSAGE_REQUESTS)
+                            }
+                        })
+                        .padding(end = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = when (requestsType) {
+                            RequestsType.MESSAGE_REQUESTS -> "Message Requests"
+                            RequestsType.PENDING_REQUESTS -> "Pending Requests"
+                        },
+                        modifier = Modifier
+                            .padding(16.dp),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Icon(
+                        painter = painterResource(id = switchIcon),
+                        contentDescription = "switch",
+                        modifier = Modifier.size(iconSize),
+                    )
+                }
+            }
             Column(
                 modifier = Modifier
                     .verticalScroll(requestsScrollState)
                     .weight(1f),
             ) {
-                Spacer(modifier = Modifier.height(80.dp))
-                Card(
-                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = NavBarBackground),
-                    modifier = Modifier
-                        .padding(horizontal = horizontalPadding)
-                        .padding(bottom = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(onClick = {
-                                if (RequestsType.MESSAGE_REQUESTS == requestsType) {
-                                    setRequestsType(RequestsType.PENDING_REQUESTS)
-                                } else if (RequestsType.PENDING_REQUESTS == requestsType) {
-                                    setRequestsType(RequestsType.MESSAGE_REQUESTS)
-                                }
-                            })
-                            .padding(end = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = when (requestsType) {
-                                RequestsType.MESSAGE_REQUESTS -> "Message Requests"
-                                RequestsType.PENDING_REQUESTS -> "Pending Requests"
-                            },
-                            modifier = Modifier
-                                .padding(16.dp),
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Icon(
-                            painter = painterResource(id = switchIcon),
-                            contentDescription = "switch",
-                            modifier = Modifier.size(iconSize),
-                        )
-                    }
-                }
                 if (RequestsType.MESSAGE_REQUESTS == requestsType) {
                     if (loadingMessageRequest) {
                         DataLoading(
-                            durationMillis = 1200, modifier = Modifier
+                            modifier = Modifier
                                 .fillMaxSize()
+                                .weight(1f),
+                            durationMillis = 1200,
+                            message = "Loading Message Requests..."
                         )
+                        Spacer(modifier = Modifier.height(60.dp))
                     } else if (requests.isEmpty()) {
                         EmptyList(
                             message = "No Message Requests",
@@ -156,15 +160,19 @@ fun Requests(
                                 },
                             )
                         }
-                        Spacer(modifier = Modifier.height(60.dp))
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
                 if (RequestsType.PENDING_REQUESTS == requestsType) {
                     if (loadingPendingRequest) {
                         DataLoading(
-                            durationMillis = 1200, modifier = Modifier
+                            modifier = Modifier
                                 .fillMaxSize()
+                                .weight(1f),
+                            durationMillis = 1200,
+                            message = "Loading Pending Requests..."
                         )
+                        Spacer(modifier = Modifier.height(60.dp))
                     } else if (pendings.isEmpty()) {
                         EmptyList(
                             message = "No Pending Requests",

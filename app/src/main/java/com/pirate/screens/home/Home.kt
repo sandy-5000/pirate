@@ -316,6 +316,7 @@ fun TopBar(
                                         .height(optionHeight)
                                         .clickable(onClick = {
                                             mainViewModel.viewModelScope.launch {
+                                                expanded = false
                                                 mainViewModel.markAllRead()
                                             }
                                         })
