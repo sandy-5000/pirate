@@ -196,7 +196,7 @@ object NotificationHelper {
         }
 
         val markAsReadIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = "com.darkube.pirate.MARK_AS_READ"
+            action = "com.pirate.MARK_AS_READ"
             putExtra("notificationId", notificationId)
             putExtra("pirateId", pirateId)
         }
