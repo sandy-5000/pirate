@@ -116,6 +116,7 @@ io.on('connection', (socket) => {
       return
     }
     const otherSocket = userSockets.get(receiverId)
+    console.log('typ', pirateId, otherSocket?.id, isTyping)
     otherSocket?.emit('typing-changed', { otherPirateId: pirateId, isTyping })
   }
 
