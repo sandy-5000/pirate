@@ -6,7 +6,7 @@ dotenv.config()
 const secret = process.env.JWT_SECRET
 
 export default class JwtService {
-  static sign(payload, expiresIn = '7d') {
+  static sign(payload, expiresIn = '365d') {
     if (!secret) {
       throw new Error(ERRORS.JWT.SECRET_NOT_DEFINED)
     }
