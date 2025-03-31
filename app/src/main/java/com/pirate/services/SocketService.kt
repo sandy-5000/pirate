@@ -37,6 +37,13 @@ object SocketManager : DefaultLifecycleObserver {
             socket = IO.socket(SERVER_URL).apply {
                 on(Socket.EVENT_CONNECT) {
                     emit("init", body)
+                    socket?.off("typing-changed")
+                    socket?.on("typing-changed") { args ->
+                        val response = args.getOrNull(0) as? JSONObject
+                        val isTyping = response?.optBoolean("isTyping") ?: false
+                        val senderPirateId = response?.optString("otherPirateId") ?: ""
+                        MainViewModel.setOtherUserTyping(pirateId = senderPirateId, flag = isTyping)
+                    }
                     CoroutineScope(Dispatchers.IO).launch {
                         if (MainViewModel.getCurrentPirateId().isNotEmpty()) {
                             delay(500)
@@ -73,15 +80,6 @@ object SocketManager : DefaultLifecycleObserver {
             val isOnline = response?.optBoolean("isOnline") ?: false
             MainViewModel.setOtherUserOnline(isOnline)
         }
-        socket?.off("typing-changed")
-        socket?.on("typing-changed") { args ->
-            val response = args.getOrNull(0) as? JSONObject
-            val isTyping = response?.optBoolean("isTyping") ?: false
-            val receiverPirateId = response?.optString("otherPirateId") ?: ""
-            if (receiverPirateId == otherPirateId) {
-                MainViewModel.setOtherUserTyping(isTyping)
-            }
-        }
     }
 
     fun exitChatRoute(otherPirateId: String) {
@@ -94,12 +92,12 @@ object SocketManager : DefaultLifecycleObserver {
         socket?.off("typing-changed")
     }
 
-    fun startedTyping() {
-        socket?.emit("started-typing", JSONObject().put("debug", ""))
+    fun startedTyping(otherPirateId: String) {
+        socket?.emit("started-typing", JSONObject().put("receiverId", otherPirateId))
     }
 
-    fun stoppedTyping() {
-        socket?.emit("stopped-typing", JSONObject().put("debug", ""))
+    fun stoppedTyping(otherPirateId: String) {
+        socket?.emit("stopped-typing", JSONObject().put("receiverId", otherPirateId))
     }
 
     override fun onStart(owner: LifecycleOwner) {

@@ -32,6 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -56,6 +58,7 @@ import com.pirate.utils.PrivacyRoute
 import com.pirate.utils.ProfileRoute
 import com.pirate.utils.SettingsRoute
 import com.pirate.viewModels.MainViewModel
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,7 +99,11 @@ class MainActivity : ComponentActivity() {
 fun Screen(context: Context) {
     val mainViewModel = MainViewModel(
         navController = rememberNavController(),
-        dataBase = DatabaseProvider.getInstance(context)
+        dataBase = DatabaseProvider.getInstance(context),
+        closeNotification = { pirateId ->
+            val notificationId = pirateId.hashCode()
+            NotificationManagerCompat.from(context).cancel(notificationId)
+        },
     )
     MainViewModel.init(mainViewModel)
     mainViewModel.setAllUserDetails()
@@ -121,6 +128,9 @@ fun AuthenticatedScreen(mainViewModel: MainViewModel, context: Context) {
                     application = context.applicationContext as Application,
                     userId = userId,
                 )
+                mainViewModel.viewModelScope.launch {
+                    mainViewModel.fetchChatsList()
+                }
             }
         }
         MainScreen(mainViewModel = mainViewModel, context = context)
@@ -206,7 +216,6 @@ fun MainScreen(mainViewModel: MainViewModel, context: Context) {
             BackHandler {
                 SocketManager.exitChatRoute(pirateId)
                 mainViewModel.navController.popBackStack()
-                mainViewModel.fetchChatsList()
             }
 
             Conversation(

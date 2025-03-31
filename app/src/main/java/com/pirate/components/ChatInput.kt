@@ -97,9 +97,9 @@ fun ChatInput(
 
     LaunchedEffect(message) {
         if (message.isEmpty()) {
-            SocketManager.stoppedTyping()
+            SocketManager.stoppedTyping(otherPirateId = pirateId)
         } else {
-            SocketManager.startedTyping()
+            SocketManager.startedTyping(otherPirateId = pirateId)
         }
     }
 

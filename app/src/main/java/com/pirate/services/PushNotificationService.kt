@@ -153,8 +153,10 @@ object NotificationHelper {
         type: NotificationType,
     ) {
         if (
-            MainViewModel.isApplicationOn() && MainViewModel.getAppInForeground() &&
-            MainViewModel.getCurrentPirateId() == pirateId && type == NotificationType.MESSAGE
+            MainViewModel.isApplicationOn() &&
+            MainViewModel.getAppInForeground() &&
+            MainViewModel.getCurrentPirateId() == pirateId &&
+            NotificationType.MESSAGE == type
         ) {
             return
         }

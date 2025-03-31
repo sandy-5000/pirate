@@ -274,10 +274,13 @@ fun TopBar(
             ) {
                 Image(
                     painter = painterResource(id = getProfileImage(profileImage)),
-                    contentDescription = "chats",
+                    contentDescription = "profileImage",
                     modifier = Modifier
                         .size(imageSize)
-                        .clip(shape = CircleShape),
+                        .clip(shape = CircleShape)
+                        .clickable(onClick = {
+                            mainViewModel.navController.navigate(ProfileRoute)
+                        }),
                 )
                 Spacer(modifier = Modifier.width(24.dp))
                 Text(

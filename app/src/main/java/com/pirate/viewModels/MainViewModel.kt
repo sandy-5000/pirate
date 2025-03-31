@@ -1,6 +1,5 @@
 package com.pirate.viewModels
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +19,6 @@ import com.pirate.types.EventInfo
 import com.pirate.types.EventType
 import com.pirate.types.FriendType
 import com.pirate.types.HomeScreen
-import com.pirate.types.MessageType
 import com.pirate.types.PreferencesKey
 import com.pirate.types.RequestType
 import com.pirate.types.Routes
@@ -48,6 +46,7 @@ import kotlinx.serialization.json.put
 class MainViewModel(
     val navController: NavHostController,
     private val dataBase: DataBase,
+    val closeNotification: (String) -> Unit,
 ) : ViewModel() {
 
     companion object {
@@ -70,7 +69,9 @@ class MainViewModel(
         }
 
         fun refreshLastOpened() {
-            instance?.fetchChatsList()
+            if (instance?.getCurrentRoute() == Routes.HOME.value) {
+                instance?.fetchChatsList()
+            }
         }
 
         fun reloadRequestsData() {
@@ -101,10 +102,7 @@ class MainViewModel(
 
         fun emit(eventInfo: EventInfo) {
             if (eventInfo.type == EventType.MESSAGE) {
-                if (
-                    instance?.getCurrentRoute() == Routes.HOME.value &&
-                    instance?.homeScreenState?.value == HomeScreen.CHATS
-                ) {
+                if (instance?.getCurrentRoute() == Routes.HOME.value) {
                     instance?.fetchChatsList()
                 }
                 if (
@@ -121,8 +119,40 @@ class MainViewModel(
             instance?.setOtherUserOnline(flag)
         }
 
-        fun setOtherUserTyping(flag: Boolean) {
-            instance?.setOtherUserTyping(flag)
+        fun setOtherUserTyping(pirateId: String, flag: Boolean) {
+            instance?.setOtherUserTyping(pirateId = pirateId, flag = flag)
+        }
+    }
+
+    init {
+        observeNavigation()
+    }
+
+    private fun observeNavigation() {
+        viewModelScope.launch {
+            navController.currentBackStackEntryFlow.collect { backStackEntry ->
+                val route = backStackEntry.destination.route ?: Routes.HOME.value
+                val arguments = backStackEntry.arguments
+                val newRouteData = route.split("/")
+                val newRoute = newRouteData.firstOrNull() ?: Routes.HOME.value
+                val pirateId = arguments?.getString("pirateId") ?: ""
+                onRouteChanged(newRoute = newRoute, pirateId = pirateId)
+            }
+        }
+    }
+
+    private fun onRouteChanged(newRoute: String, pirateId: String = "") {
+        setPirateId(pirateId = pirateId)
+        if (Routes.HOME.value == newRoute) {
+            fetchChatsList()
+        } else if (Routes.CHAT.value == newRoute) {
+            resetChatState()
+            viewModelScope.launch {
+                setLastOpened(pirateId = pirateId)
+                if (pirateId != "") {
+                    closeNotification(pirateId)
+                }
+            }
         }
     }
 
@@ -234,7 +264,6 @@ class MainViewModel(
                 username = username,
                 image = profileImage,
             )
-            fetchChatsList()
         }
     }
 
@@ -267,9 +296,8 @@ class MainViewModel(
         }
     }
 
-    suspend fun setLastOpened(pirateId: String) {
+    private suspend fun setLastOpened(pirateId: String) {
         dataBase.friendsInfoModel.updateLastOpened(pirateId = pirateId)
-        fetchChatsList()
     }
 
     suspend fun markAllRead() {
@@ -322,7 +350,8 @@ class MainViewModel(
                         username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "2"
+                        profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "2"
                     )
                 }
                 _requestScreenLoadingRequests.value = false
@@ -352,7 +381,8 @@ class MainViewModel(
                         username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A",
                         id = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A",
-                        profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "10"
+                        profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull
+                            ?: "10"
                     )
                 }
                 _requestScreenLoadingPendings.value = false
@@ -398,7 +428,8 @@ class MainViewModel(
                     val pirateId = detailObject["_id"]?.jsonPrimitive?.contentOrNull ?: "N/A"
                     val username = detailObject["username"]?.jsonPrimitive?.contentOrNull ?: "N/A"
                     val name = detailObject["name"]?.jsonPrimitive?.contentOrNull ?: "N/A"
-                    val profileImage = detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "10"
+                    val profileImage =
+                        detailObject["profile_image"]?.jsonPrimitive?.contentOrNull ?: "10"
                     Details(
                         username = username,
                         name = name,
@@ -411,7 +442,7 @@ class MainViewModel(
                         pirateId = details.id,
                         name = details.name,
                         username = details.username,
-                        image = details.profileImage.toString()
+                        image = details.profileImage
                     )
                 }
                 fetchChatsList()
@@ -433,7 +464,7 @@ class MainViewModel(
     }
 
     private var currentPirateId by mutableStateOf("")
-    fun setPirateId(pirateId: String) {
+    private fun setPirateId(pirateId: String) {
         currentPirateId = pirateId
     }
 
@@ -441,7 +472,7 @@ class MainViewModel(
     val userChatState: StateFlow<List<UserChats>> = _userChatState.asStateFlow()
     private var messageOffset by mutableIntStateOf(0)
 
-    fun resetChatState() {
+    private fun resetChatState() {
         setChatScreen(FriendType.INVALID)
         _userChatState.value = emptyList()
         messageOffset = 0
@@ -496,10 +527,14 @@ class MainViewModel(
         _otherUserOnline.value = flag
     }
 
-    private val _otherUserTyping = MutableStateFlow(false)
-    val otherUserTyping: StateFlow<Boolean> = _otherUserTyping.asStateFlow()
-    fun setOtherUserTyping(flag: Boolean) {
-        _otherUserTyping.value = flag
+    private val _otherUsersTyping = MutableStateFlow(emptySet<String>())
+    val otherUsersTyping: StateFlow<Set<String>> = _otherUsersTyping.asStateFlow()
+    fun setOtherUserTyping(pirateId: String, flag: Boolean) {
+        _otherUsersTyping.value = if (flag) {
+            _otherUsersTyping.value + pirateId
+        } else {
+            _otherUsersTyping.value - pirateId
+        }
     }
     // ________ ChatScreen
 

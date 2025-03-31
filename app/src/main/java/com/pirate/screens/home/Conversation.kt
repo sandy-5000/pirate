@@ -44,9 +44,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -73,9 +71,6 @@ import com.pirate.ui.theme.NavBarBackground
 import com.pirate.ui.theme.PrimaryBlue
 import com.pirate.ui.theme.PrimaryColor
 import com.pirate.ui.theme.RedColor
-import com.pirate.utils.InviteFriendsRoute
-import com.pirate.utils.ProfileRoute
-import com.pirate.utils.SettingsRoute
 import com.pirate.utils.getMinutesDifference
 import com.pirate.utils.getProfileImage
 import com.pirate.utils.timestampToLocal
@@ -105,9 +100,6 @@ fun Conversation(
 
     var updatedUsername by remember { mutableStateOf(username) }
     var updatedProfileImage by remember { mutableStateOf(profileImage) }
-
-    mainViewModel.getCurrentRoute()
-    mainViewModel.setPirateId(pirateId = pirateId)
 
     val fetchFriendType = {
         screenLoading = true
@@ -165,10 +157,7 @@ fun Conversation(
     }
 
     LaunchedEffect(Unit) {
-        mainViewModel.resetChatState()
-        mainViewModel.setLastOpened(pirateId = pirateId)
         mainViewModel.setOtherUserOnline(false)
-        mainViewModel.setOtherUserTyping(false)
         if (pirateId == userId) {
             screenLoading = false
             mainViewModel.setChatScreen(FriendType.SELF)
@@ -240,7 +229,7 @@ fun Friends(
     val messages by mainViewModel.userChatState.collectAsState()
     val listState = rememberLazyListState()
     var isLoading by remember { mutableStateOf(false) }
-    val isPirateTyping by mainViewModel.otherUserTyping.collectAsState()
+    val otherUsersTyping by mainViewModel.otherUsersTyping.collectAsState()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -276,7 +265,7 @@ fun Friends(
                 )
             }
         }
-        if (chatScreen == FriendType.FRIENDS && isPirateTyping) {
+        if (chatScreen == FriendType.FRIENDS && otherUsersTyping.contains(pirateId)) {
             item {
                 Row(
                     modifier = Modifier

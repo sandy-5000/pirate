@@ -69,20 +69,20 @@ fun Chats(
     val ghostIcon = R.drawable.icon_ghost_smile
     val userState by mainViewModel.userState.collectAsState()
 
+    val otherUsersTyping by mainViewModel.otherUsersTyping.collectAsState()
+
     var chatFilter by remember { mutableStateOf(ChatFilter.ALL) }
 
     val chatsList by mainViewModel.chatsListState.collectAsState()
     val filteredChatList by remember(chatsList, chatFilter) {
-        mutableStateOf(chatsList.filter { chat ->
-            when (chatFilter) {
-                ChatFilter.ALL -> true
-                ChatFilter.UNREAD -> chat.receivedAt > chat.lastOpenedAt
-            }
-        })
-    }
-
-    LaunchedEffect(Unit) {
-        mainViewModel.fetchChatsList()
+        mutableStateOf(
+            chatsList.filter { chat ->
+                when (chatFilter) {
+                    ChatFilter.ALL -> true
+                    ChatFilter.UNREAD -> chat.receivedAt > chat.lastOpenedAt
+                }
+            }.sortedByDescending { chat -> chat.receivedAt }
+        )
     }
 
     Box(
@@ -146,7 +146,7 @@ fun Chats(
                 }
                 if (ChatFilter.ALL == chatFilter) {
                     Text(
-                        text = "Note to Self",
+                        text = "Pinned",
                         modifier = Modifier.padding(
                             horizontal = horizontalPadding,
                             vertical = 8.dp
@@ -154,14 +154,16 @@ fun Chats(
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp,
                     )
+                    val userId = userState.getOrDefault("_id", "")
                     ChatRow(
-                        pirateId = userState.getOrDefault("_id", ""),
+                        pirateId = userId,
                         username = userState.getOrDefault("username", ""),
                         lastMessage = "Tap to Chat ...",
                         receivedAt = 0,
                         profileImage = userState.getOrDefault("profile_image", ""),
                         unreadMessages = false,
                         mainViewModel = mainViewModel,
+                        typing = otherUsersTyping.contains(userId),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -189,6 +191,7 @@ fun Chats(
                                 profileImage = chat.image,
                                 unreadMessages = chat.receivedAt > chat.lastOpenedAt,
                                 mainViewModel = mainViewModel,
+                                typing = otherUsersTyping.contains(chat.pirateId),
                             )
                         }
                 } else if (ChatFilter.UNREAD == chatFilter) {
@@ -242,6 +245,7 @@ fun ChatRow(
     profileImage: String,
     unreadMessages: Boolean,
     mainViewModel: MainViewModel,
+    typing: Boolean,
 ) {
     val horizontalPadding = 24.dp
     val imageSize = 60.dp
@@ -288,7 +292,11 @@ fun ChatRow(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = lastMessage,
+                text = if (typing) {
+                    "Typing ..."
+                } else {
+                    lastMessage
+                },
                 color = Color.LightGray,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Normal,
