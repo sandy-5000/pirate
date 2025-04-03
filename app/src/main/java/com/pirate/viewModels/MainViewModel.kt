@@ -13,6 +13,7 @@ import com.pirate.models.types.UserChats
 import com.pirate.models.types.UserDetails
 import com.pirate.services.DataBase
 import com.pirate.services.KeyStoreManager
+import com.pirate.services.SocketManager
 import com.pirate.services.fetch
 import com.pirate.types.Details
 import com.pirate.types.EventInfo

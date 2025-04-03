@@ -37,13 +37,6 @@ object SocketManager : DefaultLifecycleObserver {
             socket = IO.socket(SERVER_URL).apply {
                 on(Socket.EVENT_CONNECT) {
                     emit("init", body)
-                    socket?.off("typing-changed")
-                    socket?.on("typing-changed") { args ->
-                        val response = args.getOrNull(0) as? JSONObject
-                        val isTyping = response?.optBoolean("isTyping") ?: false
-                        val senderPirateId = response?.optString("otherPirateId") ?: ""
-                        MainViewModel.setOtherUserTyping(pirateId = senderPirateId, flag = isTyping)
-                    }
                     CoroutineScope(Dispatchers.IO).launch {
                         if (MainViewModel.getCurrentPirateId().isNotEmpty()) {
                             delay(500)
@@ -51,6 +44,12 @@ object SocketManager : DefaultLifecycleObserver {
                         }
                     }
                     Log.d("Socket.IO", "Connected to server")
+                }
+                on("typing-changed") { args ->
+                    val response = args.getOrNull(0) as? JSONObject
+                    val isTyping = response?.optBoolean("isTyping") ?: false
+                    val senderPirateId = response?.optString("otherPirateId") ?: ""
+                    MainViewModel.setOtherUserTyping(pirateId = senderPirateId, flag = isTyping)
                 }
                 connect()
             }
@@ -89,7 +88,6 @@ object SocketManager : DefaultLifecycleObserver {
             JSONObject().put("otherPirateId", otherPirateId)
         )
         socket?.off("user-online-response")
-        socket?.off("typing-changed")
     }
 
     fun startedTyping(otherPirateId: String) {
